@@ -171,7 +171,6 @@ const DeckCard = memo(function DeckCard({ city, index: i, isLast, offset, scroll
 
         <div className="deck-card__top">
           <span className="deck-card__country-tag">{city.country}</span>
-          <span className="deck-card__year">{city.year}</span>
         </div>
 
         <div className="deck-card__bottom">
