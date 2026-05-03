@@ -1198,9 +1198,10 @@
 }
 
 .deck-card__year {
-  font-size: 0.65rem;
-  color: rgba(255, 248, 240, 1);
+  font-size: 0.75rem;
+  color: #ffffff;
   letter-spacing: 0.08em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
 /* Bottom content */
