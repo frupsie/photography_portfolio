@@ -1198,10 +1198,10 @@
 }
 
 .deck-card__year {
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.14em;
-  color: rgba(228, 221, 212, 0.9);
+  color: #ffffff;
   background: rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
