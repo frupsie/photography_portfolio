@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=Inter:wght@300;400;500&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #111110;
+  --bg-secondary: #1a1916;
+  --text: #e4ddd4;
+  --text-muted: #7a7268;
+  --accent: #a89070;
+  --accent-light: #c4b094;
+  --accent-glow: rgba(168, 144, 112, 0.20);
+  --glass: rgba(16, 14, 12, 0.55);
+  --glass-border: rgba(200, 184, 160, 0.07);
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+html {
+  width: 100%;
+  /* Let html grow with content so window is the scroll container */
+  overflow-x: clip;
+  background: var(--bg);
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  /* No overflow-x: hidden on body — that would make body the scroll container
+     and break window.scrollY / window scroll events */
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg);
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.app {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }

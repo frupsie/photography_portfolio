@@ -1,0 +1,42 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#020818"/>
+      <stop offset="60%" stop-color="#0a1a3a"/>
+      <stop offset="100%" stop-color="#1a2a50"/>
+    </linearGradient>
+    <linearGradient id="horizon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2a50"/>
+      <stop offset="100%" stop-color="#050810"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="780" fill="url(#sky)"/>
+  <rect y="700" width="1920" height="380" fill="url(#horizon)"/>
+  <!-- Stars -->
+  <g fill="white" opacity="0.6">
+    <circle cx="120" cy="80" r="1.5"/>
+    <circle cx="340" cy="45" r="1"/>
+    <circle cx="560" cy="120" r="1.5"/>
+    <circle cx="780" cy="60" r="1"/>
+    <circle cx="960" cy="90" r="2"/>
+    <circle cx="1100" cy="30" r="1"/>
+    <circle cx="1300" cy="110" r="1.5"/>
+    <circle cx="1500" cy="55" r="1"/>
+    <circle cx="1700" cy="95" r="1.5"/>
+    <circle cx="200" cy="200" r="1"/>
+    <circle cx="450" cy="180" r="1.5"/>
+    <circle cx="700" cy="220" r="1"/>
+    <circle cx="900" cy="160" r="1.5"/>
+    <circle cx="1150" cy="210" r="1"/>
+    <circle cx="1400" cy="170" r="1.5"/>
+    <circle cx="1650" cy="230" r="1"/>
+    <circle cx="1850" cy="140" r="1.5"/>
+  </g>
+  <!-- Mountain silhouettes -->
+  <polygon points="0,1080 0,680 200,480 400,600 600,400 800,550 960,380 1120,520 1300,420 1500,560 1700,440 1920,580 1920,1080" fill="#050810"/>
+  <!-- Foreground -->
+  <rect y="900" width="1920" height="180" fill="#030608"/>
+  <!-- Glow on horizon -->
+  <ellipse cx="960" cy="700" rx="600" ry="80" fill="#1a3a8a" opacity="0.3"/>
+  <text x="960" y="760" font-family="Georgia, serif" font-size="18" fill="rgba(136,170,255,0.3)" text-anchor="middle" letter-spacing="8">REPLACE WITH YOUR LANDSCAPE PHOTO</text>
+</svg>
