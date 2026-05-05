@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
 import CityPage from './components/pages/CityPage';
 import AboutPage from './components/pages/AboutPage';
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/gallery" element={<GalleryPage />} />
         </Routes>
       </AnimatePresence>
+      <Footer />
     </div>
   );
 }

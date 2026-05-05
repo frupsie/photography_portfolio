@@ -1040,6 +1040,19 @@
   justify-content: center;
 }
 
+/* Dark gradient overlay at top — opposite to background, keeps counter readable */
+.deck-sticky::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(to bottom, rgba(20, 15, 10, 0.55) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 5;
+}
+
 /* ── Counter — top left ── */
 .deck-counter {
   position: absolute;
@@ -1088,7 +1101,7 @@
   font-size: 0.65rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--accent);
+  filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.6));
   margin-bottom: 6px;
 }
 
@@ -1096,7 +1109,7 @@
   font-family: var(--font-heading);
   font-size: clamp(1.5rem, 2.5vw, 2.2rem);
   font-weight: 400;
-  color: rgba(228, 221, 212, 0.75);
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55));
   letter-spacing: -0.01em;
   line-height: 1;
 }
@@ -1120,6 +1133,14 @@
   /* Postcard proportions: 3:2 (6×4 inches) */
   width: min(50vw, calc(68vh * (3 / 2)));
   aspect-ratio: 3 / 2;
+  /* Fade in after 200ms — gives browser time to restore scroll and framer motion
+     time to apply correct card transforms, preventing wrong-card flash on refresh */
+  animation: deck-fadein 0.25s ease-out 0.2s both;
+}
+
+@keyframes deck-fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── Individual card ── */
@@ -1198,9 +1219,11 @@
 }
 
 .deck-card__year {
-  font-size: 0.8rem;
-  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 500;
   letter-spacing: 0.08em;
+  color: #ffffff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
 }
 
 /* Bottom content */
@@ -1474,3 +1497,127 @@
   .showcase__name { font-size: clamp(2.2rem, 12vw, 3.5rem); }
 }
 
+/* =====================================================
+   FOOTER
+   ===================================================== */
+.footer {
+  position: relative;
+  background: linear-gradient(to bottom, #141210 0%, #0e0c0a 100%);
+  padding: 36px 0 0;
+  overflow: hidden;
+}
+
+/* Warm glow line at the very top */
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent 0%, rgba(168, 144, 112, 0.5) 30%, rgba(196, 176, 148, 0.7) 50%, rgba(168, 144, 112, 0.5) 70%, transparent 100%);
+}
+
+/* Subtle warm vignette at top */
+.footer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, rgba(168, 144, 112, 0.05) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.footer__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+/* ── 2-column grid ── */
+.footer__grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 28px;
+}
+
+/* Left — Brand */
+.footer__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.footer__logo {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: rgba(228, 221, 212, 0.9);
+  letter-spacing: 0.06em;
+  transition: color 0.25s;
+}
+
+.footer__logo:hover {
+  color: var(--accent-light);
+}
+
+.footer__tagline {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.75;
+}
+
+/* Right — Nav */
+.footer__nav {
+  display: flex;
+  flex-direction: row;
+  gap: 28px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.footer__link {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(228, 221, 212, 0.4);
+  transition: color 0.25s;
+}
+
+.footer__link:hover {
+  color: rgba(228, 221, 212, 0.9);
+}
+
+/* ── Bottom divider + copyright ── */
+.footer__bottom {
+  border-top: 1px solid rgba(200, 184, 160, 0.08);
+  padding: 12px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.footer__copy {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: rgba(200, 184, 160, 0.2);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .footer__grid {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+  .footer__nav { justify-content: center; }
+  .footer__inner { padding: 0 24px; }
+}

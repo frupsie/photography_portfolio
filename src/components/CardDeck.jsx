@@ -1,7 +1,12 @@
-import { useRef, useState, useEffect, memo } from 'react';
+import { useRef, useState, useEffect, useLayoutEffect, useCallback, memo } from 'react';
 import { useMotionValue, useTransform, useMotionValueEvent, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { cities } from '../data/cities';
+
+// Take over scroll restoration so we can replay it after framer-motion is ready
+if (typeof window !== 'undefined') {
+  history.scrollRestoration = 'manual';
+}
 
 const n = cities.length; // 11
 const SCROLL_PER_CARD = 45; // vh of scroll per card
@@ -37,8 +42,16 @@ const COUNTRY_BG = {
 export default function CardDeck() {
   const containerRef = useRef();
   const scrollYProgress = useMotionValue(0);
+  const scrollRestored = useRef(false);
 
+  // Persist scroll position so we can replay it after framer-motion initialises
   useEffect(() => {
+    const save = () => sessionStorage.setItem('deck_scrollY', String(window.scrollY));
+    window.addEventListener('beforeunload', save);
+    return () => window.removeEventListener('beforeunload', save);
+  }, []);
+
+  useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const update = () => {
@@ -48,7 +61,27 @@ export default function CardDeck() {
       scrollYProgress.set(Math.max(0, Math.min(1, -rect.top / total)));
     };
     document.addEventListener('scroll', update, { passive: true });
-    update();
+    update(); // page is at top (scroll restoration disabled), so this sets 0
+
+    // Restore saved scroll position once framer-motion's frame loop is live.
+    // Two rAFs: 1st lets React finish painting; 2nd lets framer-motion run its
+    // first scheduler tick so all useTransform subscriptions are active.
+    if (!scrollRestored.current) {
+      const raw = sessionStorage.getItem('deck_scrollY');
+      if (raw !== null) {
+        scrollRestored.current = true;
+        sessionStorage.removeItem('deck_scrollY');
+        const targetY = parseInt(raw, 10);
+        if (targetY > 0) {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              window.scrollTo(0, targetY);
+            });
+          });
+        }
+      }
+    }
+
     return () => document.removeEventListener('scroll', update);
   }, [scrollYProgress]);
 
@@ -89,12 +122,25 @@ export default function CardDeck() {
 
 /* ─── Active city counter + label ───────────────────────────────── */
 function ActiveCityInfo({ scrollYProgress }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    // Map progress past the delay back to a 0–n index
+  const computeIndex = useCallback((p) => {
     const animP = Math.max(0, (p - DELAY) / (1 - DELAY));
-    setActiveIndex(Math.min(Math.floor(animP * n), n - 1));
+    // Each card peels over 0.8/n of animP. +0.65 triggers label change
+    // roughly when the card's bottom edge exits the top of the viewport.
+    return Math.min(Math.max(0, Math.floor(animP * n + 0.65)), n - 1);
+  }, []);
+
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Sync to current scroll position on mount (handles page refresh mid-scroll)
+  useEffect(() => {
+    setActiveIndex(computeIndex(scrollYProgress.get()));
+  }, [computeIndex, scrollYProgress]);
+
+  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+    setActiveIndex(computeIndex(p));
   });
+
+  const labelColor = '#ffffff';
 
   return (
     <>
@@ -105,8 +151,12 @@ function ActiveCityInfo({ scrollYProgress }) {
       </div>
 
       <div className="deck-label">
-        <span className="deck-label__country">{cities[activeIndex].country}</span>
-        <h2 className="deck-label__city">{cities[activeIndex].name}</h2>
+        <motion.span className="deck-label__country" style={{ color: labelColor }}>
+          {cities[activeIndex].country}
+        </motion.span>
+        <motion.h2 className="deck-label__city" style={{ color: labelColor }}>
+          {cities[activeIndex].name}
+        </motion.h2>
       </div>
     </>
   );
