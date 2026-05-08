@@ -1805,33 +1805,57 @@
   flex-shrink: 0;
 }
 
-/* Arrow buttons — inline, not floating */
+/* Arrow buttons — static tall pills overlaid on track-wrapper */
 .carousel__arrow {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 1.4rem;
-  line-height: 1;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+
+  /* Tall pill shape */
+  width: 40px;
+  height: 72px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background: rgba(10, 9, 8, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  color: rgba(255, 255, 255, 0.80);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  transition: opacity 0.25s ease, background 0.22s, border-color 0.22s, color 0.22s, transform 0.22s;
+}
+
+.carousel__arrow svg {
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
+/* Align arrows to the inner edges of the centred card (card = 44vw) */
+.carousel__arrow--left  { left:  calc((100% - 44vw) / 2 + 14px); }
+.carousel__arrow--right { right: calc((100% - 44vw) / 2 + 14px); }
+
 .carousel__arrow:hover {
-  border-color: rgba(255, 255, 255, 0.55);
-  color: rgba(255, 255, 255, 0.95);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(10, 9, 8, 0.70);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+  transform: translateY(-50%) scale(1.05);
 }
 
 .carousel__arrow:disabled {
-  opacity: 0.2;
+  opacity: 0.12;
   pointer-events: none;
+}
+
+/* Hide arrows while the track is scrolling */
+.carousel__track-wrapper--scrolling .carousel__arrow {
+  opacity: 0 !important;
+  pointer-events: none;
+  transition: opacity 0.08s ease;
 }
 
 /* Dot indicators */
@@ -1867,6 +1891,8 @@
     padding-inline: calc((100% - 58vw) / 2);
     scroll-padding-inline: calc((100% - 58vw) / 2);
   }
+  .carousel__arrow--left  { left:  calc((100% - 58vw) / 2 + 14px); }
+  .carousel__arrow--right { right: calc((100% - 58vw) / 2 + 14px); }
 }
 
 @media (max-width: 768px) {
@@ -1876,6 +1902,8 @@
     padding-inline: calc((100% - 70vw) / 2);
     scroll-padding-inline: calc((100% - 70vw) / 2);
   }
+  .carousel__arrow--left  { left:  calc((100% - 70vw) / 2 + 12px); }
+  .carousel__arrow--right { right: calc((100% - 70vw) / 2 + 12px); }
 }
 
 @media (max-width: 480px) {
@@ -1887,10 +1915,16 @@
     padding-inline: calc((100% - 82vw) / 2);
     scroll-padding-inline: calc((100% - 82vw) / 2);
   }
+  .carousel__arrow--left  { left:  calc((100% - 82vw) / 2 + 8px); }
+  .carousel__arrow--right { right: calc((100% - 82vw) / 2 + 8px); }
   .carousel__arrow {
     width: 30px;
-    height: 30px;
-    font-size: 1.1rem;
+    height: 52px;
+    border-radius: 15px;
+  }
+  .carousel__arrow svg {
+    width: 14px;
+    height: 14px;
   }
 }
 
