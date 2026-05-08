@@ -1,6 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
@@ -10,12 +10,24 @@ import ContactPage from './components/pages/ContactPage';
 import GearPage from './components/pages/GearPage';
 import GalleryPage from './components/pages/GalleryPage';
 
+function ScrollProgressBar() {
+  const { scrollYProgress } = useScroll();
+  const height = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
+
+  return (
+    <div className="scroll-bar__track">
+      <motion.div className="scroll-bar__fill" style={{ height }} />
+    </div>
+  );
+}
+
 export default function App() {
   const location = useLocation();
 
   return (
     <div className="app">
       <Navbar />
+      <ScrollProgressBar />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<LandingPage />} />

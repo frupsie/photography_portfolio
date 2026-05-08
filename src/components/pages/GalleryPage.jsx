@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cities } from '../../data/cities';
 
@@ -21,7 +22,11 @@ function buildPhotoList() {
 const ALL_PHOTOS = buildPhotoList();
 
 export default function GalleryPage() {
-  const [activeFilter, setActiveFilter] = useState('All');
+  const location = useLocation();
+  // Pre-select a country when navigated from the Destinations strip
+  const [activeFilter, setActiveFilter] = useState(
+    () => location.state?.country ?? 'All'
+  );
 
   const filtered = useMemo(() => {
     if (activeFilter === 'All') return ALL_PHOTOS;

@@ -1,6 +1,11 @@
+import { Suspense, lazy } from 'react';
 import { motion } from 'framer-motion';
 import { cities } from '../data/cities';
-import CardDeck from './CardDeck';
+import FeaturedCarousel from './FeaturedReel';
+import Destinations from './Destinations';
+
+// Lazy-load the heavy 3D canvas so it never delays initial page paint
+const GlobeSection = lazy(() => import('./GlobeSection'));
 
 export default function LandingPage() {
   return (
@@ -59,8 +64,16 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ── Scroll-locked card deck ── */}
-      <CardDeck />
+      {/* ── 3D Globe ── */}
+      <Suspense fallback={<div className="globe-section globe-section--loading" />}>
+        <GlobeSection />
+      </Suspense>
+
+      {/* ── Curated photo carousel ── */}
+      <FeaturedCarousel />
+
+      {/* ── Country destinations ── */}
+      <Destinations />
 
     </div>
   );
