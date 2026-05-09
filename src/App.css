@@ -1,3 +1,386 @@
+/* ===== INTRO / CAMERA LOADING SCREEN ===== */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0c0b0a;
+  overflow: hidden;
+}
+
+/* Compact 3:2 viewfinder window — centred on the dark backdrop */
+.intro__viewfinder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1400px, 98vw);
+  max-height: 95vh;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.10),
+    0 24px 64px rgba(0, 0, 0, 0.85);
+}
+
+/* Hero photo clipped to viewfinder */
+.intro__bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/photos/hong-kong/_MG_3601.JPG');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Rule-of-thirds grid: 2 horizontal + 2 vertical lines */
+.intro__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 33.333% 33.333%;
+}
+
+/* Corner L-brackets — relative to .intro__viewfinder */
+.intro__bracket {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-style: solid;
+  border-width: 0;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.intro__bracket--tl { top: 10px; left: 10px; border-top-width: 1.5px; border-left-width: 1.5px; }
+.intro__bracket--tr { top: 10px; right: 10px; border-top-width: 1.5px; border-right-width: 1.5px; }
+.intro__bracket--bl { bottom: 10px; left: 10px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.intro__bracket--br { bottom: 10px; right: 10px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+
+/* ── TOP BAR ── [M]  1/500  F1.8  ISO 400  AWB ⊙ ▭ IS ████ */
+.intro__topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 42px;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 0;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: #f0f0f0;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro__topbar-mode {
+  border: 1px solid rgba(240, 240, 240, 0.8);
+  padding: 1px 7px;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  margin-right: 20px;
+  line-height: 1.6;
+}
+
+.intro__topbar-vals {
+  display: flex;
+  gap: 22px;
+  flex: 1;
+}
+
+.intro__topbar-aperture {
+  font-weight: 500;
+}
+
+.intro__topbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #909090;
+  font-size: 0.63rem;
+  letter-spacing: 0.08em;
+}
+
+.intro__topbar-wb {
+  color: #b0b0b0;
+  font-size: 0.62rem;
+}
+
+.intro__topbar-icon {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Battery: 3 filled blocks + 1 empty */
+.intro__battery {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  margin-left: 4px;
+}
+
+.intro__battery span {
+  display: inline-block;
+  width: 7px;
+  height: 11px;
+  background: #d0d0d0;
+  border-radius: 1px;
+}
+
+.intro__battery-empty {
+  background: transparent !important;
+  border: 1px solid #505050 !important;
+}
+
+/* ── AF DOT GRID — 5 × 3 ── */
+.intro__af-grid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 26px;
+  width: min(280px, 60%);
+  pointer-events: none;
+}
+
+.intro__af-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.22);
+  justify-self: center;
+}
+
+.intro__af-dot--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── CENTER AF FRAME ── */
+.intro__af-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% - 6px));
+  width: min(160px, 32%);
+  aspect-ratio: 5 / 3;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: 1px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 5px;
+}
+
+.intro__af-status {
+  font-family: var(--font-body);
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* ── LEVEL LINE ── */
+.intro__level {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 38px);
+  width: 60px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ── RIGHT EXPOSURE METER ── */
+.intro__meter {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.intro__meter-tick {
+  font-family: var(--font-body);
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.05em;
+  min-width: 22px;
+}
+
+.intro__meter-tick--zero {
+  color: #f0f0f0;
+  font-size: 0.65rem;
+}
+
+.intro__meter-marker {
+  color: #f0f0f0;
+  font-size: 0.55rem;
+}
+
+/* ── BOTTOM BAR ── RAW+L  exp scale  1724  CF-A */
+.intro__bottombar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 42px;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 0;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  color: #d0d0d0;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro__bottombar-quality {
+  margin-right: auto;
+  font-size: 0.66rem;
+  color: #c0c0c0;
+}
+
+/* Exposure compensation scale */
+.intro__exp-scale {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.intro__exp-label {
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.intro__exp-ticks {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.intro__exp-tick {
+  width: 1px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.28);
+  flex-shrink: 0;
+}
+
+.intro__exp-tick--center {
+  height: 11px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.intro__exp-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f0f0f0;
+}
+
+.intro__bottombar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.intro__shot-count {
+  font-size: 0.7rem;
+}
+
+.intro__card-label {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* ── EXTERNAL LOADING BAR — sits below the viewfinder box ── */
+.intro__loading {
+  position: absolute;
+  /* Align with bottom of the centred viewfinder + a small gap */
+  top: calc(50% + min(1400px, 98vw) / 3 + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1400px, 98vw);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.intro__loading-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.intro__loading-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 2px;
+}
+
+.intro__loading-pct {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.45);
+  font-variant-numeric: tabular-nums;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Shutter blades */
+.intro__shutter {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 50vh;
+  background: #000;
+  z-index: 10;
+}
+.intro__shutter--top    { top: 0; }
+.intro__shutter--bottom { bottom: 0; }
+
+/* Flash */
+.intro__flash {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 11;
+  pointer-events: none;
+}
+
+/* Skip button */
+.intro__skip {
+  position: absolute;
+  bottom: 24px;
+  right: 28px;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(168, 144, 112, 0.35);
+  cursor: pointer;
+  transition: color 0.22s;
+}
+.intro__skip:hover { color: rgba(168, 144, 112, 0.8); }
+
 /* ===== NAVBAR — Transparent overlay ===== */
 
 /* Top vignette: keeps text readable without any solid background */

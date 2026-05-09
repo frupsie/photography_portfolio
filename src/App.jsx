@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
@@ -9,6 +10,9 @@ import AboutPage from './components/pages/AboutPage';
 import ContactPage from './components/pages/ContactPage';
 import GearPage from './components/pages/GearPage';
 import GalleryPage from './components/pages/GalleryPage';
+import IntroScreen from './components/IntroScreen';
+
+const INTRO_KEY = 'jayden_intro_seen';
 
 function ScrollProgressBar() {
   const { scrollYProgress } = useScroll();
@@ -23,9 +27,20 @@ function ScrollProgressBar() {
 
 export default function App() {
   const location = useLocation();
+  const [showIntro, setShowIntro] = useState(
+    () => !sessionStorage.getItem(INTRO_KEY)
+  );
+
+  const handleIntroDone = () => {
+    sessionStorage.setItem(INTRO_KEY, '1');
+    setShowIntro(false);
+  };
 
   return (
     <div className="app">
+      <AnimatePresence>
+        {showIntro && <IntroScreen key="intro" onDone={handleIntroDone} />}
+      </AnimatePresence>
       <Navbar />
       <ScrollProgressBar />
       <AnimatePresence mode="wait">
