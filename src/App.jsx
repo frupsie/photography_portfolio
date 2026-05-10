@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import Navbar from './components/Navbar';
@@ -8,7 +8,6 @@ import LandingPage from './components/LandingPage';
 import CityPage from './components/pages/CityPage';
 import AboutPage from './components/pages/AboutPage';
 import ContactPage from './components/pages/ContactPage';
-import GearPage from './components/pages/GearPage';
 import GalleryPage from './components/pages/GalleryPage';
 import IntroScreen from './components/IntroScreen';
 
@@ -49,7 +48,7 @@ export default function App() {
           <Route path="/city/:slug" element={<CityPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/gear" element={<GearPage />} />
+          <Route path="/gear" element={<Navigate to="/about" replace />} />
           <Route path="/gallery" element={<GalleryPage />} />
         </Routes>
       </AnimatePresence>
