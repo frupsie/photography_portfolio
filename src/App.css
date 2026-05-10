@@ -306,11 +306,16 @@
 /* ── EXTERNAL LOADING BAR — sits below the viewfinder box ── */
 .intro__loading {
   position: absolute;
-  /* Align with bottom of the centred viewfinder + a small gap */
-  top: calc(50% + min(1400px, 98vw) / 3 + 14px);
+  /*
+   * Viewfinder half-height = min(width/3, 47.5vh) because:
+   *   portrait  → height = 98vw × (2/3), half = 98vw / 3
+   *   landscape → max-height: 95vh clamps it, half = 47.5vh
+   * Width mirrors the same clamp so bar stays aligned.
+   */
+  top: calc(50% + min(98vw / 3, 47.5vh) + 14px);
   left: 50%;
   transform: translateX(-50%);
-  width: min(1400px, 98vw);
+  width: min(min(1400px, 98vw), calc(95vh * 1.5));
   display: flex;
   align-items: center;
   gap: 12px;
@@ -471,6 +476,115 @@
   height: 1px;
   background: var(--accent);
   opacity: 0.7;
+}
+
+/* ── Hamburger button (hidden on desktop) ── */
+.navbar__hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 1100;
+}
+
+.navbar__hamburger span {
+  display: block;
+  width: 22px;
+  height: 1.5px;
+  background: rgba(228, 221, 212, 0.85);
+  border-radius: 2px;
+  transform-origin: center;
+  transition: transform 0.28s ease, opacity 0.2s ease, width 0.25s ease;
+}
+
+/* Animate to × when open */
+.navbar__hamburger--open span:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+.navbar__hamburger--open span:nth-child(2) {
+  opacity: 0;
+  width: 0;
+}
+.navbar__hamburger--open span:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+}
+
+/* ── Mobile drawer ── */
+.nav-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(8, 7, 6, 0.97);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-drawer__links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0 32px;
+}
+
+.nav-drawer__link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 18px 0;
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 8vw, 2.2rem);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(228, 221, 212, 0.45);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: color 0.2s;
+}
+
+.nav-drawer__link:last-of-type {
+  border-bottom: none;
+}
+
+.nav-drawer__link:hover,
+.nav-drawer__link--active {
+  color: rgba(228, 221, 212, 0.95);
+}
+
+/* Close × button inside the drawer */
+.nav-drawer__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(228, 221, 212, 0.50);
+  cursor: pointer;
+  transition: color 0.2s;
+  z-index: 10;
+}
+
+.nav-drawer__close:hover {
+  color: rgba(228, 221, 212, 0.95);
+}
+
+.nav-drawer__close svg {
+  width: 22px;
+  height: 22px;
 }
 
 /* ===== LANDING PAGE ===== */
@@ -1813,10 +1927,27 @@
    RESPONSIVE — Mobile (≤ 768px)
    ===================================================== */
 @media (max-width: 768px) {
-  /* Navbar */
-  .navbar { padding: 0 20px; }
-  .navbar__links { gap: 16px; }
-  .navbar__link  { font-size: 0.7rem; }
+  /* Navbar — hide links, show hamburger */
+  .navbar { padding: 14px 20px; }
+  .navbar__links { display: none; }
+  .navbar__hamburger { display: flex; }
+
+  /* Intro — compact HUD bars + bigger skip touch target */
+  .intro__topbar,
+  .intro__bottombar {
+    height: 32px;
+    font-size: 0.62rem;
+    padding: 0 10px;
+  }
+  .intro__topbar-mode  { margin-right: 12px; }
+  .intro__topbar-vals  { gap: 12px; }
+  .intro__topbar-icons { gap: 7px; }
+  .intro__skip {
+    padding: 12px 16px;
+    font-size: 0.62rem;
+    bottom: 14px;
+    right: 14px;
+  }
 
   /* Hero */
   .showcase__hero { padding-top: 70px; }
@@ -1869,8 +2000,7 @@
    RESPONSIVE — Small mobile (≤ 480px)
    ===================================================== */
 @media (max-width: 480px) {
-  .navbar__links { gap: 10px; }
-  .navbar__link  { font-size: 0.65rem; letter-spacing: 0.06em; }
+  .navbar { padding: 12px 16px; }
 
   .deck-stack {
     width: 92vw;
@@ -1878,6 +2008,32 @@
   }
 
   .showcase__name { font-size: clamp(2.2rem, 12vw, 3.5rem); }
+}
+
+/* =====================================================
+   RESPONSIVE — Landscape phones (short viewport ≤ 500px tall)
+   ===================================================== */
+@media (max-height: 500px) {
+  /* Hide the loading bar — it would overflow below the viewport */
+  .intro__loading { display: none; }
+
+  /* Shrink HUD bars so more of the photo shows */
+  .intro__topbar,
+  .intro__bottombar {
+    height: 28px;
+    font-size: 0.58rem;
+    padding: 0 8px;
+  }
+  .intro__topbar-mode  { margin-right: 10px; }
+  .intro__topbar-vals  { gap: 10px; }
+  .intro__topbar-icons { gap: 6px; }
+
+  /* Nudge skip button up so it clears the bottom bar */
+  .intro__skip {
+    bottom: 36px;
+    right: 14px;
+    padding: 10px 14px;
+  }
 }
 
 /* =====================================================
@@ -2096,6 +2252,7 @@
   overflow-x: scroll;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x; /* ensure horizontal swipe works on mobile */
   scrollbar-width: none;
   /* Padding = (viewport - card) / 2 so each snapped card sits centred */
   padding-inline: calc((100% - 44vw) / 2);
@@ -2188,49 +2345,57 @@
   flex-shrink: 0;
 }
 
-/* Arrow buttons — static tall pills overlaid on track-wrapper */
+/* Arrow buttons — gradient strips anchored to card edges, no border/blur */
 .carousel__arrow {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  transform: none;
   z-index: 10;
 
-  /* Tall pill shape */
-  width: 40px;
-  height: 72px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  background: rgba(10, 9, 8, 0.45);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  width: 96px;
+  border: none;
+  border-radius: 0;
+  background: none; /* set per-side below */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 
-  color: rgba(255, 255, 255, 0.80);
+  color: rgba(255, 255, 255, 0.88);
   display: flex;
   align-items: center;
-  justify-content: center;
   cursor: pointer;
-  transition: opacity 0.25s ease, background 0.22s, border-color 0.22s, color 0.22s, transform 0.22s;
+  transition: opacity 0.25s ease, color 0.22s;
 }
 
 .carousel__arrow svg {
-  width: 20px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
 }
 
-/* Align arrows to the inner edges of the centred card (card = 44vw) */
-.carousel__arrow--left  { left:  calc((100% - 44vw) / 2 + 14px); }
-.carousel__arrow--right { right: calc((100% - 44vw) / 2 + 14px); }
+/* Left arrow: gradient fades right-to-transparent from the card left edge */
+.carousel__arrow--left {
+  left: calc((100% - 44vw) / 2);
+  background: linear-gradient(to right, rgba(6, 6, 6, 0.58) 0%, transparent 100%);
+  justify-content: flex-start;
+  padding-left: 14px;
+}
+
+/* Right arrow: gradient fades left-to-transparent from the card right edge */
+.carousel__arrow--right {
+  right: calc((100% - 44vw) / 2);
+  background: linear-gradient(to left, rgba(6, 6, 6, 0.58) 0%, transparent 100%);
+  justify-content: flex-end;
+  padding-right: 14px;
+}
 
 .carousel__arrow:hover {
-  background: rgba(10, 9, 8, 0.70);
-  border-color: rgba(255, 255, 255, 0.45);
   color: #fff;
-  transform: translateY(-50%) scale(1.05);
 }
 
 .carousel__arrow:disabled {
-  opacity: 0.12;
+  opacity: 0;
   pointer-events: none;
 }
 
@@ -2274,8 +2439,8 @@
     padding-inline: calc((100% - 58vw) / 2);
     scroll-padding-inline: calc((100% - 58vw) / 2);
   }
-  .carousel__arrow--left  { left:  calc((100% - 58vw) / 2 + 14px); }
-  .carousel__arrow--right { right: calc((100% - 58vw) / 2 + 14px); }
+  .carousel__arrow--left  { left:  calc((100% - 58vw) / 2); }
+  .carousel__arrow--right { right: calc((100% - 58vw) / 2); }
 }
 
 @media (max-width: 768px) {
@@ -2285,8 +2450,11 @@
     padding-inline: calc((100% - 70vw) / 2);
     scroll-padding-inline: calc((100% - 70vw) / 2);
   }
-  .carousel__arrow--left  { left:  calc((100% - 70vw) / 2 + 12px); }
-  .carousel__arrow--right { right: calc((100% - 70vw) / 2 + 12px); }
+  .carousel__arrow--left  { left:  calc((100% - 70vw) / 2); }
+  .carousel__arrow--right { right: calc((100% - 70vw) / 2); }
+  /* Slimmer gradient strip on mobile — swipe is primary, arrows are hint */
+  .carousel__arrow { width: 52px; }
+  .carousel__arrow svg { width: 15px; height: 15px; }
 }
 
 @media (max-width: 480px) {
@@ -2298,17 +2466,11 @@
     padding-inline: calc((100% - 82vw) / 2);
     scroll-padding-inline: calc((100% - 82vw) / 2);
   }
-  .carousel__arrow--left  { left:  calc((100% - 82vw) / 2 + 8px); }
-  .carousel__arrow--right { right: calc((100% - 82vw) / 2 + 8px); }
-  .carousel__arrow {
-    width: 30px;
-    height: 52px;
-    border-radius: 15px;
-  }
-  .carousel__arrow svg {
-    width: 14px;
-    height: 14px;
-  }
+  .carousel__arrow--left  { left:  calc((100% - 82vw) / 2); }
+  .carousel__arrow--right { right: calc((100% - 82vw) / 2); }
+  /* Even slimmer on small phones — swipe does the work */
+  .carousel__arrow { width: 40px; color: rgba(255, 255, 255, 0.40); }
+  .carousel__arrow svg { width: 13px; height: 13px; }
 }
 
 /* ===== DESTINATIONS ===== */
