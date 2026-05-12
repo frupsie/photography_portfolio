@@ -14,8 +14,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(1400px, 98vw);
-  max-height: 95vh;
+  width: min(1400px, 92vw);
+  max-height: 78vh;
   aspect-ratio: 3 / 2;
   overflow: hidden;
   box-shadow:
@@ -23,11 +23,26 @@
     0 24px 64px rgba(0, 0, 0, 0.85);
 }
 
+/* Portrait phones: fill the screen properly instead of a squat 3:2 strip */
+@media (orientation: portrait) and (max-width: 600px) {
+  .intro__viewfinder {
+    width: 100vw;
+    height: 68svh;
+    max-height: none;
+    aspect-ratio: unset;
+    top: 46%;
+    left: 0;
+    transform: translateY(-50%);
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
 /* Hero photo clipped to viewfinder */
 .intro__bg {
   position: absolute;
   inset: 0;
-  background-image: url('/photos/hong-kong/_MG_3601.JPG');
+  background-image: url('/photos-web/hong-kong/_MG_3601.JPG');
   background-size: cover;
   background-position: center;
 }
@@ -45,29 +60,29 @@
 /* Corner L-brackets — relative to .intro__viewfinder */
 .intro__bracket {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: clamp(14px, 1.8vw, 20px);
+  height: clamp(14px, 1.8vw, 20px);
   border-style: solid;
   border-width: 0;
   border-color: rgba(255, 255, 255, 0.5);
 }
-.intro__bracket--tl { top: 10px; left: 10px; border-top-width: 1.5px; border-left-width: 1.5px; }
-.intro__bracket--tr { top: 10px; right: 10px; border-top-width: 1.5px; border-right-width: 1.5px; }
-.intro__bracket--bl { bottom: 10px; left: 10px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
-.intro__bracket--br { bottom: 10px; right: 10px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+.intro__bracket--tl { top: clamp(6px, 1vw, 10px); left: clamp(6px, 1vw, 10px); border-top-width: 1.5px; border-left-width: 1.5px; }
+.intro__bracket--tr { top: clamp(6px, 1vw, 10px); right: clamp(6px, 1vw, 10px); border-top-width: 1.5px; border-right-width: 1.5px; }
+.intro__bracket--bl { bottom: clamp(6px, 1vw, 10px); left: clamp(6px, 1vw, 10px); border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.intro__bracket--br { bottom: clamp(6px, 1vw, 10px); right: clamp(6px, 1vw, 10px); border-bottom-width: 1.5px; border-right-width: 1.5px; }
 
 /* ── TOP BAR ── [M]  1/500  F1.8  ISO 400  AWB ⊙ ▭ IS ████ */
 .intro__topbar {
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 42px;
+  height: clamp(30px, 4.2vw, 42px);
   background: rgba(0, 0, 0, 0.72);
   display: flex;
   align-items: center;
-  padding: 0 14px;
+  padding: 0 clamp(8px, 1.5vw, 14px);
   gap: 0;
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: clamp(0.58rem, 1.3vw, 0.72rem);
   color: #f0f0f0;
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
@@ -76,15 +91,15 @@
 .intro__topbar-mode {
   border: 1px solid rgba(240, 240, 240, 0.8);
   padding: 1px 7px;
-  font-size: 0.68rem;
+  font-size: clamp(0.54rem, 1.1vw, 0.68rem);
   letter-spacing: 0.12em;
-  margin-right: 20px;
+  margin-right: clamp(10px, 1.8vw, 20px);
   line-height: 1.6;
 }
 
 .intro__topbar-vals {
   display: flex;
-  gap: 22px;
+  gap: clamp(10px, 2vw, 22px);
   flex: 1;
 }
 
@@ -95,19 +110,19 @@
 .intro__topbar-icons {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(5px, 0.9vw, 10px);
   color: #909090;
-  font-size: 0.63rem;
+  font-size: clamp(0.50rem, 0.95vw, 0.63rem);
   letter-spacing: 0.08em;
 }
 
 .intro__topbar-wb {
   color: #b0b0b0;
-  font-size: 0.62rem;
+  font-size: clamp(0.48rem, 0.92vw, 0.62rem);
 }
 
 .intro__topbar-icon {
-  font-size: 0.75rem;
+  font-size: clamp(0.58rem, 1.1vw, 0.75rem);
   opacity: 0.7;
 }
 
@@ -121,8 +136,8 @@
 
 .intro__battery span {
   display: inline-block;
-  width: 7px;
-  height: 11px;
+  width: clamp(4px, 0.7vw, 7px);
+  height: clamp(8px, 1.2vw, 11px);
   background: #d0d0d0;
   border-radius: 1px;
 }
@@ -140,8 +155,8 @@
   transform: translate(-50%, -50%);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 26px;
-  width: min(280px, 60%);
+  gap: clamp(10px, 2vw, 26px);
+  width: min(280px, 56%);
   pointer-events: none;
 }
 
@@ -163,8 +178,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, calc(-50% - 6px));
-  width: min(160px, 32%);
+  transform: translate(-50%, calc(-50% - clamp(4px, 0.5vw, 6px)));
+  width: min(140px, 29%);
   aspect-ratio: 5 / 3;
   border: 1.5px solid rgba(255, 255, 255, 0.85);
   border-radius: 1px;
@@ -176,7 +191,7 @@
 
 .intro__af-status {
   font-family: var(--font-body);
-  font-size: 0.55rem;
+  font-size: clamp(0.44rem, 0.85vw, 0.55rem);
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
@@ -186,8 +201,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, 38px);
-  width: 60px;
+  transform: translate(-50%, clamp(20px, 3vw, 38px));
+  width: clamp(44px, 6vw, 60px);
   height: 1px;
   background: rgba(255, 255, 255, 0.28);
 }
@@ -195,45 +210,45 @@
 /* ── RIGHT EXPOSURE METER ── */
 .intro__meter {
   position: absolute;
-  right: 10px;
+  right: clamp(6px, 1vw, 10px);
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
+  gap: clamp(3px, 0.5vw, 6px);
 }
 
 .intro__meter-tick {
   font-family: var(--font-body);
-  font-size: 0.55rem;
+  font-size: clamp(0.44rem, 0.8vw, 0.55rem);
   color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.05em;
-  min-width: 22px;
+  min-width: clamp(16px, 2vw, 22px);
 }
 
 .intro__meter-tick--zero {
   color: #f0f0f0;
-  font-size: 0.65rem;
+  font-size: clamp(0.54rem, 1vw, 0.65rem);
 }
 
 .intro__meter-marker {
   color: #f0f0f0;
-  font-size: 0.55rem;
+  font-size: clamp(0.44rem, 0.8vw, 0.55rem);
 }
 
 /* ── BOTTOM BAR ── RAW+L  exp scale  1724  CF-A */
 .intro__bottombar {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 42px;
+  height: clamp(30px, 4.2vw, 42px);
   background: rgba(0, 0, 0, 0.72);
   display: flex;
   align-items: center;
-  padding: 0 14px;
+  padding: 0 clamp(8px, 1.5vw, 14px);
   gap: 0;
   font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-size: clamp(0.56rem, 1.2vw, 0.7rem);
   color: #d0d0d0;
   letter-spacing: 0.05em;
   font-variant-numeric: tabular-nums;
@@ -307,20 +322,37 @@
 .intro__loading {
   position: absolute;
   /*
-   * Viewfinder half-height = min(width/3, 47.5vh) because:
-   *   portrait  → height = 98vw × (2/3), half = 98vw / 3
-   *   landscape → max-height: 95vh clamps it, half = 47.5vh
+   * Viewfinder half-height = min(width/3, 39vh) because:
+   *   portrait  → height = 92vw × (2/3), half = 92vw / 3
+   *   landscape → max-height: 78vh clamps it, half = 39vh
    * Width mirrors the same clamp so bar stays aligned.
    */
-  top: calc(50% + min(98vw / 3, 47.5vh) + 14px);
+  top: calc(50% + min(92vw / 3, 39vh) + 14px);
   left: 50%;
   transform: translateX(-50%);
-  width: min(min(1400px, 98vw), calc(95vh * 1.5));
+  width: min(min(1400px, 92vw), calc(78vh * 1.5));
   display: flex;
   align-items: center;
   gap: 12px;
   pointer-events: none;
   z-index: 1;
+}
+
+/* Portrait phones: loading bar sits below the 68svh viewfinder */
+@media (orientation: portrait) and (max-width: 600px) {
+  .intro__loading {
+    top: calc(46% + 34svh + 12px);
+    width: 92vw;
+  }
+
+  /* On the taller portrait viewfinder the vertical nudge isn't needed */
+  .intro__af-frame {
+    transform: translate(-50%, -50%);
+  }
+  .intro__level {
+    transform: translate(-50%, 22px);
+  }
+  /* Meter fits fine — nothing extra needed */
 }
 
 .intro__loading-track {
@@ -864,28 +896,105 @@
   font-family: var(--font-body) !important;
 }
 
-.photo-grid {
-  columns: 3;
-  column-gap: 12px;
+/* ── Photo count label ── */
+.city-page__count {
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.5;
+  margin-bottom: 28px;
 }
 
-.photo-grid__item {
-  break-inside: avoid;
-  margin-bottom: 12px;
+/* ===== EDITORIAL PHOTO GRID ===== */
+/*
+ * 3-column grid: landscape photos span 2 cols, portrait span 1.
+ * Aspect ratios are tuned so both types produce equal row heights:
+ *   landscape (span 2) at 3:2  → height = 2col × 2/3 = 4/3 col
+ *   portrait  (span 1) at 3:4  → height = 1col × 4/3 = 4/3 col ✓
+ * grid-auto-flow: dense fills portrait-shaped gaps left by landscapes.
+ */
+.photo-grid--editorial {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  grid-auto-flow: dense;
+}
+
+/* ── Individual item ── */
+.editorial-item {
+  position: relative;
   overflow: hidden;
   border-radius: 3px;
   cursor: zoom-in;
+  background: var(--bg-secondary);
 }
 
-.photo-grid__item img {
+.editorial-item--landscape {
+  grid-column: span 2;
+  aspect-ratio: 3 / 2;
+}
+
+.editorial-item--portrait {
+  grid-column: span 1;
+  aspect-ratio: 3 / 4;
+}
+
+.editorial-item img {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  transition: transform 0.4s ease, opacity 0.3s;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.photo-grid__item:hover img {
-  transform: scale(1.03);
-  opacity: 0.9;
+.editorial-item:hover img {
+  transform: scale(1.04);
+}
+
+/* Hover overlay with photo number */
+.editorial-item__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.45) 0%,
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: flex-end;
+  padding: 14px 16px;
+}
+
+.editorial-item:hover .editorial-item__overlay {
+  opacity: 1;
+}
+
+.editorial-item__index {
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: rgba(228, 221, 212, 0.55);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .photo-grid--editorial {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .editorial-item--landscape { grid-column: span 2; aspect-ratio: 3 / 2; }
+  .editorial-item--portrait  { grid-column: span 1; aspect-ratio: 3 / 4; }
+}
+
+@media (max-width: 540px) {
+  .photo-grid--editorial {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .editorial-item--landscape { grid-column: span 1; aspect-ratio: 3 / 2; }
+  .editorial-item--portrait  { grid-column: span 1; aspect-ratio: 2 / 3; }
 }
 
 /* ===== LIGHTBOX ===== */
@@ -893,30 +1002,44 @@
   position: fixed;
   inset: 0;
   z-index: 9000;
-  background: rgba(0,0,0,0.95);
+  background: rgba(5, 4, 3, 0.97);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.lightbox__img {
-  max-width: 90vw;
+/* Portrait and landscape images constrained differently */
+.lightbox__img--landscape {
+  max-width: min(90vw, calc(88vh * 1.5));
   max-height: 88vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
+.lightbox__img--portrait {
+  max-height: min(88vh, calc(86vw * 1.5));
+  max-width: 86vw;
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: 2px;
 }
 
 .lightbox__close {
   position: absolute;
-  top: 24px;
-  right: 32px;
-  font-size: 1.5rem;
-  color: var(--text-muted);
+  top: 22px;
+  right: 28px;
+  font-size: 1.2rem;
+  color: rgba(228, 221, 212, 0.35);
   transition: color 0.2s;
+  z-index: 1;
+  padding: 8px;
 }
 
 .lightbox__close:hover {
-  color: var(--text);
+  color: rgba(228, 221, 212, 0.9);
 }
 
 .lightbox__prev,
@@ -924,37 +1047,58 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 3rem;
-  color: var(--text-muted);
-  padding: 20px;
+  font-size: 2.4rem;
+  color: rgba(228, 221, 212, 0.28);
+  padding: 24px 20px;
   transition: color 0.2s;
+  z-index: 1;
 }
 
-.lightbox__prev { left: 16px; }
-.lightbox__next { right: 16px; }
+.lightbox__prev { left: 0; }
+.lightbox__next { right: 0; }
 
 .lightbox__prev:hover,
 .lightbox__next:hover {
-  color: var(--text);
+  color: rgba(228, 221, 212, 0.85);
 }
 
 .lightbox__caption {
   position: absolute;
-  bottom: 40px;
+  bottom: 36px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.875rem;
-  color: var(--text-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(228, 221, 212, 0.28);
+  white-space: nowrap;
 }
 
+/* Counter — top left */
 .lightbox__counter {
   position: absolute;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.75rem;
-  color: rgba(122,122,154,0.5);
-  letter-spacing: 0.12em;
+  top: 26px;
+  left: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: rgba(228, 221, 212, 0.28);
+}
+
+.lightbox__counter-current {
+  font-size: 1.1rem;
+  color: rgba(228, 221, 212, 0.7);
+  font-family: var(--font-heading);
+}
+
+.lightbox__counter-sep {
+  display: inline-block;
+  width: 20px;
+  height: 1px;
+  background: rgba(228, 221, 212, 0.2);
 }
 
 /* ===== CONTENT PAGES (About, Contact, Gear) ===== */
@@ -1583,7 +1727,7 @@
   justify-content: center;
   position: relative;
   padding-top: 80px;
-  background-image: url('/photos/hong-kong/_MG_3601.JPG');
+  background-image: url('/photos-web/hong-kong/_MG_3601.JPG');
   background-size: cover;
   background-position: center;
 }
@@ -2158,27 +2302,46 @@
   pointer-events: none;
 }
 
-/* ── Photo grid (masonry columns) ── */
+/* ── Photo grid (CSS grid mosaic) ── */
 .gallery-grid {
-  columns: 3;
-  column-gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-flow: dense;
+  gap: 10px;
 }
 
-@media (max-width: 1024px) { .gallery-grid { columns: 2; } }
-@media (max-width: 600px)  { .gallery-grid { columns: 1; } }
+@media (max-width: 900px)  { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px)  { .gallery-grid { grid-template-columns: 1fr 1fr; } }
 
 .gallery-item {
-  break-inside: avoid;
-  margin-bottom: 12px;
   position: relative;
   overflow: hidden;
   border-radius: 8px;
-  cursor: pointer;
+  cursor: zoom-in;
+}
+
+.gallery-item--landscape {
+  grid-column: span 2;
+  aspect-ratio: 3 / 2;
+}
+
+.gallery-item--portrait {
+  grid-column: span 1;
+  aspect-ratio: 3 / 4;
+}
+
+@media (max-width: 480px) {
+  .gallery-item--landscape,
+  .gallery-item--portrait {
+    grid-column: span 2;
+    aspect-ratio: 3 / 2;
+  }
 }
 
 .gallery-item img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -2244,7 +2407,6 @@
 
   /* Gallery */
   .gallery-page { padding: 100px 36px 60px; }
-  .gallery-grid { columns: 2; }
 }
 
 /* =====================================================
@@ -2256,19 +2418,9 @@
   .navbar__links { display: none; }
   .navbar__hamburger { display: flex; }
 
-  /* Intro — compact HUD bars + bigger skip touch target */
-  .intro__topbar,
-  .intro__bottombar {
-    height: 32px;
-    font-size: 0.62rem;
-    padding: 0 10px;
-  }
-  .intro__topbar-mode  { margin-right: 12px; }
-  .intro__topbar-vals  { gap: 12px; }
-  .intro__topbar-icons { gap: 7px; }
+  /* Intro — bigger skip touch target on mobile */
   .intro__skip {
     padding: 12px 16px;
-    font-size: 0.62rem;
     bottom: 14px;
     right: 14px;
   }
@@ -2314,7 +2466,6 @@
   /* Gallery */
   .gallery-page { padding: 88px 20px 48px; }
   .gallery-page__title { font-size: clamp(1.8rem, 8vw, 2.4rem); }
-  .gallery-grid { columns: 1; }
 
   /* Other pages */
   .city-page { padding: 80px 20px 48px; }
@@ -2340,17 +2491,6 @@
 @media (max-height: 500px) {
   /* Hide the loading bar — it would overflow below the viewport */
   .intro__loading { display: none; }
-
-  /* Shrink HUD bars so more of the photo shows */
-  .intro__topbar,
-  .intro__bottombar {
-    height: 28px;
-    font-size: 0.58rem;
-    padding: 0 8px;
-  }
-  .intro__topbar-mode  { margin-right: 10px; }
-  .intro__topbar-vals  { gap: 10px; }
-  .intro__topbar-icons { gap: 6px; }
 
   /* Nudge skip button up so it clears the bottom bar */
   .intro__skip {

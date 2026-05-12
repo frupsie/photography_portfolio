@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cities } from '../../data/cities';
@@ -10,10 +10,12 @@ function buildPhotoList() {
   const list = [];
   cities.forEach(city => {
     if (city.heroImage && !city.heroImage.includes('placeholder')) {
-      list.push({ src: city.heroImage, city: city.name, country: city.country, slug: city.slug });
+      list.push({ src: city.heroImage, city: city.name, country: city.country, slug: city.slug, orientation: 'landscape' });
     }
-    city.photos.forEach(src => {
-      list.push({ src, city: city.name, country: city.country, slug: city.slug });
+    city.photos.forEach(photo => {
+      const src         = typeof photo === 'string' ? photo : photo.src;
+      const orientation = typeof photo === 'string' ? 'landscape' : (photo.orientation ?? 'landscape');
+      list.push({ src, city: city.name, country: city.country, slug: city.slug, orientation });
     });
   });
   return list;
@@ -23,14 +25,13 @@ const ALL_PHOTOS = buildPhotoList();
 
 export default function GalleryPage() {
   const location = useLocation();
-  // Pre-select a country when navigated from the Destinations strip
   const [activeFilter, setActiveFilter] = useState(
     () => location.state?.country ?? 'All'
   );
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const filtered = useMemo(() => {
     if (activeFilter === 'All') return ALL_PHOTOS;
-    // Match on country or city name
     return ALL_PHOTOS.filter(
       p => p.country === activeFilter || p.city === activeFilter
     );
@@ -54,35 +55,14 @@ export default function GalleryPage() {
       {/* Filter nav */}
       <div className="gallery-filter">
         <div className="gallery-filter__inner">
-          {/* All */}
-          <FilterPill
-            label="All"
-            active={activeFilter === 'All'}
-            onClick={() => setActiveFilter('All')}
-          />
-
+          <FilterPill label="All" active={activeFilter === 'All'} onClick={() => setActiveFilter('All')} />
           <span className="gallery-filter__divider" />
-
-          {/* Countries */}
           {countries.map(country => (
-            <FilterPill
-              key={country}
-              label={country}
-              active={activeFilter === country}
-              onClick={() => setActiveFilter(country)}
-            />
+            <FilterPill key={country} label={country} active={activeFilter === country} onClick={() => setActiveFilter(country)} />
           ))}
-
           <span className="gallery-filter__divider" />
-
-          {/* Cities */}
           {cities.map(city => (
-            <FilterPill
-              key={city.slug}
-              label={city.name}
-              active={activeFilter === city.name}
-              onClick={() => setActiveFilter(city.name)}
-            />
+            <FilterPill key={city.slug} label={city.name} active={activeFilter === city.name} onClick={() => setActiveFilter(city.name)} />
           ))}
         </div>
       </div>
@@ -98,14 +78,15 @@ export default function GalleryPage() {
             {filtered.map((photo, i) => (
               <motion.div
                 key={photo.src + i}
-                className="gallery-item"
+                className={`gallery-item gallery-item--${photo.orientation ?? 'landscape'}`}
                 layout
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.94 }}
                 transition={{ duration: 0.35, delay: i * 0.03 }}
+                onClick={() => setLightboxIndex(i)}
               >
-                <img src={photo.src} alt={`${photo.city}`} loading="lazy" />
+                <img src={photo.src} alt={photo.city} loading="lazy" />
                 <div className="gallery-item__overlay">
                   <span className="gallery-item__city">{photo.city}</span>
                   <span className="gallery-item__country">{photo.country}</span>
@@ -115,6 +96,77 @@ export default function GalleryPage() {
           </AnimatePresence>
         </motion.div>
       )}
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <GalleryLightbox
+            photos={filtered}
+            index={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+            onPrev={() => setLightboxIndex(i => (i - 1 + filtered.length) % filtered.length)}
+            onNext={() => setLightboxIndex(i => (i + 1) % filtered.length)}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function GalleryLightbox({ photos, index, onClose, onPrev, onNext }) {
+  const handleKey = useCallback((e) => {
+    if (e.key === 'ArrowLeft')  onPrev();
+    if (e.key === 'ArrowRight') onNext();
+    if (e.key === 'Escape')     onClose();
+  }, [onPrev, onNext, onClose]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [handleKey]);
+
+  const photo = photos[index];
+
+  return (
+    <motion.div
+      className="lightbox"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      onClick={onClose}
+    >
+      {/* Close */}
+      <button className="lightbox__close" onClick={onClose}>✕</button>
+
+      {/* Counter */}
+      <div className="lightbox__counter">
+        <span className="lightbox__counter-current">{index + 1}</span>
+        <span className="lightbox__counter-sep" />
+        <span>{photos.length}</span>
+      </div>
+
+      {/* Prev / Next */}
+      <button className="lightbox__prev" onClick={e => { e.stopPropagation(); onPrev(); }}>‹</button>
+      <button className="lightbox__next" onClick={e => { e.stopPropagation(); onNext(); }}>›</button>
+
+      {/* Image */}
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={index}
+          src={photo.src}
+          alt={photo.city}
+          className={`lightbox__img lightbox__img--${photo.orientation ?? 'landscape'}`}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.97 }}
+          transition={{ duration: 0.22 }}
+          onClick={e => e.stopPropagation()}
+        />
+      </AnimatePresence>
+
+      {/* Caption */}
+      <p className="lightbox__caption">{photo.city} · {photo.country}</p>
     </motion.div>
   );
 }

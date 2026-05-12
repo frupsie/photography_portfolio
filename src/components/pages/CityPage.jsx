@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cities } from '../../data/cities';
 
@@ -46,20 +46,28 @@ export default function CityPage() {
       {/* Photo grid */}
       <div className="city-page__gallery">
         {hasPhotos ? (
-          <div className="photo-grid">
-            {city.photos.map((photo, i) => (
-              <motion.div
-                key={i}
-                className="photo-grid__item"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
-                onClick={() => setLightboxIndex(i)}
-              >
-                <img src={photo.src} alt={photo.alt} loading="lazy" />
-              </motion.div>
-            ))}
-          </div>
+          <>
+            <p className="city-page__count">{city.photos.length} photographs</p>
+            <div className="photo-grid--editorial">
+              {city.photos.map((photo, i) => (
+                <motion.div
+                  key={i}
+                  className={`editorial-item editorial-item--${photo.orientation ?? 'landscape'}`}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: Math.min(i * 0.07, 0.5) }}
+                  onClick={() => setLightboxIndex(i)}
+                >
+                  <img src={photo.src} alt={photo.alt} loading="lazy" />
+                  <div className="editorial-item__overlay">
+                    <span className="editorial-item__index">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="city-page__empty">
             <p>Photos coming soon for {city.name}.</p>
@@ -87,29 +95,69 @@ export default function CityPage() {
 }
 
 function Lightbox({ photos, index, onClose, onPrev, onNext }) {
+  // Keyboard navigation
+  const handleKey = useCallback((e) => {
+    if (e.key === 'ArrowLeft')  onPrev();
+    if (e.key === 'ArrowRight') onNext();
+    if (e.key === 'Escape')     onClose();
+  }, [onPrev, onNext, onClose]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [handleKey]);
+
+  const photo = photos[index];
+  const isPortrait = photo.orientation === 'portrait';
+
   return (
     <motion.div
       className="lightbox"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
       onClick={onClose}
     >
+      {/* Close */}
       <button className="lightbox__close" onClick={onClose}>✕</button>
-      <button className="lightbox__prev" onClick={(e) => { e.stopPropagation(); onPrev(); }}>‹</button>
-      <motion.img
-        key={index}
-        src={photos[index].src}
-        alt={photos[index].alt}
-        className="lightbox__img"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.25 }}
-        onClick={(e) => e.stopPropagation()}
-      />
-      <button className="lightbox__next" onClick={(e) => { e.stopPropagation(); onNext(); }}>›</button>
-      <p className="lightbox__caption">{photos[index].alt}</p>
-      <p className="lightbox__counter">{index + 1} / {photos.length}</p>
+
+      {/* Counter */}
+      <div className="lightbox__counter">
+        <span className="lightbox__counter-current">{index + 1}</span>
+        <span className="lightbox__counter-sep" />
+        <span>{photos.length}</span>
+      </div>
+
+      {/* Prev / Next */}
+      <button
+        className="lightbox__prev"
+        onClick={(e) => { e.stopPropagation(); onPrev(); }}
+        aria-label="Previous"
+      >‹</button>
+      <button
+        className="lightbox__next"
+        onClick={(e) => { e.stopPropagation(); onNext(); }}
+        aria-label="Next"
+      >›</button>
+
+      {/* Image */}
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={index}
+          src={photo.src}
+          alt={photo.alt}
+          className={`lightbox__img lightbox__img--${isPortrait ? 'portrait' : 'landscape'}`}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.97 }}
+          transition={{ duration: 0.22 }}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </AnimatePresence>
+
+      {/* Caption */}
+      <p className="lightbox__caption">{photo.alt}</p>
     </motion.div>
   );
 }
