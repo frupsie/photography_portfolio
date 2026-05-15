@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Original full-res photos — keep locally, website serves compressed versions from photos-web/
+public/photos/**/*.jpg
+public/photos/**/*.JPG
+public/photos/**/*.jpeg
+public/photos/**/*.JPEG
+public/photos/**/*.png
+public/photos/**/*.PNG
+!public/photos/**/hero-web.jpg
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
