@@ -9,7 +9,9 @@ import CityPage from './components/pages/CityPage';
 import AboutPage from './components/pages/AboutPage';
 import ContactPage from './components/pages/ContactPage';
 import GalleryPage from './components/pages/GalleryPage';
+import FeaturedPage from './pages/FeaturedPage';
 import IntroScreen from './components/IntroScreen';
+import { useLenis } from './hooks/useLenis';
 
 const INTRO_KEY = 'jayden_intro_seen';
 
@@ -26,6 +28,7 @@ function ScrollProgressBar() {
 
 export default function App() {
   const location = useLocation();
+  useLenis(); // shared smooth-scroll instance, bridged to GSAP ScrollTrigger
   const [showIntro, setShowIntro] = useState(
     () => !sessionStorage.getItem(INTRO_KEY)
   );
@@ -49,6 +52,7 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/gear" element={<Navigate to="/about" replace />} />
+          <Route path="/featured" element={<FeaturedPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
         </Routes>
       </AnimatePresence>

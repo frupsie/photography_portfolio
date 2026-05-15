@@ -2501,6 +2501,756 @@
 }
 
 /* =====================================================
+   REEL — Cinematic scroll landing (4 acts)
+   ===================================================== */
+
+.reel {
+  position: relative;
+  width: 100%;
+  background: #0a0908;
+  color: var(--text);
+  --hud-opacity: 0.22;
+}
+
+/* HUD opacity modes (toggled via M key, persisted to localStorage) */
+.reel--hud-subtle { --hud-opacity: 0.22; }
+.reel--hud-full   { --hud-opacity: 1; }
+
+/* Each act = 220vh of scroll, sticky inner = 100vh viewport.
+ * The 120vh "scrub zone" (act height - pin height) is where the timeline plays.
+ * IMPORTANT: no overflow on the outer act — that would break position:sticky. */
+.reel__act {
+  position: relative;
+  height: 220vh;
+  width: 100%;
+}
+
+.reel__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.reel__pin--centred {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 48px;
+}
+
+/* ── Act 1: Viewfinder ─────────────────────────────────── */
+
+.reel__act--1 { background: #0a0908; }
+
+.reel__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform-origin: center;
+}
+.reel__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.reel__bg-tint {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(10, 9, 8, 0.45) 0%,
+    rgba(10, 9, 8, 0.18) 40%,
+    rgba(10, 9, 8, 0.55) 100%);
+}
+
+/* HUD layer */
+.reel__hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: var(--hud-opacity);
+  transition: opacity 0.3s ease;
+}
+.reel__hud > * { pointer-events: auto; }
+.reel__hud:hover { opacity: 1; }
+
+.reel__hud-top,
+.reel__hud-bot {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: rgba(228, 221, 212, 0.85);
+  font-variant-numeric: tabular-nums;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+.reel__hud-top { top: 88px; }
+.reel__hud-bot { bottom: 88px; }
+.reel__hud-spacer { flex: 1; }
+.reel__hud-mode {
+  border: 1px solid rgba(228, 221, 212, 0.6);
+  padding: 1px 7px;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+}
+.reel__hud-meta { color: rgba(228, 221, 212, 0.55); }
+
+/* Corner AF brackets — full viewport */
+.reel__hud-af {
+  position: absolute;
+  inset: 88px 24px;
+  pointer-events: none;
+}
+.reel__hud-bracket {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border: 0 solid rgba(228, 221, 212, 0.55);
+}
+.reel__hud-bracket--tl { top: 6px;    left:  6px;    border-top-width: 1.5px; border-left-width: 1.5px; }
+.reel__hud-bracket--tr { top: 6px;    right: 6px;    border-top-width: 1.5px; border-right-width: 1.5px; }
+.reel__hud-bracket--bl { bottom: 6px; left:  6px;    border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.reel__hud-bracket--br { bottom: 6px; right: 6px;    border-bottom-width: 1.5px; border-right-width: 1.5px; }
+
+/* EXIF strip — top-left under the HUD top bar */
+.reel__hud-exif {
+  position: absolute;
+  top: 148px;
+  left: 36px;
+  max-width: 320px;
+  transition: opacity 0.22s ease;
+}
+
+/* Centre: name + tagline stack */
+.reel__centre {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  padding: 0 48px;
+}
+.reel__name {
+  font-family: var(--font-heading);
+  font-size: clamp(3.4rem, 9vw, 8rem);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin: 0 0 28px;
+  color: #f4ece1;
+  text-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+}
+.reel__tag-stack {
+  position: relative;
+  height: 1.6em;
+  width: 100%;
+  max-width: 600px;
+}
+.reel__tag {
+  position: absolute;
+  inset: 0;
+  font-family: var(--font-body);
+  font-size: clamp(0.9rem, 1.6vw, 1.15rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(228, 221, 212, 0.92);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Scroll hint at bottom */
+.reel__scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  color: rgba(228, 221, 212, 0.5);
+  text-transform: uppercase;
+  opacity: var(--hud-opacity);
+  transition: opacity 0.3s ease;
+}
+.reel__scroll-line {
+  display: block;
+  width: 1px;
+  height: 36px;
+  background: linear-gradient(to bottom, rgba(228, 221, 212, 0.5), transparent);
+  animation: reelScrollPulse 2.2s ease-in-out infinite;
+}
+@keyframes reelScrollPulse {
+  0%, 100% { transform: scaleY(0.4); transform-origin: top; opacity: 0.3; }
+  50%      { transform: scaleY(1);   transform-origin: top; opacity: 0.7; }
+}
+
+/* ── Act 2: The Journey (map + counter) ──────────────── */
+
+.reel__act--2 {
+  background: #0a0908;
+}
+
+.reel__map-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.reel__map-wrap .globe-section {
+  padding: 0;
+  height: 100%;
+}
+.reel__map-wrap .globe-canvas-wrapper {
+  height: 100vh !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  border-radius: 0;
+  border: none;
+  background: #0a0908;
+}
+.reel__map-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center,
+    transparent 30%,
+    rgba(10, 9, 8, 0.45) 90%);
+}
+.reel__map-fallback {
+  position: absolute;
+  inset: 0;
+  background: #1a1916;
+}
+
+/* Counter anchor — CSS handles centering, GSAP animates the inner element only */
+.reel__counter-anchor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  pointer-events: none;
+}
+.reel__counter {
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 22px 36px;
+  background: rgba(10, 9, 8, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(228, 221, 212, 0.08);
+  border-radius: 4px;
+  pointer-events: none;
+}
+.reel__counter-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+}
+.reel__counter-num {
+  font-family: var(--font-heading);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 300;
+  color: #f4ece1;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.reel__counter-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.reel__counter-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(228, 221, 212, 0.18);
+}
+
+.reel__act2-head {
+  position: absolute;
+  top: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  text-align: center;
+  pointer-events: none;
+}
+.reel__act2-eyebrow {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.reel__act2-heading {
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 300;
+  color: #f4ece1;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/* Globe in passive mode — strip chrome */
+.globe-section--passive {
+  padding: 0;
+  background: transparent;
+  height: 100%;
+}
+.globe-section--passive .globe-section__header,
+.globe-section--passive .globe-section__hint,
+.globe-section--passive .globe-tabs { display: none; }
+
+/* Pin drop animation (used in passive mode) */
+.map-pin--drop {
+  animation: pinDrop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+@keyframes pinDrop {
+  0%   { transform: translateY(-24px) scale(0.4); opacity: 0; }
+  60%  { transform: translateY(2px)   scale(1.05); opacity: 1; }
+  100% { transform: translateY(0)     scale(1);    opacity: 1; }
+}
+
+/* ── Act 3: The Work (parallax) ──────────────────────── */
+
+.reel__act--3 {
+  background: #0a0908;
+}
+
+.reel__act3-head {
+  position: absolute;
+  top: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  text-align: center;
+  pointer-events: none;
+}
+.reel__act3-eyebrow {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.reel__act3-heading {
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 300;
+  color: #f4ece1;
+  margin: 0 0 6px;
+}
+.reel__act3-hint {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.reel__parallax {
+  position: absolute;
+  inset: 0;
+  perspective: 800px;
+  perspective-origin: center;
+  z-index: 2;
+}
+
+.reel__pframe {
+  position: absolute;
+  display: block;
+  width: 30vw;
+  max-width: 460px;
+  aspect-ratio: 3 / 2;
+  border-radius: 4px;
+  overflow: visible;
+  cursor: default;
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55));
+  transition: transform 0.4s ease, filter 0.3s ease;
+}
+.reel__pframe--layer-0 { transform: scale(0.55); z-index: 1; }
+.reel__pframe--layer-1 { transform: scale(0.78); z-index: 2; }
+.reel__pframe--layer-2 { transform: scale(1);    z-index: 3; }
+.reel__pframe:hover {
+  filter: drop-shadow(0 40px 80px rgba(0, 0, 0, 0.85));
+}
+.reel__pframe--layer-0:hover { transform: scale(0.6); }
+.reel__pframe--layer-1:hover { transform: scale(0.85); }
+.reel__pframe--layer-2:hover { transform: scale(1.05); }
+
+.reel__pframe-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #1a1916;
+}
+.reel__pframe-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.reel__pframe-exif {
+  position: absolute;
+  bottom: -12px;
+  left: 12px;
+  right: 12px;
+  transform: translateY(100%);
+  opacity: var(--hud-opacity);
+  transition: opacity 0.22s ease;
+}
+.reel__pframe:hover .reel__pframe-exif { opacity: 1; }
+
+/* ── Act 4: The Destination (CTA tiles) ───────────────── */
+
+.reel__act--4 {
+  background: linear-gradient(180deg, #0a0908 0%, #14110d 100%);
+}
+
+.reel__act4-head {
+  text-align: center;
+  margin-bottom: 48px;
+  z-index: 4;
+}
+.reel__act4-eyebrow {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.reel__act4-heading {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 300;
+  color: #f4ece1;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.reel__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.cta-tile {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  border-radius: 6px;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.32s ease, box-shadow 0.32s ease;
+  will-change: transform;
+}
+.cta-tile:hover { transform: translateY(-6px); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); }
+.cta-tile__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.6s ease;
+}
+.cta-tile:hover .cta-tile__bg { transform: scale(1.08); }
+.cta-tile__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.45) 55%,
+    rgba(0, 0, 0, 0.88) 100%);
+  transition: opacity 0.32s;
+}
+.cta-tile:hover .cta-tile__shade { opacity: 0.85; }
+.cta-tile__body {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #f4ece1;
+}
+.cta-tile__label {
+  font-family: var(--font-heading);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.cta-tile__sub {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: rgba(228, 221, 212, 0.7);
+  margin-bottom: 8px;
+}
+.cta-tile__arrow {
+  width: 22px;
+  height: 22px;
+  align-self: flex-start;
+  transition: transform 0.32s ease;
+}
+.cta-tile:hover .cta-tile__arrow { transform: translateX(6px); }
+
+/* ── Outro ────────────────────────────────────────────── */
+
+.reel__outro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 60px 48px 96px;
+  background: #0a0908;
+  text-align: center;
+}
+.reel__outro-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  font-size: 0.74rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  transition: background 0.22s, color 0.22s;
+}
+.reel__outro-link svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.22s;
+}
+.reel__outro-link:hover {
+  background: var(--accent);
+  color: #111110;
+}
+.reel__outro-link:hover svg { transform: translateX(4px); }
+.reel__outro-hint {
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+  margin: 0;
+}
+.reel__outro-hint kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  margin: 0 2px;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  background: rgba(228, 221, 212, 0.06);
+  border: 1px solid rgba(228, 221, 212, 0.18);
+  border-radius: 2px;
+  color: var(--accent);
+}
+
+/* ── ExifCard (reusable) ──────────────────────────────── */
+
+.exif-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: rgba(8, 7, 6, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(228, 221, 212, 0.07);
+  border-radius: 3px;
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  pointer-events: auto;
+}
+.exif-card--compact {
+  padding: 9px 11px;
+  gap: 4px;
+}
+.exif-card__row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.7rem;
+  color: rgba(228, 221, 212, 0.78);
+}
+.exif-card--compact .exif-card__row { font-size: 0.62rem; }
+.exif-card__label {
+  flex-shrink: 0;
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  min-width: 28px;
+}
+.exif-card__val {
+  letter-spacing: 0.04em;
+  color: #e4ddd4;
+}
+.exif-card__row--mono .exif-card__val { color: #f4ece1; font-weight: 500; }
+.exif-card__row--muted {
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(228, 221, 212, 0.06);
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  justify-content: space-between;
+}
+.exif-card--compact .exif-card__row--muted { font-size: 0.58rem; }
+.exif-card__loc { color: var(--accent); letter-spacing: 0.05em; }
+.exif-card__date { color: var(--text-muted); letter-spacing: 0.06em; }
+
+/* ── /featured page ───────────────────────────────────── */
+
+.featured-page {
+  background: var(--bg);
+  min-height: 100vh;
+  padding-top: 100px;
+}
+.featured-page__head {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 48px 16px;
+}
+.featured-page__eyebrow {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.featured-page__title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+.featured-page__sub {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── Reduced motion fallback ──────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Acts become full-viewport stills with scroll-snap */
+  .reel__act { height: 100vh; scroll-snap-align: start; }
+  .reel { scroll-snap-type: y mandatory; }
+  /* All HUD elements at default opacity, no scroll-driven anims */
+  .reel__name, .reel__tag-stack .reel__tag { opacity: 1 !important; transform: none !important; }
+  .reel__tag-stack .reel__tag:not(:first-child) { opacity: 0 !important; }
+  .reel__tag-stack .reel__tag:first-child { opacity: 1 !important; }
+  .reel__bg { transform: none !important; }
+  .reel__pframe { transform: none; }
+  .reel__scroll-line { animation: none; }
+  .map-pin--drop { animation: none; }
+}
+
+/* ── Reel — Tablet (≤ 1024px) ─────────────────────────── */
+
+@media (max-width: 1024px) {
+  .reel__act { height: 200vh; }
+  .reel__tiles { gap: 14px; }
+  .reel__pframe { width: 38vw; }
+}
+
+/* ── Reel — Mobile (≤ 768px) ──────────────────────────── */
+
+@media (max-width: 768px) {
+  .reel__act { height: 180vh; }
+
+  /* Tighten HUD */
+  .reel__hud-top, .reel__hud-bot { left: 12px; right: 12px; padding: 9px 10px; gap: 14px; font-size: 0.62rem; }
+  .reel__hud-top { top: 76px; }
+  .reel__hud-bot { bottom: 76px; }
+  .reel__hud-af { inset: 76px 12px; }
+  .reel__hud-bracket { width: 26px; height: 26px; }
+  .reel__hud-exif { top: 132px; left: 16px; right: 16px; max-width: none; }
+
+  /* Centre */
+  .reel__name { font-size: clamp(2.6rem, 11vw, 4.2rem); margin-bottom: 18px; }
+  .reel__tag { font-size: 0.78rem; letter-spacing: 0.16em; }
+  .reel__scroll-hint { bottom: 22px; }
+
+  /* Counter */
+  .reel__counter { gap: 16px; padding: 16px 22px; flex-wrap: wrap; max-width: 88vw; justify-content: center; }
+  .reel__counter-item { min-width: 64px; }
+  .reel__counter-divider { display: none; }
+  .reel__act2-head { top: 76px; }
+  .reel__act3-head { top: 76px; }
+
+  /* Parallax — keep only 1 visual layer (layer 1 / mid), hide others to reduce GPU work */
+  .reel__pframe { width: 70vw; }
+  .reel__pframe--layer-0,
+  .reel__pframe--layer-2 { display: none; }
+
+  /* CTA tiles stack vertically */
+  .reel__pin--centred { padding: 60px 24px; justify-content: flex-start; }
+  .reel__tiles {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    max-height: 70vh;
+    overflow: hidden;
+  }
+  .cta-tile { aspect-ratio: 16 / 7; }
+  .reel__act4-head { margin-bottom: 24px; }
+
+  /* Outro */
+  .reel__outro { padding: 40px 24px 64px; }
+
+  /* Featured page */
+  .featured-page__head { padding: 24px 24px 12px; }
+}
+
+/* ── Reel — Small mobile (≤ 480px) ────────────────────── */
+
+@media (max-width: 480px) {
+  .reel__name { font-size: clamp(2.2rem, 13vw, 3.6rem); }
+  .reel__hud-top, .reel__hud-bot { font-size: 0.58rem; gap: 10px; padding: 8px; }
+  .reel__hud-mode { display: none; }
+  .reel__counter-num { font-size: 1.5rem; }
+  .reel__tiles { max-height: 80vh; }
+}
+
+/* =====================================================
    SCROLL PROGRESS BAR
    ===================================================== */
 

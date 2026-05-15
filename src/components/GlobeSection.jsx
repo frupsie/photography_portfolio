@@ -1,6 +1,14 @@
 /**
- * MapSection — 2D interactive map (Google Maps style) with country zoom.
- * Libraries: Leaflet + react-leaflet, CartoDB Voyager tiles (free, no key).
+ * GlobeSection — 2D interactive map (Leaflet) with country zoom.
+ *
+ * Modes:
+ *   "interactive" (default) — header, country tabs, hint, clickable pins.
+ *   "passive"               — chrome hidden, clicks disabled, pins controlled
+ *                             externally via `visibleSlugs` (Set of city slugs).
+ *
+ * Used in two places:
+ *   - /featured page (interactive)
+ *   - Reel Act 2 "The Journey" (passive)
  */
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -33,10 +41,14 @@ function countryBounds(country) {
 }
 
 // ─── Custom gold map-pin DivIcon ──────────────────────────────────────────────
-function makePinIcon(dimmed) {
+// `drop` enables the CSS drop-in animation (used in passive/reveal mode).
+function makePinIcon(dimmed, drop = false) {
+  const classes = ['map-pin'];
+  if (dimmed) classes.push('map-pin--dim');
+  if (drop)   classes.push('map-pin--drop');
   return L.divIcon({
     className: '',
-    html: `<div class="map-pin${dimmed ? ' map-pin--dim' : ''}">
+    html: `<div class="${classes.join(' ')}">
              <div class="map-pin__head"></div>
              <div class="map-pin__shaft"></div>
              <div class="map-pin__tip"></div>
@@ -48,14 +60,20 @@ function makePinIcon(dimmed) {
 }
 
 // ─── Map controller: disables scroll zoom, animates to bounds/view ────────────
-function MapController({ bounds, defaultView }) {
+function MapController({ bounds, defaultView, interactive }) {
   const map     = useMap();
   const prevRef = useRef(null);
 
-  // Permanently disable scroll-wheel zoom so page scrolling is never hijacked
   useEffect(() => {
     map.scrollWheelZoom.disable();
-  }, [map]);
+    if (!interactive) {
+      map.dragging.disable();
+      map.touchZoom.disable();
+      map.doubleClickZoom.disable();
+      map.boxZoom.disable();
+      map.keyboard.disable();
+    }
+  }, [map, interactive]);
 
   useEffect(() => {
     if (bounds === prevRef.current) return;
@@ -70,13 +88,18 @@ function MapController({ bounds, defaultView }) {
   return null;
 }
 
-// ─── Section wrapper (exported) ───────────────────────────────────────────────
-export default function GlobeSection() {
+// ─── Section wrapper ──────────────────────────────────────────────────────────
+export default function GlobeSection({
+  mode          = 'interactive',
+  visibleSlugs  = null,
+} = {}) {
   const navigate = useNavigate();
+  const passive  = mode === 'passive';
   const [activeCountry, setActiveCountry] = useState(null);
   const [activeBounds,  setActiveBounds]  = useState(null);
 
   function handleTabClick(country) {
+    if (passive) return;
     const isReset = activeCountry === country;
     if (isReset) {
       setActiveCountry(null);
@@ -91,14 +114,21 @@ export default function GlobeSection() {
     ? 'Click the active tab to reset view'
     : 'Drag to pan · Click a pin to explore';
 
+  // Filter city list when in passive reveal mode
+  const visibleCities = passive && visibleSlugs
+    ? cities.filter((c) => visibleSlugs.has(c.slug))
+    : cities;
+
   return (
-    <section className="globe-section">
-      <div className="globe-section__header">
-        <h2 className="globe-section__heading">Where I've Been</h2>
-        <p className="globe-section__sub">
-          {cities.length} cities · 3 countries · across Asia
-        </p>
-      </div>
+    <section className={`globe-section${passive ? ' globe-section--passive' : ''}`}>
+      {!passive && (
+        <div className="globe-section__header">
+          <h2 className="globe-section__heading">Where I've Been</h2>
+          <p className="globe-section__sub">
+            {cities.length} cities · 3 countries · across Asia
+          </p>
+        </div>
+      )}
 
       <div className="globe-canvas-wrapper">
         <MapContainer
@@ -108,31 +138,32 @@ export default function GlobeSection() {
           zoomControl={false}
           scrollWheelZoom={false}
           attributionControl={false}
+          dragging={!passive}
         >
           <TileLayer
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
             maxZoom={19}
           />
 
-          <ZoomControl position="topright" />
-          <MapController bounds={activeBounds} defaultView={ASIA_VIEW} />
+          {!passive && <ZoomControl position="topright" />}
+          <MapController bounds={activeBounds} defaultView={ASIA_VIEW} interactive={!passive} />
 
-          {cities.map((city) => {
+          {visibleCities.map((city) => {
             const focused  = activeCountry !== null;
             const isActive = !focused || (COUNTRY_SLUGS[activeCountry]?.includes(city.slug) ?? false);
             const dimmed   = focused && !isActive;
-            const icon     = makePinIcon(dimmed);
+            const icon     = makePinIcon(dimmed, passive);
 
             return (
               <Marker
                 key={city.slug}
                 position={[city.lat, city.lon]}
                 icon={icon}
-                eventHandlers={{
+                eventHandlers={passive ? {} : {
                   click: () => navigate('/gallery', { state: { country: city.name } }),
                 }}
               >
-                {focused && isActive ? (
+                {passive ? null : focused && isActive ? (
                   <Tooltip permanent direction="top" offset={[0, -28]} className="map-tooltip map-tooltip--permanent">
                     <span className="map-tooltip__city">{city.name}</span>
                     <span className="map-tooltip__country">{city.country}</span>
@@ -149,19 +180,21 @@ export default function GlobeSection() {
         </MapContainer>
       </div>
 
-      <p className="globe-section__hint">{hintText}</p>
+      {!passive && <p className="globe-section__hint">{hintText}</p>}
 
-      <div className="globe-tabs">
-        {Object.keys(COUNTRY_SLUGS).map((country) => (
-          <button
-            key={country}
-            className={`globe-tab${activeCountry === country ? ' globe-tab--active' : ''}`}
-            onClick={() => handleTabClick(country)}
-          >
-            {country}
-          </button>
-        ))}
-      </div>
+      {!passive && (
+        <div className="globe-tabs">
+          {Object.keys(COUNTRY_SLUGS).map((country) => (
+            <button
+              key={country}
+              className={`globe-tab${activeCountry === country ? ' globe-tab--active' : ''}`}
+              onClick={() => handleTabClick(country)}
+            >
+              {country}
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
