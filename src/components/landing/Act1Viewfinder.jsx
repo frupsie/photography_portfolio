@@ -1,23 +1,25 @@
 /**
  * Act 1 — "Through the Viewfinder"
  *
- * Sticky 100vh inside a 150vh outer section. As the user scrolls the section:
- *   0.00–0.10  name fades in
- *   0.10–0.30  tagline 1 → 2
- *   0.30–0.55  tagline 2 → 3
- *   0.55–0.80  tagline 3 → 4
- *   0.80–1.00  whole HUD fades out, photo holds full-frame for the Act 2 handoff
+ * Sticky 100vh inside a 220vh outer section. Each tagline gets ~25% of the
+ * scroll range, with quick 5% crossfades between them so the reader has time
+ * to actually read each line at full opacity.
+ *   0.00–0.25  "Photographer"            (read window ~25vh of scroll)
+ *   0.25–0.30  crossfade 1 → 2
+ *   0.30–0.50  "Storyteller"             (read window)
+ *   0.50–0.55  crossfade 2 → 3
+ *   0.55–0.75  "Based in Singapore"      (read window)
+ *   0.75–0.80  crossfade 3 → 4
+ *   0.80–1.00  "Chasing light across Asia" (read window through to Act 2 handoff)
  * Photo gets a slow scale (1.0 → 1.06) the whole way for a gentle ken-burns feel.
- * AF brackets pulse on each tagline change.
  */
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import ExifCard from './ExifCard';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const HERO_PHOTO = '/photos/hong-kong/hero-web.jpg';
+const HERO_PHOTO = '/photos-web/hong-kong/_MG_3601.JPG';
 
 const TAGLINES = [
   'Photographer',
@@ -31,8 +33,6 @@ export default function Act1Viewfinder() {
   const photoRef   = useRef(null);
   const nameRef    = useRef(null);
   const tagRefs    = useRef([]);
-  const bracketRef = useRef(null);
-  const hudRef     = useRef(null);
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -58,26 +58,16 @@ export default function Act1Viewfinder() {
       // Name has a gentle parallax drift (no opacity animation — visible from start)
       tl.to(nameRef.current, { y: -40, ease: 'none' }, 0);
 
-      // Tagline crossfades
-      tl.to(tagRefs.current[0], { opacity: 0 }, 0.22);
-      tl.to(tagRefs.current[1], { opacity: 1 }, 0.22);
-      tl.to(tagRefs.current[1], { opacity: 0 }, 0.47);
-      tl.to(tagRefs.current[2], { opacity: 1 }, 0.47);
-      tl.to(tagRefs.current[2], { opacity: 0 }, 0.72);
-      tl.to(tagRefs.current[3], { opacity: 1 }, 0.72);
-
-      // Bracket pulse — one pulse per tagline change
-      [0.22, 0.47, 0.72].forEach((t) => {
-        tl.fromTo(
-          bracketRef.current,
-          { scale: 1 },
-          { scale: 1.06, duration: 0.04, yoyo: true, repeat: 1, ease: 'power1.inOut' },
-          t
-        );
-      });
-
-      // Act-out: HUD elements fade so Act 2 can take over cleanly
-      tl.to(hudRef.current, { opacity: 0, ease: 'power2.in' }, 0.82);
+      // Tagline crossfades — short, explicit durations so each line gets a
+      // long hold at full opacity. Default GSAP duration (0.5) was eating ~50%
+      // of the scroll on a single fade, causing the "too fast" feel.
+      const FADE = 0.05;
+      tl.to(tagRefs.current[0], { opacity: 0, duration: FADE }, 0.25);
+      tl.to(tagRefs.current[1], { opacity: 1, duration: FADE }, 0.25);
+      tl.to(tagRefs.current[1], { opacity: 0, duration: FADE }, 0.50);
+      tl.to(tagRefs.current[2], { opacity: 1, duration: FADE }, 0.50);
+      tl.to(tagRefs.current[2], { opacity: 0, duration: FADE }, 0.75);
+      tl.to(tagRefs.current[3], { opacity: 1, duration: FADE }, 0.75);
     }, sectionRef);
 
     return () => ctx.revert();
@@ -90,39 +80,6 @@ export default function Act1Viewfinder() {
         <div ref={photoRef} className="reel__bg">
           <img src={HERO_PHOTO} alt="" />
           <div className="reel__bg-tint" />
-        </div>
-
-        {/* HUD layer (subtle by default) */}
-        <div ref={hudRef} className="reel__hud">
-          {/* Top bar */}
-          <div className="reel__hud-top">
-            <span className="reel__hud-mode">M</span>
-            <span>1/500</span>
-            <span>F4</span>
-            <span>ISO&thinsp;400</span>
-            <span className="reel__hud-spacer" />
-            <span className="reel__hud-meta">AWB · IS</span>
-          </div>
-
-          {/* AF brackets */}
-          <div ref={bracketRef} className="reel__hud-af">
-            <span className="reel__hud-bracket reel__hud-bracket--tl" />
-            <span className="reel__hud-bracket reel__hud-bracket--tr" />
-            <span className="reel__hud-bracket reel__hud-bracket--bl" />
-            <span className="reel__hud-bracket reel__hud-bracket--br" />
-          </div>
-
-          {/* Bottom bar */}
-          <div className="reel__hud-bot">
-            <span>RAW+L</span>
-            <span className="reel__hud-spacer" />
-            <span>Frame 1 / 4</span>
-          </div>
-
-          {/* EXIF strip (real or fallback) */}
-          <div className="reel__hud-exif">
-            <ExifCard photo={HERO_PHOTO} compact />
-          </div>
         </div>
 
         {/* Centre: name + morphing tagline */}
@@ -141,7 +98,7 @@ export default function Act1Viewfinder() {
           </div>
         </div>
 
-        {/* Scroll hint, fades with HUD */}
+        {/* Scroll hint */}
         <div className="reel__scroll-hint">
           <span>Scroll</span>
           <span className="reel__scroll-line" />

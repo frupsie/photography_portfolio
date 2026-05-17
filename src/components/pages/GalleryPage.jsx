@@ -1,21 +1,31 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cities } from '../../data/cities';
+import PhotoLightbox from '../landing/PhotoLightbox';
 
 const countries = [...new Set(cities.map(c => c.country))];
 
-// Build a flat photo list from every city
+// Build a flat photo list from every city.
+// Deduped by `src`: a hero is often also the first entry in photos[] —
+// without a Set guard, those photos would render twice in the Gallery grid.
 function buildPhotoList() {
   const list = [];
+  const seen = new Set();
+  const push = (src, orientation, city) => {
+    if (!src || seen.has(src)) return;
+    seen.add(src);
+    list.push({ src, city: city.name, country: city.country, slug: city.slug, orientation });
+  };
+
   cities.forEach(city => {
     if (city.heroImage && !city.heroImage.includes('placeholder')) {
-      list.push({ src: city.heroImage, city: city.name, country: city.country, slug: city.slug, orientation: 'landscape' });
+      push(city.heroImage, 'landscape', city);
     }
     city.photos.forEach(photo => {
       const src         = typeof photo === 'string' ? photo : photo.src;
       const orientation = typeof photo === 'string' ? 'landscape' : (photo.orientation ?? 'landscape');
-      list.push({ src, city: city.name, country: city.country, slug: city.slug, orientation });
+      push(src, orientation, city);
     });
   });
   return list;
@@ -100,7 +110,7 @@ export default function GalleryPage() {
       {/* Lightbox */}
       <AnimatePresence>
         {lightboxIndex !== null && (
-          <GalleryLightbox
+          <PhotoLightbox
             photos={filtered}
             index={lightboxIndex}
             onClose={() => setLightboxIndex(null)}
@@ -109,64 +119,6 @@ export default function GalleryPage() {
           />
         )}
       </AnimatePresence>
-    </motion.div>
-  );
-}
-
-function GalleryLightbox({ photos, index, onClose, onPrev, onNext }) {
-  const handleKey = useCallback((e) => {
-    if (e.key === 'ArrowLeft')  onPrev();
-    if (e.key === 'ArrowRight') onNext();
-    if (e.key === 'Escape')     onClose();
-  }, [onPrev, onNext, onClose]);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [handleKey]);
-
-  const photo = photos[index];
-
-  return (
-    <motion.div
-      className="lightbox"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
-      onClick={onClose}
-    >
-      {/* Close */}
-      <button className="lightbox__close" onClick={onClose}>✕</button>
-
-      {/* Counter */}
-      <div className="lightbox__counter">
-        <span className="lightbox__counter-current">{index + 1}</span>
-        <span className="lightbox__counter-sep" />
-        <span>{photos.length}</span>
-      </div>
-
-      {/* Prev / Next */}
-      <button className="lightbox__prev" onClick={e => { e.stopPropagation(); onPrev(); }}>‹</button>
-      <button className="lightbox__next" onClick={e => { e.stopPropagation(); onNext(); }}>›</button>
-
-      {/* Image */}
-      <AnimatePresence mode="wait">
-        <motion.img
-          key={index}
-          src={photo.src}
-          alt={photo.city}
-          className={`lightbox__img lightbox__img--${photo.orientation ?? 'landscape'}`}
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.97 }}
-          transition={{ duration: 0.22 }}
-          onClick={e => e.stopPropagation()}
-        />
-      </AnimatePresence>
-
-      {/* Caption */}
-      <p className="lightbox__caption">{photo.city} · {photo.country}</p>
     </motion.div>
   );
 }

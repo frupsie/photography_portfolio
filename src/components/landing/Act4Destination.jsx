@@ -19,19 +19,19 @@ const TILES = [
     to:    '/gallery',
     label: 'Gallery',
     sub:   'Every frame, every city',
-    photo: '/photos/seoul/hero-web.jpg',
+    photo: '/photos-web/seoul/hero-web.jpg',
   },
   {
     to:    '/about',
     label: 'About',
     sub:   'The photographer & the kit',
-    photo: '/photos/macau/hero-web.jpg',
+    photo: '/photos-web/macau/hero-web.jpg',
   },
   {
     to:    '/contact',
     label: 'Contact',
     sub:   'Let’s make something',
-    photo: '/photos/nikko/hero-web.jpg',
+    photo: '/photos-web/nikko/hero-web.jpg',
   },
 ];
 

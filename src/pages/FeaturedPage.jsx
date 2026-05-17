@@ -1,14 +1,14 @@
 /**
  * FeaturedPage — /featured route.
- * Houses the interactive globe + featured carousel + destinations grid
- * that used to live on the LandingPage. Linked from the Reel outro.
+ *
+ * Section 1: FlightMap — animated 2D Leaflet map showing every trip
+ *            (planes between countries, trains/cars within them).
+ * Section 2: StoryReel — 10 daily-shuffled photos, auto-play, full-bleed.
  */
-import { Suspense, lazy } from 'react';
 import { motion } from 'framer-motion';
-import FeaturedCarousel from '../components/FeaturedReel';
+import FlightMap from '../components/FlightMap';
+import StoryReel from '../components/StoryReel';
 import Destinations from '../components/Destinations';
-
-const GlobeSection = lazy(() => import('../components/GlobeSection'));
 
 export default function FeaturedPage() {
   return (
@@ -19,21 +19,34 @@ export default function FeaturedPage() {
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.4 }}
     >
+      {/* ── The Journey ── */}
       <header className="featured-page__head">
-        <span className="featured-page__eyebrow">Curated</span>
+        <span className="featured-page__eyebrow">The Journey</span>
         <h1 className="featured-page__title">Featured Reel</h1>
         <p className="featured-page__sub">
-          A handpicked set of frames and the cities behind them.
+          ✈︎ between countries · 🚄 within them — every city on this site, in order of arrival.
         </p>
       </header>
 
-      <Suspense fallback={<div className="globe-section globe-section--loading" />}>
-        <GlobeSection />
-      </Suspense>
+      <FlightMap />
 
-      <FeaturedCarousel />
+      {/* ── Today's Reel ── */}
+      <section className="featured-page__story">
+        <header className="featured-page__story-head">
+          <span className="featured-page__eyebrow">Selected work</span>
+          <h2 className="featured-page__story-title">Today's Reel</h2>
+          <p className="featured-page__story-hint">
+            Space to pause · ← → or swipe to navigate · new picks every day
+          </p>
+        </header>
 
-      <Destinations />
+        <StoryReel />
+      </section>
+
+      {/* ── Destinations grid ── */}
+      <section className="featured-page__cities">
+        <Destinations />
+      </section>
     </motion.div>
   );
 }

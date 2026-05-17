@@ -1,5 +1,30 @@
-import { motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { usePortfolioStats } from '../../hooks/usePortfolioStats';
+
+// ── Animated count-up ────────────────────────────────────────────────────────
+function CountUp({ to, duration = 1.4, suffix = '' }) {
+  const ref    = useRef(null);
+  const [val, setVal] = useState(0);
+  const inView = useInView(ref, { once: true, amount: 0.6 });
+
+  useEffect(() => {
+    if (!inView || to === 0) { setVal(to); return; }
+    let startTs = null;
+    const tick = (ts) => {
+      if (!startTs) startTs = ts;
+      const p = Math.min((ts - startTs) / (duration * 1000), 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(eased * to));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [inView, to, duration]);
+
+  return <span ref={ref}>{val}{suffix}</span>;
+}
 
 const gear = [
   {
@@ -49,6 +74,8 @@ const fadeUp = (delay = 0) => ({
 });
 
 export default function AboutPage() {
+  const stats = usePortfolioStats();
+
   return (
     <motion.div
       className="ap"
@@ -93,18 +120,43 @@ export default function AboutPage() {
             [Replace this with your own story.]
           </p>
 
+          {/* ── Big travel numbers ──────────────────────────────── */}
           <div className="ap-stats">
             <div className="ap-stat">
-              <span className="ap-stat__num">11</span>
+              <span className="ap-stat__num">
+                <CountUp to={stats.cities} />
+              </span>
               <span className="ap-stat__label">Cities</span>
             </div>
             <div className="ap-stat">
-              <span className="ap-stat__num">3</span>
+              <span className="ap-stat__num">
+                <CountUp to={stats.countries} />
+              </span>
               <span className="ap-stat__label">Countries</span>
             </div>
             <div className="ap-stat">
-              <span className="ap-stat__num">∞</span>
-              <span className="ap-stat__label">Frames</span>
+              <span className="ap-stat__num">
+                <CountUp to={stats.photos} />
+              </span>
+              <span className="ap-stat__label">Photos</span>
+            </div>
+          </div>
+
+          {/* ── EXIF / photographer strip ────────────────────────── */}
+          <div className="ap-stats-exif">
+            <div className="ap-stats-exif__item">
+              <span className="ap-stats-exif__val">{stats.favFocal}</span>
+              <span className="ap-stats-exif__label">Primary Focal</span>
+            </div>
+            <span className="ap-stats-exif__sep" aria-hidden>·</span>
+            <div className="ap-stats-exif__item">
+              <span className="ap-stats-exif__val">{stats.favAperture}</span>
+              <span className="ap-stats-exif__label">Fav Aperture</span>
+            </div>
+            <span className="ap-stats-exif__sep" aria-hidden>·</span>
+            <div className="ap-stats-exif__item">
+              <span className="ap-stats-exif__val">{stats.cameras}</span>
+              <span className="ap-stats-exif__label">Camera Bodies</span>
             </div>
           </div>
 

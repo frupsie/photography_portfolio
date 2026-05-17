@@ -1300,6 +1300,48 @@
   color: var(--text-muted);
 }
 
+/* ── EXIF / photographer stats strip ──────────────────────── */
+.ap-stats-exif {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 4px;
+}
+
+.ap-stats-exif__item {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.ap-stats-exif__val {
+  font-family: 'Courier New', 'Courier', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--accent-light);
+}
+
+.ap-stats-exif__label {
+  font-size: 0.62rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ap-stats-exif__sep {
+  color: var(--glass-border);
+  font-size: 1rem;
+  line-height: 1;
+  /* bump contrast a touch so the dot is readable */
+  opacity: 0.6;
+  user-select: none;
+}
+
 /* Contact button */
 .ap-contact-btn {
   display: inline-flex;
@@ -2509,12 +2551,10 @@
   width: 100%;
   background: #0a0908;
   color: var(--text);
+  /* HUD elements (top/bottom bars, AF brackets, EXIF strip) sit at this
+     opacity by default — subtle, atmospheric, doesn't fight the photo. */
   --hud-opacity: 0.22;
 }
-
-/* HUD opacity modes (toggled via M key, persisted to localStorage) */
-.reel--hud-subtle { --hud-opacity: 0.22; }
-.reel--hud-full   { --hud-opacity: 1; }
 
 /* Each act = 220vh of scroll, sticky inner = 100vh viewport.
  * The 120vh "scrub zone" (act height - pin height) is where the timeline plays.
@@ -2565,75 +2605,6 @@
     rgba(10, 9, 8, 0.45) 0%,
     rgba(10, 9, 8, 0.18) 40%,
     rgba(10, 9, 8, 0.55) 100%);
-}
-
-/* HUD layer */
-.reel__hud {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  opacity: var(--hud-opacity);
-  transition: opacity 0.3s ease;
-}
-.reel__hud > * { pointer-events: auto; }
-.reel__hud:hover { opacity: 1; }
-
-.reel__hud-top,
-.reel__hud-bot {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  font-family: var(--font-body);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  color: rgba(228, 221, 212, 0.85);
-  font-variant-numeric: tabular-nums;
-  padding: 12px 14px;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 2px;
-}
-.reel__hud-top { top: 88px; }
-.reel__hud-bot { bottom: 88px; }
-.reel__hud-spacer { flex: 1; }
-.reel__hud-mode {
-  border: 1px solid rgba(228, 221, 212, 0.6);
-  padding: 1px 7px;
-  font-size: 0.62rem;
-  letter-spacing: 0.16em;
-}
-.reel__hud-meta { color: rgba(228, 221, 212, 0.55); }
-
-/* Corner AF brackets — full viewport */
-.reel__hud-af {
-  position: absolute;
-  inset: 88px 24px;
-  pointer-events: none;
-}
-.reel__hud-bracket {
-  position: absolute;
-  width: 38px;
-  height: 38px;
-  border: 0 solid rgba(228, 221, 212, 0.55);
-}
-.reel__hud-bracket--tl { top: 6px;    left:  6px;    border-top-width: 1.5px; border-left-width: 1.5px; }
-.reel__hud-bracket--tr { top: 6px;    right: 6px;    border-top-width: 1.5px; border-right-width: 1.5px; }
-.reel__hud-bracket--bl { bottom: 6px; left:  6px;    border-bottom-width: 1.5px; border-left-width: 1.5px; }
-.reel__hud-bracket--br { bottom: 6px; right: 6px;    border-bottom-width: 1.5px; border-right-width: 1.5px; }
-
-/* EXIF strip — top-left under the HUD top bar */
-.reel__hud-exif {
-  position: absolute;
-  top: 148px;
-  left: 36px;
-  max-width: 320px;
-  transition: opacity 0.22s ease;
 }
 
 /* Centre: name + tagline stack */
@@ -2884,27 +2855,64 @@
   z-index: 2;
 }
 
+/* ─── Parallax frame layout ──────────────────────────────────
+ * .reel__pframe       — outer article. GSAP writes y / opacity here.
+ *                       Position + z-index only (no transform conflicts).
+ * .reel__pframe-card  — inner wrapper. Owns the depth scale + hover focus.
+ *                       Free of GSAP's inline transforms, so CSS hover
+ *                       transitions work cleanly.
+ * .reel__pframe-photo — the cropped image surface.
+ * .reel__pframe-exif  — EXIF overlay that lives inside the card so it
+ *                       scales/focuses together with the photo.
+ * ──────────────────────────────────────────────────────────── */
 .reel__pframe {
   position: absolute;
   display: block;
   width: 30vw;
   max-width: 460px;
   aspect-ratio: 3 / 2;
-  border-radius: 4px;
   overflow: visible;
   cursor: default;
+}
+.reel__pframe--layer-0 { z-index: 1; }
+.reel__pframe--layer-1 { z-index: 2; }
+.reel__pframe--layer-2 { z-index: 3; }
+/* Lift hovered frame above every other photo so its focused state isn't clipped. */
+.reel__pframe:hover { z-index: 20; }
+
+.reel__pframe-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
   filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55));
-  transition: transform 0.4s ease, filter 0.3s ease;
+  transform-origin: center center;
+  cursor: zoom-in;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    filter   0.35s ease,
+    opacity  0.35s ease;
 }
-.reel__pframe--layer-0 { transform: scale(0.55); z-index: 1; }
-.reel__pframe--layer-1 { transform: scale(0.78); z-index: 2; }
-.reel__pframe--layer-2 { transform: scale(1);    z-index: 3; }
-.reel__pframe:hover {
-  filter: drop-shadow(0 40px 80px rgba(0, 0, 0, 0.85));
+/* Depth-of-field scale lives on the inner card. */
+.reel__pframe--layer-0 .reel__pframe-card { transform: scale(0.55); }
+.reel__pframe--layer-1 .reel__pframe-card { transform: scale(0.78); }
+.reel__pframe--layer-2 .reel__pframe-card { transform: scale(1); }
+
+/* Focus: hovered photo snaps to full readable size + a richer shadow.
+   Overrides the per-layer scale because of specificity (hover is more specific). */
+.reel__pframe:hover .reel__pframe-card {
+  transform: scale(1.08);
+  filter: drop-shadow(0 50px 100px rgba(0, 0, 0, 0.9));
 }
-.reel__pframe--layer-0:hover { transform: scale(0.6); }
-.reel__pframe--layer-1:hover { transform: scale(0.85); }
-.reel__pframe--layer-2:hover { transform: scale(1.05); }
+
+/* When ANY frame is hovered, the others recede — slight blur + dim — so the
+   focused one becomes the unmistakable subject. Mimics a camera's shallow DoF.
+   Targets the inner card (GSAP doesn't touch it, so its inline opacity won't
+   override our 0.35). Uses :has() — supported in all modern browsers. */
+.reel__parallax:has(.reel__pframe:hover) .reel__pframe:not(:hover) .reel__pframe-card {
+  filter: blur(4px) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5));
+  opacity: 0.35;
+}
 
 .reel__pframe-photo {
   width: 100%;
@@ -2922,6 +2930,8 @@
   -webkit-user-drag: none;
 }
 
+/* EXIF card: subtle by default, fades to full on focus. Lives inside the
+   card so it scales together with the photo when focus snaps in. */
 .reel__pframe-exif {
   position: absolute;
   bottom: -12px;
@@ -3063,22 +3073,167 @@
   color: #111110;
 }
 .reel__outro-link:hover svg { transform: translateX(4px); }
-.reel__outro-hint {
-  font-size: 0.66rem;
-  letter-spacing: 0.16em;
-  color: var(--text-muted);
-  margin: 0;
+
+/* ── PhotoLightbox (shared by Act 3, Gallery, Featured) ─────────── */
+
+.photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 9, 8, 0.96);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 80px;
+  cursor: zoom-out;
 }
-.reel__outro-hint kbd {
-  display: inline-block;
-  padding: 2px 7px;
-  margin: 0 2px;
-  font-family: var(--font-body);
-  font-size: 0.65rem;
-  background: rgba(228, 221, 212, 0.06);
-  border: 1px solid rgba(228, 221, 212, 0.18);
-  border-radius: 2px;
-  color: var(--accent);
+
+.photo-lightbox__img-wrap {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.photo-lightbox__img {
+  max-width: 90vw;
+  max-height: 85vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7);
+}
+
+/* AF corner brackets — Canon EVF DNA */
+.photo-lightbox__corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid rgba(200, 168, 120, 0.55);
+  pointer-events: none;
+}
+.photo-lightbox__corner--tl { top: -14px;    left: -14px;    border-right: none;  border-bottom: none; }
+.photo-lightbox__corner--tr { top: -14px;    right: -14px;   border-left: none;   border-bottom: none; }
+.photo-lightbox__corner--bl { bottom: -14px; left: -14px;    border-right: none;  border-top: none; }
+.photo-lightbox__corner--br { bottom: -14px; right: -14px;   border-left: none;   border-top: none; }
+
+/* Counter top-center */
+.photo-lightbox__counter {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.72);
+}
+.photo-lightbox__counter-current { color: var(--accent, rgb(200, 168, 120)); }
+.photo-lightbox__counter-sep     { opacity: 0.5; }
+
+/* Close button top-right */
+.photo-lightbox__close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.05rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.photo-lightbox__close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: rotate(90deg);
+}
+
+/* Prev / Next */
+.photo-lightbox__prev,
+.photo-lightbox__next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  line-height: 1;
+}
+.photo-lightbox__prev { left: 24px; }
+.photo-lightbox__next { right: 24px; }
+.photo-lightbox__prev:hover,
+.photo-lightbox__next:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(200, 168, 120, 0.55);
+  color: var(--accent, rgb(200, 168, 120));
+}
+
+/* EXIF pinned bottom-left */
+.photo-lightbox__exif {
+  position: absolute;
+  bottom: 28px;
+  left: 28px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: default;
+}
+.photo-lightbox__exif .exif-card { opacity: 1; }
+.photo-lightbox__caption {
+  margin: 0;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.65);
+  text-transform: uppercase;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .photo-lightbox { padding: 40px 12px; }
+  .photo-lightbox__img { max-width: 96vw; max-height: 70vh; }
+  .photo-lightbox__corner { width: 18px; height: 18px; }
+  .photo-lightbox__corner--tl { top: -9px;    left: -9px; }
+  .photo-lightbox__corner--tr { top: -9px;    right: -9px; }
+  .photo-lightbox__corner--bl { bottom: -9px; left: -9px; }
+  .photo-lightbox__corner--br { bottom: -9px; right: -9px; }
+  .photo-lightbox__prev,
+  .photo-lightbox__next { width: 40px; height: 40px; font-size: 1.4rem; }
+  .photo-lightbox__prev { left: 8px; }
+  .photo-lightbox__next { right: 8px; }
+  .photo-lightbox__exif {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    max-width: none;
+  }
+  .photo-lightbox__counter { top: 16px; font-size: 0.74rem; }
+  .photo-lightbox__close { top: 12px; right: 12px; width: 34px; height: 34px; }
 }
 
 /* ── ExifCard (reusable) ──────────────────────────────── */
@@ -3168,6 +3323,294 @@
   margin: 0;
 }
 
+/* ── FlightMap (Featured page centerpiece) ─────────────────────── */
+
+.flight-map {
+  position: relative;
+  max-width: 1200px;
+  margin: 32px auto;
+  height: 620px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e8e0d0;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+}
+.flight-map__inner {
+  width: 100%;
+  height: 100%;
+}
+
+/* Singapore origin pin — solid disc with a soft halo, no shaft. */
+.map-pin--origin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+.map-pin--origin .map-pin__head {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow:
+    0 0 0 3px rgba(200, 168, 120, 0.28),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+  animation: originPulse 2.4s ease-in-out infinite;
+}
+@keyframes originPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(200, 168, 120, 0.28), 0 2px 8px rgba(0, 0, 0, 0.35); }
+  50%      { box-shadow: 0 0 0 7px rgba(200, 168, 120, 0.10), 0 2px 8px rgba(0, 0, 0, 0.35); }
+}
+
+/* Flight map pin (extends the base .map-pin) — adds a lit/arrival spring */
+.map-pin--flight {
+  transition: opacity 0.45s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.map-pin--flight:not(.map-pin--dim) {
+  animation: pinDrop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes pinDrop {
+  0%   { transform: translateY(-12px); opacity: 0.3; }
+  60%  { transform: translateY(2px);   opacity: 1; }
+  100% { transform: translateY(0);     opacity: 1; }
+}
+
+/* Plane / train / car icons — animated DivIcons. Slightly stronger shadow
+   against Voyager's lighter tiles so the vehicle reads as airborne. */
+.flight-map__vehicle {
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+}
+
+/* Replay button */
+.flight-map__replay {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  z-index: 500;
+  background: rgba(10, 9, 8, 0.78);
+  color: var(--accent, rgb(200, 168, 120));
+  border: 1px solid rgba(200, 168, 120, 0.45);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.35s ease, background 0.25s ease, transform 0.25s ease;
+}
+.flight-map__replay--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.flight-map__replay:hover {
+  background: rgba(200, 168, 120, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Destinations section below the map */
+.featured-page__cities {
+  max-width: 1200px;
+  margin: 56px auto 80px;
+  padding: 0 24px;
+}
+.featured-page__cities-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0 0 24px;
+}
+
+/* ── Featured page: "Today's Reel" story section ──────────────────── */
+
+.featured-page__story {
+  max-width: 1200px;
+  margin: 64px auto 80px;
+  padding: 0 24px;
+}
+.featured-page__story-head {
+  margin-bottom: 28px;
+}
+.featured-page__story-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+.featured-page__story-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+/* ── StoryReel widget ──────────────────────────────────────────────── */
+
+.story-reel {
+  position: relative;
+  width: 100%;
+  height: clamp(440px, 56vw, 720px);
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 32px 72px rgba(0, 0, 0, 0.55);
+  /* Pause Ken Burns when the section is hovered; resumed via JS state */
+}
+
+/* ── Progress bar ── */
+.story-reel__progress {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 10;
+  display: flex;
+  gap: 5px;
+  pointer-events: none;
+}
+.story-reel__bar {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 1px;
+  overflow: hidden;
+}
+/* Inner fill element — width driven directly by JS (no CSS variable) */
+.story-reel__bar-fill {
+  height: 100%;
+  width: 100%;           /* "done" bars are always 100% */
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1px;
+}
+
+/* ── Counter ── */
+.story-reel__counter {
+  position: absolute;
+  top: 28px;
+  right: 18px;
+  z-index: 10;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+}
+
+/* ── Photo ── */
+.story-reel__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* slight dark vignette so overlay text reads cleanly */
+  filter: brightness(0.96);
+  will-change: transform, opacity;
+}
+
+/* Ken Burns — scale + drift, 4.5s duration set inline */
+@keyframes kenBurns {
+  from { transform: scale(1)    translate(0,    0);    }
+  to   { transform: scale(1.06) translate(var(--burns-dx, 0%), var(--burns-dy, 0%)); }
+}
+.story-reel__img--burns {
+  animation: kenBurns var(--burns-duration, 4500ms) linear forwards;
+}
+/* When paused via the class on the parent, freeze the Ken Burns */
+.story-reel--paused .story-reel__img--burns {
+  animation-play-state: paused;
+}
+
+/* ── Pause hint (⏸ flash) ── */
+.story-reel__pause-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  z-index: 20;
+  font-size: 2.4rem;
+  color: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Info overlay ── */
+.story-reel__overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 48px 20px 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%);
+  pointer-events: none;
+}
+.story-reel__caption {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 8px;
+  pointer-events: none;
+}
+.story-reel__caption-city {
+  font-family: var(--font-heading);
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.92);
+  text-transform: uppercase;
+}
+.story-reel__caption-country {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent, rgb(200, 168, 120));
+  opacity: 0.85;
+}
+/* Compact ExifCard inside the reel */
+.story-reel__exif {
+  --exif-opacity: 0.75;
+}
+.story-reel__exif .exif-card__label { color: rgba(255, 255, 255, 0.4); }
+.story-reel__exif .exif-card__val   { color: rgba(255, 255, 255, 0.75); }
+.story-reel__exif .exif-card__loc,
+.story-reel__exif .exif-card__date  { color: rgba(255, 255, 255, 0.45); }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .featured-page__story { padding: 0 12px; margin: 48px auto 60px; }
+  .story-reel { height: clamp(320px, 80vw, 480px); border-radius: 6px; }
+  .story-reel__overlay { padding: 36px 14px 14px; }
+}
+
+/* Tooltip styling so Leaflet text matches site */
+.flight-map .leaflet-tooltip {
+  background: rgba(10, 9, 8, 0.92);
+  color: var(--accent, rgb(200, 168, 120));
+  border: 1px solid rgba(200, 168, 120, 0.35);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  box-shadow: none;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .flight-map { height: 440px; margin: 24px 12px; }
+  .featured-page__cities { padding: 0 16px; margin: 40px auto 60px; }
+}
+
 /* ── Reduced motion fallback ──────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -3196,14 +3639,6 @@
 
 @media (max-width: 768px) {
   .reel__act { height: 180vh; }
-
-  /* Tighten HUD */
-  .reel__hud-top, .reel__hud-bot { left: 12px; right: 12px; padding: 9px 10px; gap: 14px; font-size: 0.62rem; }
-  .reel__hud-top { top: 76px; }
-  .reel__hud-bot { bottom: 76px; }
-  .reel__hud-af { inset: 76px 12px; }
-  .reel__hud-bracket { width: 26px; height: 26px; }
-  .reel__hud-exif { top: 132px; left: 16px; right: 16px; max-width: none; }
 
   /* Centre */
   .reel__name { font-size: clamp(2.6rem, 11vw, 4.2rem); margin-bottom: 18px; }
@@ -3244,8 +3679,6 @@
 
 @media (max-width: 480px) {
   .reel__name { font-size: clamp(2.2rem, 13vw, 3.6rem); }
-  .reel__hud-top, .reel__hud-bot { font-size: 0.58rem; gap: 10px; padding: 8px; }
-  .reel__hud-mode { display: none; }
   .reel__counter-num { font-size: 1.5rem; }
   .reel__tiles { max-height: 80vh; }
 }
@@ -3690,7 +4123,7 @@
 /* ===== DESTINATIONS ===== */
 
 .destinations {
-  padding: 80px 48px 100px;
+  padding: 48px 0 80px;
   background: var(--bg);
 }
 
@@ -3856,11 +4289,11 @@
 }
 
 @media (max-width: 768px) {
-  .destinations { padding: 60px 24px 80px; }
+  .destinations { padding: 40px 0 60px; }
 }
 
 @media (max-width: 520px) {
-  .destinations { padding: 48px 16px 64px; }
+  .destinations { padding: 32px 0 48px; }
   .destinations__grid { grid-template-columns: 1fr; }
 }
 
@@ -3968,6 +4401,18 @@
 }
 .leaflet-tooltip.map-tooltip::before {
   display: none;
+}
+
+/* Permanent origin label — sits next to Singapore */
+.leaflet-tooltip.map-tooltip--origin {
+  background: rgba(200, 168, 120, 0.96);
+  color: #1a1410;
+  border-color: rgba(0, 0, 0, 0.18);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  padding: 3px 9px 4px;
 }
 
 .map-tooltip__city {

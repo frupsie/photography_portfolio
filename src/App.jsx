@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
@@ -11,9 +11,25 @@ import ContactPage from './components/pages/ContactPage';
 import GalleryPage from './components/pages/GalleryPage';
 import FeaturedPage from './pages/FeaturedPage';
 import IntroScreen from './components/IntroScreen';
-import { useLenis } from './hooks/useLenis';
+import { useLenis, getLenis } from './hooks/useLenis';
 
 const INTRO_KEY = 'jayden_intro_seen';
+
+/**
+ * ScrollToTop — resets scroll on every route change.
+ * Lenis manages its own internal scroll state, so a plain window.scrollTo()
+ * isn't enough: we tell Lenis to jump first (immediate=true skips its smooth
+ * tween), then fall back to native scroll if Lenis isn't booted (reduced-motion).
+ */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const lenis = getLenis();
+    if (lenis) lenis.scrollTo(0, { immediate: true });
+    else window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 function ScrollProgressBar() {
   const { scrollYProgress } = useScroll();
@@ -43,6 +59,7 @@ export default function App() {
       <AnimatePresence>
         {showIntro && <IntroScreen key="intro" onDone={handleIntroDone} />}
       </AnimatePresence>
+      <ScrollToTop />
       <Navbar />
       <ScrollProgressBar />
       <AnimatePresence mode="wait">

@@ -8,36 +8,48 @@
  * Three layer speeds — foreground travels fastest, background slowest,
  * producing a 3D-feeling depth-of-field.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { featured } from '../../data/featured';
 import ExifCard from './ExifCard';
+import PhotoLightbox from './PhotoLightbox';
 
 gsap.registerPlugin(ScrollTrigger);
 
 // Assign each photo a depth layer (0 = back, 2 = front).
 // Spreading across layers keeps the parallax visually balanced.
-const LAYERS = [1, 0, 2, 1, 0, 2];
+const LAYERS = [1, 0, 2, 1, 0, 2, 1, 0, 2];
 
 // Pixel speed multipliers per layer. Higher = travels faster.
 const SPEEDS = [0.35, 0.6, 1.0]; // back, mid, front
 
-// Pre-computed positions so the 6 photos don't visually collide
+// Pre-computed positions so the 9 photos don't visually collide.
 // Each entry: { top, left } as percent strings. Tuned by eye.
 const POSITIONS = [
-  { top: '8%',  left: '4%'  },
-  { top: '18%', left: '52%' },
-  { top: '40%', left: '18%' },
-  { top: '50%', left: '64%' },
-  { top: '72%', left: '8%'  },
-  { top: '80%', left: '58%' },
+  { top: '4%',  left: '4%'  },
+  { top: '6%',  left: '54%' },
+  { top: '24%', left: '28%' },
+  { top: '28%', left: '68%' },
+  { top: '46%', left: '6%'  },
+  { top: '50%', left: '46%' },
+  { top: '68%', left: '22%' },
+  { top: '72%', left: '62%' },
+  { top: '88%', left: '38%' },
 ];
 
 export default function Act3Work() {
   const sectionRef  = useRef(null);
   const photoRefs   = useRef([]);
   const headRef     = useRef(null);
+  const [lbIndex, setLbIndex] = useState(null);
+
+  // Normalize featured entries for the lightbox (photo → src)
+  const lbPhotos = useMemo(
+    () => featured.map((f) => ({ src: f.photo, city: f.city, country: f.country })),
+    []
+  );
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -92,16 +104,35 @@ export default function Act3Work() {
               ref={(el) => (photoRefs.current[i] = el)}
               className={`reel__pframe reel__pframe--layer-${LAYERS[i]}`}
               style={POSITIONS[i]}
+              onClick={() => setLbIndex(i)}
             >
-              <div className="reel__pframe-photo">
-                <img src={item.photo} alt={`${item.city}, ${item.country}`}
-                     loading="lazy" draggable="false" />
+              {/* Inner card owns the visual scale / hover focus.
+                  Outer .reel__pframe is GSAP's playground (y-translation +
+                  opacity). Separating these prevents CSS hover transforms
+                  from fighting GSAP's inline transforms. */}
+              <div className="reel__pframe-card">
+                <div className="reel__pframe-photo">
+                  <img src={item.photo} alt={`${item.city}, ${item.country}`}
+                       loading="lazy" draggable="false" />
+                </div>
+                <ExifCard photo={item.photo} compact className="reel__pframe-exif" />
               </div>
-              <ExifCard photo={item.photo} compact className="reel__pframe-exif" />
             </article>
           ))}
         </div>
       </div>
+
+      <AnimatePresence>
+        {lbIndex !== null && (
+          <PhotoLightbox
+            photos={lbPhotos}
+            index={lbIndex}
+            onClose={() => setLbIndex(null)}
+            onPrev={() => setLbIndex((i) => (i - 1 + lbPhotos.length) % lbPhotos.length)}
+            onNext={() => setLbIndex((i) => (i + 1) % lbPhotos.length)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

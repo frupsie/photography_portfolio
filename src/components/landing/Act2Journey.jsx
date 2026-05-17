@@ -12,7 +12,6 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { cities } from '../../data/cities';
-import { featured } from '../../data/featured';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,9 +26,18 @@ const orderedCities = [...cities].sort((a, b) => {
 
 const TOTAL_CITIES    = orderedCities.length;
 const TOTAL_COUNTRIES = new Set(orderedCities.map((c) => c.country)).size;
-const TOTAL_FRAMES    = orderedCities.reduce((n, c) => n + (c.photos?.length ?? 0), 0)
-                        + featured.length
-                        + 247; // padding: cumulative frames I've shot — replace any time
+// Earliest year in the gallery → current year. Auto-updates as time passes
+// and as new cities/photos are added.
+const FIRST_YEAR      = orderedCities[0]?.year ?? '2023';
+const CURRENT_YEAR    = new Date().getFullYear();
+const YEAR_RANGE      = `${FIRST_YEAR} — ${CURRENT_YEAR}`;
+// Real count: unique published photos — same dedup logic as GalleryPage.
+const _seen = new Set();
+orderedCities.forEach((c) => {
+  if (c.heroImage && !c.heroImage.includes('placeholder')) _seen.add(c.heroImage);
+  (c.photos ?? []).forEach((p) => _seen.add(typeof p === 'string' ? p : p.src));
+});
+const TOTAL_FRAMES = _seen.size;
 
 // Where in the act's scroll progress the pin sequence happens
 const REVEAL_START = 0.10;
@@ -132,7 +140,7 @@ export default function Act2Journey() {
 
         {/* Eyebrow heading */}
         <div className="reel__act2-head">
-          <span className="reel__act2-eyebrow">Across Asia · 2024 — 2025</span>
+          <span className="reel__act2-eyebrow">Across Asia · {YEAR_RANGE}</span>
           <h2 className="reel__act2-heading">The Journey</h2>
         </div>
       </div>
