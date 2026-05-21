@@ -2814,6 +2814,22 @@
 
 .reel__act--3 {
   background: #0a0908;
+  height: 550vh;          /* generous scroll room — slow, readable cinematic pace */
+}
+
+/* Sticky pin: frames animate on a fixed 100vh stage while scroll drives them */
+.reel__act--3 .reel__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Parallax container fills the pin */
+.reel__act--3 .reel__parallax {
+  position: absolute;
+  inset: 0;
 }
 
 .reel__act3-head {
@@ -2874,9 +2890,7 @@
   overflow: visible;
   cursor: default;
 }
-.reel__pframe--layer-0 { z-index: 1; }
-.reel__pframe--layer-1 { z-index: 2; }
-.reel__pframe--layer-2 { z-index: 3; }
+.reel__pframe { z-index: 1; }
 /* Lift hovered frame above every other photo so its focused state isn't clipped. */
 .reel__pframe:hover { z-index: 20; }
 
@@ -2893,15 +2907,19 @@
     filter   0.35s ease,
     opacity  0.35s ease;
 }
-/* Depth-of-field scale lives on the inner card. */
-.reel__pframe--layer-0 .reel__pframe-card { transform: scale(0.55); }
-.reel__pframe--layer-1 .reel__pframe-card { transform: scale(0.78); }
-.reel__pframe--layer-2 .reel__pframe-card { transform: scale(1); }
+/* Uniform frame card. CSS sets the resting scale (bigger frames for the
+   cinematic flow — only 1-2 on screen so they can be large). GSAP animates
+   the OUTER .reel__pframe's opacity + scale + y, so the inner card's CSS
+   scale + hover state aren't disturbed. */
+.reel__pframe-card {
+  transform: scale(1.1);
+  filter: brightness(1.05) drop-shadow(0 24px 52px rgba(0,0,0,0.5));
+}
 
 /* Focus: hovered photo snaps to full readable size + a richer shadow.
    Overrides the per-layer scale because of specificity (hover is more specific). */
 .reel__pframe:hover .reel__pframe-card {
-  transform: scale(1.08);
+  transform: scale(1.2);
   filter: drop-shadow(0 50px 100px rgba(0, 0, 0, 0.9));
 }
 
@@ -3631,6 +3649,7 @@
 
 @media (max-width: 1024px) {
   .reel__act { height: 200vh; }
+  .reel__act--3 { height: 480vh; }  /* tall for the cinematic flow */
   .reel__tiles { gap: 14px; }
   .reel__pframe { width: 38vw; }
 }
@@ -3650,12 +3669,72 @@
   .reel__counter-item { min-width: 64px; }
   .reel__counter-divider { display: none; }
   .reel__act2-head { top: 76px; }
-  .reel__act3-head { top: 76px; }
 
-  /* Parallax — keep only 1 visual layer (layer 1 / mid), hide others to reduce GPU work */
-  .reel__pframe { width: 70vw; }
-  .reel__pframe--layer-0,
-  .reel__pframe--layer-2 { display: none; }
+  /* ── Act 3 on mobile: memoir reveal disabled, horizontal swipe strip ── */
+  .reel__act--3 {
+    height: auto;
+    min-height: auto;
+    position: relative;
+  }
+  .reel__act3-head {
+    position: relative;
+    top: auto; left: auto;
+    transform: none;
+    padding: 72px 24px 28px;
+    text-align: center;
+    width: 100%;
+  }
+
+  /* Parallax container becomes the swipe strip */
+  .reel__act--3 .reel__parallax {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    gap: 14px;
+    padding: 0 20px 16px;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .reel__act--3 .reel__parallax::-webkit-scrollbar { display: none; }
+
+  /* Each frame is a flex item in the strip, not absolute */
+  .reel__pframe {
+    position: static !important;
+    flex: 0 0 76vw;
+    width: 76vw !important;
+    height: auto;
+    scroll-snap-align: start;
+    opacity: 1 !important;     /* override any GSAP fromTo on mobile */
+    transform: none !important;
+  }
+
+  .reel__pframe-card {
+    transform: scale(1) !important;
+    filter: brightness(1.05) drop-shadow(0 12px 28px rgba(0,0,0,0.5));
+    aspect-ratio: 5 / 4;
+  }
+  .reel__pframe-photo { aspect-ratio: 5 / 4; }
+
+  /* EXIF card shown below the photo (no hover on touch) */
+  .reel__pframe-exif {
+    position: relative;
+    bottom: auto; left: auto; right: auto;
+    transform: none;
+    opacity: 1;
+    margin-top: 10px;
+  }
+
+  /* Disable hover dim — no hover on touch */
+  .reel__parallax:has(.reel__pframe:hover) .reel__pframe:not(:hover) .reel__pframe-card {
+    filter: none !important;
+    opacity: 1 !important;
+  }
 
   /* CTA tiles stack vertically */
   .reel__pin--centred { padding: 60px 24px; justify-content: flex-start; }

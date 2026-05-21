@@ -1,12 +1,16 @@
 /**
- * Act 3 — "The Work"
+ * Act 3 - "The Frames" - Cinematic Flow
  *
- * Plunges into a parallax photo gallery. 6 photos drift past on 3 layers,
- * each at a different scroll speed. Hovering a photo reveals its EXIF card
- * at full opacity (subtle by default to keep the recruiter view clean).
+ * Each frame fades in from below, drifts continuously upward as you scroll
+ * (scroll-linked / scrubbed), then fades out as the next arrives. Only 1-2
+ * frames share the screen at any moment, so frames can be large and never
+ * overlap, while the constant scroll-linked drift keeps it immersive -
+ * like a film sequence of photographs.
  *
- * Three layer speeds — foreground travels fastest, background slowest,
- * producing a 3D-feeling depth-of-field.
+ * Each frame has its own scrubbed timeline spanning its slice of the
+ * 450vh section. Windows overlap ~30% so transitions show 2 frames briefly,
+ * always in opposite vertical zones (one leaving the top, one entering the
+ * bottom) at different horizontal positions - no collisions.
  */
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -18,34 +22,28 @@ import PhotoLightbox from './PhotoLightbox';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Assign each photo a depth layer (0 = back, 2 = front).
-// Spreading across layers keeps the parallax visually balanced.
-const LAYERS = [1, 0, 2, 1, 0, 2, 1, 0, 2];
-
-// Pixel speed multipliers per layer. Higher = travels faster.
-const SPEEDS = [0.35, 0.6, 1.0]; // back, mid, front
-
-// Pre-computed positions so the 9 photos don't visually collide.
-// Each entry: { top, left } as percent strings. Tuned by eye.
+// Anchor positions (where the frame sits mid-window). Alternating
+// left / right / centre down the list so consecutive frames - the only
+// pairs that ever coexist - are at clearly different horizontal positions.
 const POSITIONS = [
-  { top: '4%',  left: '4%'  },
-  { top: '6%',  left: '54%' },
-  { top: '24%', left: '28%' },
-  { top: '28%', left: '68%' },
-  { top: '46%', left: '6%'  },
-  { top: '50%', left: '46%' },
-  { top: '68%', left: '22%' },
-  { top: '72%', left: '62%' },
-  { top: '88%', left: '38%' },
+  { top: '34%', left: '14%' },   // 0: HK
+  { top: '30%', left: '54%' },   // 1: Seoul
+  { top: '40%', left: '32%' },   // 2: Hainan
+  { top: '28%', left: '58%' },   // 3: Kyoto
+  { top: '38%', left: '10%' },   // 4: Macau
+  { top: '32%', left: '46%' },   // 5: Nikko
+  { top: '42%', left: '26%' },   // 6: Hakone
+  { top: '30%', left: '56%' },   // 7: Shenzhen
+  { top: '36%', left: '34%' },   // 8: Guangzhou
 ];
 
 export default function Act3Work() {
-  const sectionRef  = useRef(null);
-  const photoRefs   = useRef([]);
-  const headRef     = useRef(null);
+  const sectionRef = useRef(null);
+  const photoRefs  = useRef([]);
+  const headRef    = useRef(null);
   const [lbIndex, setLbIndex] = useState(null);
 
-  // Normalize featured entries for the lightbox (photo → src)
+  // Normalize featured entries for the lightbox (photo -> src)
   const lbPhotos = useMemo(
     () => featured.map((f) => ({ src: f.photo, city: f.city, country: f.country })),
     []
@@ -56,32 +54,52 @@ export default function Act3Work() {
     if (reduced) return;
 
     const ctx = gsap.context(() => {
+      const N = photoRefs.current.length;
+
+      // ONE master timeline tied to the section scroll. start 'top top' /
+      // end 'bottom bottom' maps progress 0->1 onto exactly the pin's stuck
+      // range, so every frame's window stays within the sticky stage.
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
           end:   'bottom bottom',
           scrub: 1,
-          invalidateOnRefresh: true,
         },
-        defaults: { ease: 'none' },
       });
 
-      // Heading fades in / out
-      tl.fromTo(headRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.10 }, 0);
-      tl.to(headRef.current, { opacity: 0, y: -10, duration: 0.15 }, 0.82);
+      // Heading: fades in at the very start, out before the first frame.
+      tl.fromTo(headRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.03 }, 0);
+      tl.to(headRef.current, { opacity: 0, y: -10, duration: 0.04 }, 0.07);
 
-      // Each photo drifts upward. fromTo guarantees a fixed range regardless
-      // of GSAP's internal state. All photos share the same scroll window so
-      // they're "in the air" together — depth-of-field via the layer scales.
+      // Each frame occupies a window [winStart, winStart+winLen] in the
+      // normalized 0..1 timeline. Windows overlap (~30%) so transitions show
+      // 2 frames briefly. The LAST frame holds at centre (no fade out) so it
+      // stays clearly visible when the user reaches the bottom.
+      // Every frame gets an EQUAL-length window. Windows are evenly stepped
+      // so the first starts at 0 and the last ends exactly at 1.0 (= pin
+      // release). Modest overlap so only a short crossfade, not constant churn.
+      const winLen = 1.25 / N;
+      const step   = (1 - winLen) / (N - 1);
+
+      // Each window is split: fade-in (0–22%), HOLD at full opacity
+      // (22–62%, picture is clearly readable), fade-out (62–100%).
       photoRefs.current.forEach((el, i) => {
         if (!el) return;
-        const speed = SPEEDS[LAYERS[i]];
+        const winStart = i * step;
+
+        // Fade IN + scale + initial rise.
         tl.fromTo(el,
-          { y: `${50 * speed}vh`, opacity: 0 },
-          { y: `${-90 * speed}vh`, opacity: 1, duration: 1 }, 0);
+          { autoAlpha: 0, y: '12vh', scale: 0.95 },
+          { autoAlpha: 1, y: '4vh', scale: 1.0, ease: 'sine.out', duration: winLen * 0.22 },
+          winStart);
+
+        // Continuous, gentle LINEAR drift through the rest of the window.
+        tl.to(el, { y: '-12vh', ease: 'none', duration: winLen * 0.78 }, winStart + winLen * 0.22);
+
+        // Fade OUT only over the back 38% — leaving a clear ~40% HOLD at full
+        // opacity in the middle where the photo is fully visible & still.
+        tl.to(el, { autoAlpha: 0, ease: 'sine.in', duration: winLen * 0.38 }, winStart + winLen * 0.62);
       });
     }, sectionRef);
 
@@ -102,14 +120,10 @@ export default function Act3Work() {
             <article
               key={item.photo}
               ref={(el) => (photoRefs.current[i] = el)}
-              className={`reel__pframe reel__pframe--layer-${LAYERS[i]}`}
+              className="reel__pframe"
               style={POSITIONS[i]}
               onClick={() => setLbIndex(i)}
             >
-              {/* Inner card owns the visual scale / hover focus.
-                  Outer .reel__pframe is GSAP's playground (y-translation +
-                  opacity). Separating these prevents CSS hover transforms
-                  from fighting GSAP's inline transforms. */}
               <div className="reel__pframe-card">
                 <div className="reel__pframe-photo">
                   <img src={item.photo} alt={`${item.city}, ${item.country}`}
