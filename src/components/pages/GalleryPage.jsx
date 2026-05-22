@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cities } from '../../data/cities';
 import PhotoLightbox from '../landing/PhotoLightbox';
 
+// ── Derived data ──────────────────────────────────────────────────────────────
+
 const countries = [...new Set(cities.map(c => c.country))];
 
 // Build a flat photo list from every city.
-// Deduped by `src`: a hero is often also the first entry in photos[] —
-// without a Set guard, those photos would render twice in the Gallery grid.
+// Deduped by `src`: a hero is often also the first entry in photos[].
 function buildPhotoList() {
   const list = [];
   const seen = new Set();
@@ -33,21 +34,101 @@ function buildPhotoList() {
 
 const ALL_PHOTOS = buildPhotoList();
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Unique regions for a given country, preserving cities.js order. */
+function regionsFor(country) {
+  const seen = new Set();
+  const out  = [];
+  cities.forEach(c => {
+    if (c.country === country && c.region && !seen.has(c.region)) {
+      seen.add(c.region);
+      out.push(c.region);
+    }
+  });
+  return out;
+}
+
+/** Cities belonging to a region. */
+function citiesInRegion(region) {
+  return cities.filter(c => c.region === region);
+}
+
+/** Cities in a country that have no region assigned. */
+function citiesWithoutRegion(country) {
+  return cities.filter(c => c.country === country && !c.region);
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function GalleryPage() {
   const location = useLocation();
-  const [activeFilter, setActiveFilter] = useState(
-    () => location.state?.country ?? 'All'
-  );
+
+  // Three-level selection: country → region → city
+  const [selCountry, setSelCountry] = useState(() => location.state?.country ?? null);
+  const [selRegion,  setSelRegion]  = useState(null);
+  const [selCity,    setSelCity]    = useState(null);
+
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
-  const filtered = useMemo(() => {
-    if (activeFilter === 'All') return ALL_PHOTOS;
-    return ALL_PHOTOS.filter(
-      p => p.country === activeFilter || p.city === activeFilter
-    );
-  }, [activeFilter]);
+  // ── Navigation helpers ──────────────────────────────────────────────────────
 
+  const clearAll = () => { setSelCountry(null); setSelRegion(null); setSelCity(null); };
+
+  const selectCountry = (c) => {
+    setSelCountry(c); setSelRegion(null); setSelCity(null);
+  };
+
+  const selectRegion = (r) => {
+    setSelRegion(r); setSelCity(null);
+    // If only 1 city in this region, auto-select it (no third row needed)
+    const only = citiesInRegion(r);
+    if (only.length === 1) setSelCity(only[0].name);
+  };
+
+  const selectCity = (name) => setSelCity(name);
+
+  // ── Derived filter state ────────────────────────────────────────────────────
+
+  // Regions available for the active country (empty = skip region row)
+  const activeRegions = useMemo(
+    () => selCountry ? regionsFor(selCountry) : [],
+    [selCountry],
+  );
+  const hasRegions = activeRegions.length > 1;
+
+  // Cities to show in the city row:
+  // - If a region is selected: cities in that region (unless auto-selected, skipped)
+  // - If country has no regions (or only 1): all cities in that country
+  const activeCities = useMemo(() => {
+    if (!selCountry) return [];
+    if (selRegion) {
+      const inRegion = citiesInRegion(selRegion);
+      // Hide city row when auto-selected (only 1 city, already filtered)
+      return inRegion.length > 1 ? inRegion : [];
+    }
+    // Country has regions but none selected yet → don't show city row yet
+    if (hasRegions) return [];
+    // Country has no regions → show all its cities directly
+    return cities.filter(c => c.country === selCountry);
+  }, [selCountry, selRegion, hasRegions]);
+
+  // Photo filter
+  const filtered = useMemo(() => {
+    if (selCity)    return ALL_PHOTOS.filter(p => p.city === selCity);
+    if (selRegion)  return ALL_PHOTOS.filter(p => {
+      const c = cities.find(c => c.name === p.city);
+      return c?.region === selRegion;
+    });
+    if (selCountry) return ALL_PHOTOS.filter(p => p.country === selCountry);
+    return ALL_PHOTOS;
+  }, [selCity, selRegion, selCountry]);
+
+  // Active label for the empty state message
+  const activeLabel = selCity ?? selRegion ?? selCountry ?? 'All';
   const isEmpty = filtered.length === 0;
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <motion.div
@@ -62,25 +143,82 @@ export default function GalleryPage() {
         <p className="gallery-page__sub">All photos across Asia</p>
       </div>
 
-      {/* Filter nav */}
+      {/* ── Filter nav ── */}
       <div className="gallery-filter">
-        <div className="gallery-filter__inner">
-          <FilterPill label="All" active={activeFilter === 'All'} onClick={() => setActiveFilter('All')} />
+
+        {/* Row 1 — All + Countries (always visible) */}
+        <div className="gallery-filter__row">
+          <FilterPill
+            label="All"
+            active={!selCountry && !selCity}
+            onClick={clearAll}
+            levelId="country"
+          />
           <span className="gallery-filter__divider" />
           {countries.map(country => (
-            <FilterPill key={country} label={country} active={activeFilter === country} onClick={() => setActiveFilter(country)} />
-          ))}
-          <span className="gallery-filter__divider" />
-          {cities.map(city => (
-            <FilterPill key={city.slug} label={city.name} active={activeFilter === city.name} onClick={() => setActiveFilter(city.name)} />
+            <FilterPill
+              key={country}
+              label={country}
+              active={selCountry === country}
+              onClick={() => selectCountry(country)}
+              levelId="country"
+            />
           ))}
         </div>
+
+        {/* Row 2 — Regions (shown when country has multiple regions) */}
+        <AnimatePresence>
+          {selCountry && hasRegions && (
+            <motion.div
+              key="region-row"
+              className="gallery-filter__row gallery-filter__row--sub"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeRegions.map(region => (
+                <FilterPill
+                  key={region}
+                  label={region}
+                  active={selRegion === region}
+                  onClick={() => selectRegion(region)}
+                  levelId="region"
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Row 3 — Cities (shown when region is selected or country has no regions) */}
+        <AnimatePresence>
+          {activeCities.length > 0 && (
+            <motion.div
+              key="city-row"
+              className="gallery-filter__row gallery-filter__row--sub"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeCities.map(city => (
+                <FilterPill
+                  key={city.slug}
+                  label={city.name}
+                  active={selCity === city.name}
+                  onClick={() => selectCity(city.name)}
+                  levelId="city"
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Photo grid */}
       {isEmpty ? (
         <div className="gallery-empty">
-          <p>No photos yet for <strong>{activeFilter}</strong> — check back soon.</p>
+          <p>No photos yet for <strong>{activeLabel}</strong> — check back soon.</p>
         </div>
       ) : (
         <motion.div className="gallery-grid" layout>
@@ -123,7 +261,9 @@ export default function GalleryPage() {
   );
 }
 
-function FilterPill({ label, active, onClick }) {
+// ── FilterPill ────────────────────────────────────────────────────────────────
+
+function FilterPill({ label, active, onClick, levelId = 'country' }) {
   return (
     <button
       className={`gallery-filter__pill${active ? ' gallery-filter__pill--active' : ''}`}
@@ -133,7 +273,7 @@ function FilterPill({ label, active, onClick }) {
       {active && (
         <motion.span
           className="gallery-filter__pill-bar"
-          layoutId="filter-bar"
+          layoutId={`filter-bar-${levelId}`}
           transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         />
       )}

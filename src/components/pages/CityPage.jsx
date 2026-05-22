@@ -20,6 +20,12 @@ export default function CityPage() {
 
   const hasPhotos = city.photos.length > 0;
 
+  // Detect portrait hero so we can use contain instead of cover
+  const heroOrientation = city.photos.find((p) => {
+    const src = typeof p === 'string' ? p : p.src;
+    return src === city.heroImage;
+  })?.orientation ?? 'landscape';
+
   return (
     <motion.div
       className="city-page"
@@ -30,7 +36,7 @@ export default function CityPage() {
     >
       {/* Hero */}
       <div
-        className="city-page__hero"
+        className={`city-page__hero${heroOrientation === 'portrait' ? ' city-page__hero--portrait' : ''}`}
         style={{ backgroundImage: `url(${city.heroImage})` }}
       >
         <div className="city-page__hero-overlay" />

@@ -825,6 +825,13 @@
   display: flex;
   align-items: flex-end;
 }
+/* Portrait hero: show the full image rather than cropping it */
+.city-page__hero--portrait {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-color: #080808;
+}
 
 .city-page__hero-overlay {
   position: absolute;
@@ -2288,18 +2295,31 @@
 /* ── Filter nav ── */
 .gallery-filter {
   margin-bottom: 48px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
 }
-.gallery-filter::-webkit-scrollbar { display: none; }
 
-.gallery-filter__inner {
+/* Each row scrolls independently on small screens */
+.gallery-filter__row {
   display: flex;
   align-items: center;
   gap: 6px;
-  width: max-content;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   padding-bottom: 4px;
+  width: max-content;
+  max-width: 100%;
+}
+.gallery-filter__row::-webkit-scrollbar { display: none; }
+
+/* Sub-rows (region / city) — indent + accent border signal hierarchy */
+.gallery-filter__row + .gallery-filter__row {
+  margin-top: 10px;
+  padding-left: 14px;
+  border-left: 2px solid rgba(200, 168, 120, 0.22);
+}
+.gallery-filter__row--sub .gallery-filter__pill {
+  font-size: 0.7rem;
+  padding: 4px 13px;
 }
 
 .gallery-filter__divider {
