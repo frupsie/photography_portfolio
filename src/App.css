@@ -2884,8 +2884,8 @@
 .reel__pframe {
   position: absolute;
   display: block;
-  width: 30vw;
-  max-width: 460px;
+  width: 42vw;
+  max-width: 620px;
   aspect-ratio: 3 / 2;
   overflow: visible;
   cursor: default;
@@ -3651,7 +3651,7 @@
   .reel__act { height: 200vh; }
   .reel__act--3 { height: 480vh; }  /* tall for the cinematic flow */
   .reel__tiles { gap: 14px; }
-  .reel__pframe { width: 38vw; }
+  .reel__pframe { width: 52vw; }
 }
 
 /* ── Reel — Mobile (≤ 768px) ──────────────────────────── */

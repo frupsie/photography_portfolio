@@ -26,15 +26,15 @@ gsap.registerPlugin(ScrollTrigger);
 // left / right / centre down the list so consecutive frames - the only
 // pairs that ever coexist - are at clearly different horizontal positions.
 const POSITIONS = [
-  { top: '34%', left: '14%' },   // 0: HK
-  { top: '30%', left: '54%' },   // 1: Seoul
-  { top: '40%', left: '32%' },   // 2: Hainan
-  { top: '28%', left: '58%' },   // 3: Kyoto
-  { top: '38%', left: '10%' },   // 4: Macau
-  { top: '32%', left: '46%' },   // 5: Nikko
-  { top: '42%', left: '26%' },   // 6: Hakone
-  { top: '30%', left: '56%' },   // 7: Shenzhen
-  { top: '36%', left: '34%' },   // 8: Guangzhou
+  { top: '34%', left: '10%' },   // 0: HK
+  { top: '30%', left: '48%' },   // 1: Seoul
+  { top: '40%', left: '26%' },   // 2: Hainan
+  { top: '28%', left: '50%' },   // 3: Kyoto
+  { top: '38%', left: '6%'  },   // 4: Macau
+  { top: '32%', left: '44%' },   // 5: Nikko
+  { top: '42%', left: '20%' },   // 6: Hakone
+  { top: '30%', left: '50%' },   // 7: Shenzhen
+  { top: '36%', left: '28%' },   // 8: Guangzhou
 ];
 
 export default function Act3Work() {
