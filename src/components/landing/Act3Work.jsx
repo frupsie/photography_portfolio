@@ -16,25 +16,37 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { featured } from '../../data/featured';
+import { cities } from '../../data/cities';
 import ExifCard from './ExifCard';
 import PhotoLightbox from './PhotoLightbox';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Anchor positions (where the frame sits mid-window). Alternating
-// left / right / centre down the list so consecutive frames - the only
-// pairs that ever coexist - are at clearly different horizontal positions.
+// Build frame list from every city that has a hero image — auto-updates
+// when new cities are added to cities.js.
+const frames = cities
+  .filter(c => c.heroImage && c.slug !== 'kamakura')
+  .map(c => ({ photo: c.heroImage, city: c.name, country: c.country, year: c.year }));
+
+// Anchor positions — alternating left / right / centre so consecutive
+// frames (the only pairs that ever coexist) are at different horizontal
+// positions. Sized generously so future cities don't need manual updates.
 const POSITIONS = [
-  { top: '34%', left: '10%' },   // 0: HK
-  { top: '30%', left: '48%' },   // 1: Seoul
-  { top: '40%', left: '26%' },   // 2: Hainan
-  { top: '28%', left: '50%' },   // 3: Kyoto
-  { top: '38%', left: '6%'  },   // 4: Macau
-  { top: '32%', left: '44%' },   // 5: Nikko
-  { top: '42%', left: '20%' },   // 6: Hakone
-  { top: '30%', left: '50%' },   // 7: Shenzhen
-  { top: '36%', left: '28%' },   // 8: Guangzhou
+  { top: '34%', left: '10%' },
+  { top: '30%', left: '48%' },
+  { top: '40%', left: '26%' },
+  { top: '28%', left: '50%' },
+  { top: '38%', left: '6%'  },
+  { top: '32%', left: '44%' },
+  { top: '42%', left: '20%' },
+  { top: '30%', left: '50%' },
+  { top: '36%', left: '28%' },
+  { top: '34%', left: '46%' },
+  { top: '40%', left: '12%' },
+  { top: '30%', left: '36%' },
+  { top: '38%', left: '52%' },
+  { top: '42%', left: '18%' },
+  { top: '32%', left: '42%' },
 ];
 
 export default function Act3Work() {
@@ -43,9 +55,9 @@ export default function Act3Work() {
   const headRef    = useRef(null);
   const [lbIndex, setLbIndex] = useState(null);
 
-  // Normalize featured entries for the lightbox (photo -> src)
+  // Normalize frames for the lightbox
   const lbPhotos = useMemo(
-    () => featured.map((f) => ({ src: f.photo, city: f.city, country: f.country })),
+    () => frames.map((f) => ({ src: f.photo, city: f.city, country: f.country })),
     []
   );
 
@@ -116,7 +128,7 @@ export default function Act3Work() {
         </div>
 
         <div className="reel__parallax">
-          {featured.map((item, i) => (
+          {frames.map((item, i) => (
             <article
               key={item.photo}
               ref={(el) => (photoRefs.current[i] = el)}
