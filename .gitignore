@@ -21,6 +21,9 @@ public/photos/**/*.png
 public/photos/**/*.PNG
 !public/photos/**/hero-web.jpg
 
+# Photo importer inbox — raw drops + processed archive. Local only.
+.exif-inbox/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
