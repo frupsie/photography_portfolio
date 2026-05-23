@@ -2853,7 +2853,7 @@
 
 .reel__act--3 {
   background: #0a0908;
-  height: 550vh;          /* generous scroll room — slow, readable cinematic pace */
+  height: 680vh;          /* ~62vh per frame at 11 frames — same cinematic pace as original */
 }
 
 /* Sticky pin: frames animate on a fixed 100vh stage while scroll drives them */
@@ -3688,7 +3688,7 @@
 
 @media (max-width: 1024px) {
   .reel__act { height: 200vh; }
-  .reel__act--3 { height: 480vh; }  /* tall for the cinematic flow */
+  .reel__act--3 { height: 590vh; }  /* tall for the cinematic flow */
   .reel__tiles { gap: 14px; }
   .reel__pframe { width: 52vw; }
 }
