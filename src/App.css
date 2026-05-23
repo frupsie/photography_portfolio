@@ -2311,6 +2311,24 @@
 }
 .gallery-filter__row::-webkit-scrollbar { display: none; }
 
+/* Row 1 stretches full width so tally can sit at far right */
+.gallery-filter__row--main {
+  width: 100%;
+}
+
+/* Tally counter — floated to the right of Row 1 */
+.gallery-filter__tally {
+  margin-left: auto;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  font-family: var(--font-mono, monospace);
+  color: rgba(200, 168, 120, 0.5);
+  white-space: nowrap;
+  pointer-events: none;
+  align-self: center;
+  padding-left: 16px;
+}
+
 /* Sub-row (city row) — indent + accent border signal hierarchy */
 .gallery-filter__row + .gallery-filter__row {
   margin-top: 10px;

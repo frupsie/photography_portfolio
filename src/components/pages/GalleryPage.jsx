@@ -34,6 +34,14 @@ function buildPhotoList() {
 
 const ALL_PHOTOS = buildPhotoList();
 
+// Photo counts — computed once at module load
+const COUNT_BY_COUNTRY = {};
+const COUNT_BY_CITY    = {};
+ALL_PHOTOS.forEach(p => {
+  COUNT_BY_COUNTRY[p.country] = (COUNT_BY_COUNTRY[p.country] || 0) + 1;
+  COUNT_BY_CITY[p.city]       = (COUNT_BY_CITY[p.city]       || 0) + 1;
+});
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function GalleryPage() {
@@ -64,6 +72,17 @@ export default function GalleryPage() {
     [selCountry],
   );
 
+  // Tally text — right side of filter bar
+  const tallyText = useMemo(() => {
+    if (selCity) {
+      const cityCount    = COUNT_BY_CITY[selCity]       ?? 0;
+      const countryTotal = COUNT_BY_COUNTRY[selCountry] ?? 0;
+      return `${cityCount} / ${countryTotal}`;
+    }
+    if (selCountry) return `${COUNT_BY_COUNTRY[selCountry] ?? 0} photos`;
+    return `${ALL_PHOTOS.length} photos`;
+  }, [selCity, selCountry]);
+
   const activeLabel = selCity ?? selCountry ?? 'All';
   const isEmpty = filtered.length === 0;
 
@@ -85,8 +104,8 @@ export default function GalleryPage() {
       {/* ── Filter nav ── */}
       <div className="gallery-filter">
 
-        {/* Row 1 — All + Countries (always visible) */}
-        <div className="gallery-filter__row">
+        {/* Row 1 — All + Countries + tally (always visible, full width) */}
+        <div className="gallery-filter__row gallery-filter__row--main">
           <FilterPill
             label="All"
             active={!selCountry && !selCity}
@@ -103,6 +122,20 @@ export default function GalleryPage() {
               levelId="country"
             />
           ))}
+
+          {/* Tally — floated to the right */}
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={tallyText}
+              className="gallery-filter__tally"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {tallyText}
+            </motion.span>
+          </AnimatePresence>
         </div>
 
         {/* Row 2 — Cities (shown when a country is selected) */}
@@ -136,17 +169,16 @@ export default function GalleryPage() {
           <p>No photos yet for <strong>{activeLabel}</strong> — check back soon.</p>
         </div>
       ) : (
-        <motion.div className="gallery-grid" layout>
+        <div className="gallery-grid">
           <AnimatePresence>
             {filtered.map((photo, i) => (
               <motion.div
-                key={photo.src + i}
+                key={photo.src}
                 className={`gallery-item gallery-item--${photo.orientation ?? 'landscape'}`}
-                layout
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.94 }}
-                transition={{ duration: 0.35, delay: i * 0.03 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.25) }}
                 onClick={() => setLightboxIndex(i)}
               >
                 <img src={photo.src} alt={photo.city} loading="lazy" />
@@ -157,7 +189,7 @@ export default function GalleryPage() {
               </motion.div>
             ))}
           </AnimatePresence>
-        </motion.div>
+        </div>
       )}
 
       {/* Lightbox */}
