@@ -96,10 +96,14 @@ export default function Act2Journey() {
         },
       });
 
+      // Counter ticks up to its max at REVEAL_END (0.70), then HOLDS at full
+      // opacity until 0.93 so the final numbers sit comfortably on screen
+      // before fading. Map dims at 0.90 to give the counter visual focus during
+      // the hold.
       tl.to(mapWrapRef.current, { opacity: 1, ease: 'power2.out' }, 0)
         .to(counterRef.current, { opacity: 1, y: 0, duration: 0.2 }, 0.05)
-        .to(mapWrapRef.current, { opacity: 0.55, ease: 'power2.in' }, 0.85)
-        .to(counterRef.current, { opacity: 0, y: -10, duration: 0.15 }, 0.88);
+        .to(mapWrapRef.current, { opacity: 0.55, ease: 'power2.in' }, 0.90)
+        .to(counterRef.current, { opacity: 0, y: -10, duration: 0.07 }, 0.93);
     }, sectionRef);
 
     return () => ctx.revert();
