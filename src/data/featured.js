@@ -1,6 +1,12 @@
-// ─── Hand-curated featured photos ────────────────────────────────────────────
-// Edit this array to control what appears in the home page photo reel.
-// Each entry adds exactly 100vh of scroll. Order = display order.
+// ─── Act 3 photo pool (home page "The Frames") ───────────────────────────────
+// Curated pool. Act 3 picks 7 random entries per page load (wallpaper shuffle).
+// Order does NOT matter — entries are shuffled at runtime.
+// Grow this list freely as you take photos worth showing on the home page.
+//
+// To add a photo:
+//   1. Make sure it exists at /public/photos-web/<city>/<file>.JPG (imported)
+//   2. Append an entry below with photo / city / country / year
+//
 // photo: path relative to /public (same convention as heroImage in cities.js)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -14,6 +20,4 @@ export const featured = [
   { photo: '/photos-web/hakone/IMG_1173.JPG',      city: 'Hakone',    country: 'Japan',       year: '2025' },
   { photo: '/photos-web/shenzhen/DSCF6768.jpg',    city: 'Shenzhen',  country: 'China',       year: '2025' },
   { photo: '/photos-web/guangzhou/IMG_5735.JPG',   city: 'Guangzhou', country: 'China',       year: '2025' },
-  { photo: '/photos-web/tokyo/_MG_4580.JPG',       city: 'Tokyo',     country: 'Japan',       year: '2025' },
-  { photo: '/photos-web/osaka/_MG_5859.JPG',       city: 'Osaka',     country: 'Japan',       year: '2025' },
 ];

@@ -1137,16 +1137,6 @@ export const photoMeta = {
     location: "Osaka, Japan",
     date: "29 Mar 2025",
   },
-  '/photos-web/tokyo/IMG_1909.JPG': {
-    camera: "Canon EOS RP",
-    lens: "Sigma 24–105mm f/4 DG OS HSM Art",
-    shutter: "5s",
-    aperture: "f/16",
-    iso: "ISO 100",
-    focal: "35mm",
-    location: "Tokyo, Japan",
-    date: "05 Apr 2025",
-  },
   '/photos-web/tokyo/IMG_1943.JPG': {
     camera: "Canon EOS RP",
     lens: "Sigma 24–105mm f/4 DG OS HSM Art",

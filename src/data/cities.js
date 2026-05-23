@@ -117,7 +117,6 @@ export const cities = [
     heroImage: '/photos-web/tokyo/_MG_4580.JPG',
     photos: [
       { src: '/photos-web/tokyo/_MG_4580.JPG', alt: 'Tokyo, Japan', orientation: 'landscape' },
-      { src: '/photos-web/tokyo/IMG_1909.JPG', alt: 'Tokyo, Japan', orientation: 'landscape' },
       { src: '/photos-web/tokyo/IMG_1943.JPG', alt: 'Tokyo, Japan', orientation: 'portrait' },
       { src: '/photos-web/tokyo/IMG_1953.JPG', alt: 'Tokyo, Japan', orientation: 'portrait' },
       { src: '/photos-web/tokyo/IMG_1992.JPG', alt: 'Tokyo, Japan', orientation: 'portrait' },
