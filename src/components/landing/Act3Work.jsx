@@ -16,31 +16,41 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { featured as frames } from '../../data/featured';
+import { featured as pool } from '../../data/featured';
 import ExifCard from './ExifCard';
 import PhotoLightbox from './PhotoLightbox';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Wallpaper shuffle: featured.js is a curated POOL the user grows over time.
+// Each page load picks a fresh random 7 from the pool. Frame count stays
+// fixed, so scroll length and cinematic pacing are constant regardless of
+// pool size.
+const FRAMES_PER_RUN = 7;
+
+function shuffle(arr) {
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+// Picked at module load — stable for the session, fresh on next reload.
+const frames = shuffle(pool).slice(0, FRAMES_PER_RUN);
+
 // Anchor positions — alternating left / right / centre so consecutive
 // frames (the only pairs that ever coexist) are at different horizontal
-// positions. Sized generously so future cities don't need manual updates.
+// positions. Exactly FRAMES_PER_RUN entries.
 const POSITIONS = [
   { top: '34%', left: '10%' },
   { top: '30%', left: '48%' },
   { top: '40%', left: '26%' },
-  { top: '28%', left: '50%' },
-  { top: '38%', left: '6%'  },
+  { top: '28%', left: '52%' },
+  { top: '38%', left: '8%'  },
   { top: '32%', left: '44%' },
-  { top: '42%', left: '20%' },
-  { top: '30%', left: '50%' },
-  { top: '36%', left: '28%' },
-  { top: '34%', left: '46%' },
-  { top: '40%', left: '12%' },
-  { top: '30%', left: '36%' },
-  { top: '38%', left: '52%' },
-  { top: '42%', left: '18%' },
-  { top: '32%', left: '42%' },
+  { top: '42%', left: '22%' },
 ];
 
 export default function Act3Work() {
