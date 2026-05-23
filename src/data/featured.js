@@ -14,4 +14,6 @@ export const featured = [
   { photo: '/photos-web/hakone/IMG_1173.JPG',      city: 'Hakone',    country: 'Japan',       year: '2025' },
   { photo: '/photos-web/shenzhen/DSCF6768.jpg',    city: 'Shenzhen',  country: 'China',       year: '2025' },
   { photo: '/photos-web/guangzhou/IMG_5735.JPG',   city: 'Guangzhou', country: 'China',       year: '2025' },
+  { photo: '/photos-web/tokyo/_MG_4580.JPG',       city: 'Tokyo',     country: 'Japan',       year: '2025' },
+  { photo: '/photos-web/osaka/_MG_5859.JPG',       city: 'Osaka',     country: 'Japan',       year: '2025' },
 ];

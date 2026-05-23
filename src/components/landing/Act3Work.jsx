@@ -16,17 +16,11 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { cities } from '../../data/cities';
+import { featured as frames } from '../../data/featured';
 import ExifCard from './ExifCard';
 import PhotoLightbox from './PhotoLightbox';
 
 gsap.registerPlugin(ScrollTrigger);
-
-// Build frame list from every city that has a hero image — auto-updates
-// when new cities are added to cities.js.
-const frames = cities
-  .filter(c => c.heroImage && c.slug !== 'kamakura')
-  .map(c => ({ photo: c.heroImage, city: c.name, country: c.country, year: c.year }));
 
 // Anchor positions — alternating left / right / centre so consecutive
 // frames (the only pairs that ever coexist) are at different horizontal
