@@ -4,6 +4,7 @@ import './App.css';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import BackToTopButton from './components/BackToTopButton';
 import LandingPage from './components/LandingPage';
 import CityPage from './components/pages/CityPage';
 import AboutPage from './components/pages/AboutPage';
@@ -74,6 +75,7 @@ export default function App() {
         </Routes>
       </AnimatePresence>
       <Footer />
+      <BackToTopButton />
     </div>
   );
 }
