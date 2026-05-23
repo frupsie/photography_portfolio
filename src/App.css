@@ -2311,7 +2311,7 @@
 }
 .gallery-filter__row::-webkit-scrollbar { display: none; }
 
-/* Sub-rows (region / city) — indent + accent border signal hierarchy */
+/* Sub-row (city row) — indent + accent border signal hierarchy */
 .gallery-filter__row + .gallery-filter__row {
   margin-top: 10px;
   padding-left: 14px;
@@ -2321,6 +2321,7 @@
   font-size: 0.7rem;
   padding: 4px 13px;
 }
+
 
 .gallery-filter__divider {
   width: 1px;

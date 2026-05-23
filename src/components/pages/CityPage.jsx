@@ -37,7 +37,7 @@ export default function CityPage() {
       {/* Hero */}
       <div
         className={`city-page__hero${heroOrientation === 'portrait' ? ' city-page__hero--portrait' : ''}`}
-        style={{ backgroundImage: `url(${city.heroImage})` }}
+        style={city.heroImage ? { backgroundImage: `url(${city.heroImage})` } : {}}
       >
         <div className="city-page__hero-overlay" />
         <div className="city-page__hero-content">

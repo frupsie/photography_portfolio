@@ -34,98 +34,37 @@ function buildPhotoList() {
 
 const ALL_PHOTOS = buildPhotoList();
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Unique regions for a given country, preserving cities.js order. */
-function regionsFor(country) {
-  const seen = new Set();
-  const out  = [];
-  cities.forEach(c => {
-    if (c.country === country && c.region && !seen.has(c.region)) {
-      seen.add(c.region);
-      out.push(c.region);
-    }
-  });
-  return out;
-}
-
-/** Cities belonging to a region. */
-function citiesInRegion(region) {
-  return cities.filter(c => c.region === region);
-}
-
-/** Cities in a country that have no region assigned. */
-function citiesWithoutRegion(country) {
-  return cities.filter(c => c.country === country && !c.region);
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function GalleryPage() {
   const location = useLocation();
 
-  // Three-level selection: country → region → city
+  // Two-level selection: country → city
   const [selCountry, setSelCountry] = useState(() => location.state?.country ?? null);
-  const [selRegion,  setSelRegion]  = useState(null);
   const [selCity,    setSelCity]    = useState(null);
 
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
   // ── Navigation helpers ──────────────────────────────────────────────────────
 
-  const clearAll = () => { setSelCountry(null); setSelRegion(null); setSelCity(null); };
+  const clearAll      = () => { setSelCountry(null); setSelCity(null); };
+  const selectCountry = (c) => { setSelCountry(c); setSelCity(null); };
+  const selectCity    = (name) => setSelCity(name);
 
-  const selectCountry = (c) => {
-    setSelCountry(c); setSelRegion(null); setSelCity(null);
-  };
+  // ── Derived state ───────────────────────────────────────────────────────────
 
-  const selectRegion = (r) => {
-    setSelRegion(r); setSelCity(null);
-    // If only 1 city in this region, auto-select it (no third row needed)
-    const only = citiesInRegion(r);
-    if (only.length === 1) setSelCity(only[0].name);
-  };
-
-  const selectCity = (name) => setSelCity(name);
-
-  // ── Derived filter state ────────────────────────────────────────────────────
-
-  // Regions available for the active country (empty = skip region row)
-  const activeRegions = useMemo(
-    () => selCountry ? regionsFor(selCountry) : [],
-    [selCountry],
-  );
-  const hasRegions = activeRegions.length > 1;
-
-  // Cities to show in the city row:
-  // - If a region is selected: cities in that region (unless auto-selected, skipped)
-  // - If country has no regions (or only 1): all cities in that country
-  const activeCities = useMemo(() => {
-    if (!selCountry) return [];
-    if (selRegion) {
-      const inRegion = citiesInRegion(selRegion);
-      // Hide city row when auto-selected (only 1 city, already filtered)
-      return inRegion.length > 1 ? inRegion : [];
-    }
-    // Country has regions but none selected yet → don't show city row yet
-    if (hasRegions) return [];
-    // Country has no regions → show all its cities directly
-    return cities.filter(c => c.country === selCountry);
-  }, [selCountry, selRegion, hasRegions]);
-
-  // Photo filter
   const filtered = useMemo(() => {
     if (selCity)    return ALL_PHOTOS.filter(p => p.city === selCity);
-    if (selRegion)  return ALL_PHOTOS.filter(p => {
-      const c = cities.find(c => c.name === p.city);
-      return c?.region === selRegion;
-    });
     if (selCountry) return ALL_PHOTOS.filter(p => p.country === selCountry);
     return ALL_PHOTOS;
-  }, [selCity, selRegion, selCountry]);
+  }, [selCity, selCountry]);
 
-  // Active label for the empty state message
-  const activeLabel = selCity ?? selRegion ?? selCountry ?? 'All';
+  const activeCities = useMemo(
+    () => selCountry ? cities.filter(c => c.country === selCountry) : [],
+    [selCountry],
+  );
+
+  const activeLabel = selCity ?? selCountry ?? 'All';
   const isEmpty = filtered.length === 0;
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -166,31 +105,7 @@ export default function GalleryPage() {
           ))}
         </div>
 
-        {/* Row 2 — Regions (shown when country has multiple regions) */}
-        <AnimatePresence>
-          {selCountry && hasRegions && (
-            <motion.div
-              key="region-row"
-              className="gallery-filter__row gallery-filter__row--sub"
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.2 }}
-            >
-              {activeRegions.map(region => (
-                <FilterPill
-                  key={region}
-                  label={region}
-                  active={selRegion === region}
-                  onClick={() => selectRegion(region)}
-                  levelId="region"
-                />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Row 3 — Cities (shown when region is selected or country has no regions) */}
+        {/* Row 2 — Cities (shown when a country is selected) */}
         <AnimatePresence>
           {activeCities.length > 0 && (
             <motion.div
