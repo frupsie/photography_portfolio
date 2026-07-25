@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { cities } from '../data/cities';
+import { thumbSrc } from '../utils/thumb';
 
 // ─── Group cities by country ──────────────────────────────────────────────────
 function groupByCountry(cityList) {
@@ -71,7 +72,7 @@ function DestCard({ group, index, onNavigate }) {
       {/* Hero image */}
       <div className="dest-card__photo">
         {group.heroImage ? (
-          <img src={group.heroImage} alt={group.country} loading="lazy" />
+          <img src={thumbSrc(group.heroImage)} alt={group.country} loading="lazy" decoding="async" />
         ) : (
           <div className="dest-card__placeholder" />
         )}

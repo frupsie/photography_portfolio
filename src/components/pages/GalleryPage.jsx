@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cities } from '../../data/cities';
+import { thumbSrc } from '../../utils/thumb';
 import PhotoLightbox from '../landing/PhotoLightbox';
 
 // ── Derived data ──────────────────────────────────────────────────────────────
@@ -181,7 +182,9 @@ export default function GalleryPage() {
                 transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.25) }}
                 onClick={() => setLightboxIndex(i)}
               >
-                <img src={photo.src} alt={photo.city} loading="lazy" />
+                {/* Grid shows the 800px WebP thumbnail; the lightbox loads
+                    the full photos-web version on demand. */}
+                <img src={thumbSrc(photo.src)} alt={photo.city} loading="lazy" decoding="async" />
                 <div className="gallery-item__overlay">
                   <span className="gallery-item__city">{photo.city}</span>
                   <span className="gallery-item__country">{photo.country}</span>

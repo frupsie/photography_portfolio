@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cities } from '../../data/cities';
+import { thumbSrc } from '../../utils/thumb';
 
 export default function CityPage() {
   const { slug } = useParams();
@@ -64,7 +65,7 @@ export default function CityPage() {
                   transition={{ duration: 0.5, delay: Math.min(i * 0.07, 0.5) }}
                   onClick={() => setLightboxIndex(i)}
                 >
-                  <img src={photo.src} alt={photo.alt} loading="lazy" />
+                  <img src={thumbSrc(photo.src)} alt={photo.alt} loading="lazy" decoding="async" />
                   <div className="editorial-item__overlay">
                     <span className="editorial-item__index">
                       {String(i + 1).padStart(2, '0')}

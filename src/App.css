@@ -2384,11 +2384,16 @@
 }
 
 /* ── Photo grid (CSS grid mosaic) ── */
+/* max-width caps the widest cell at ~794px (4 cols, landscape spans 2), which
+   is what the 800px thumbnail tier is sized for. Without a cap, cells grow
+   unbounded on ultrawide monitors and no thumbnail size would be correct. */
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-auto-flow: dense;
   gap: 10px;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 @media (max-width: 900px)  { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }

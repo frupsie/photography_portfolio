@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { thumbSrc } from '../../utils/thumb';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -82,7 +83,7 @@ export default function Act4Destination() {
               <Link to={tile.to} className="cta-tile">
                 <div
                   className="cta-tile__bg"
-                  style={{ backgroundImage: `url(${tile.photo})` }}
+                  style={{ backgroundImage: `url(${thumbSrc(tile.photo)})` }}
                 />
                 <div className="cta-tile__shade" />
                 <div className="cta-tile__body">

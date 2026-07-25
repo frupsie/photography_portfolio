@@ -35,13 +35,15 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import exifr from 'exifr';
 import sharp from 'sharp';
+import { makeThumb, toWebpName } from './generate-thumbs.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.resolve(__dirname, '..');
 const INBOX     = path.join(ROOT, '.exif-inbox');
 const PROCESSED = path.join(INBOX, '.processed');
-const PHOTOS_DIR     = path.join(ROOT, 'public', 'photos');      // full-res archive
-const PHOTOS_WEB_DIR = path.join(ROOT, 'public', 'photos-web');  // web-optimized (served)
+const PHOTOS_DIR       = path.join(ROOT, 'public', 'photos');        // full-res archive
+const PHOTOS_WEB_DIR   = path.join(ROOT, 'public', 'photos-web');    // 1600px JPEG (lightbox/hero)
+const PHOTOS_THUMB_DIR = path.join(ROOT, 'public', 'photos-thumb');  // 800px WebP (grids)
 const CITIES_FILE = path.join(ROOT, 'src', 'data', 'cities.js');
 const META_FILE   = path.join(ROOT, 'src', 'data', 'photo-meta.js');
 
@@ -157,6 +159,7 @@ async function processPhoto(item, cityMap) {
   const archivePath = path.join(archiveDir, filename);
   const webDir      = path.join(PHOTOS_WEB_DIR, slug);
   const webPath     = path.join(webDir, filename);
+  const thumbPath   = path.join(PHOTOS_THUMB_DIR, slug, toWebpName(filename));
   if (existsSync(archivePath)) {
     return { ok: false, skipped: true, reason: 'duplicate — original already archived' };
   }
@@ -208,7 +211,7 @@ async function processPhoto(item, cityMap) {
 
   return {
     ok: true,
-    slug, filename, srcPath, archiveDir, archivePath, webDir, webPath, publicPath,
+    slug, filename, srcPath, archiveDir, archivePath, webDir, webPath, thumbPath, publicPath,
     photoEntry, metaEntry, gpsWarning, isBackfill,
     // Hero promotion only happens on fresh imports for cities without a real hero
     promoteToHero: !isBackfill && (!city.heroImage || /placeholder|hero-web\.jpg/i.test(city.heroImage)),
@@ -351,9 +354,10 @@ async function main() {
     return;
   }
 
-  // Copy originals into /public/photos/<slug>/ AND (re)generate web variants
-  // into /public/photos-web/<slug>/. Strict mirror: both must exist.
-  // Backfills regenerate the web variant from the freshly-supplied original
+  // Copy originals into /public/photos/<slug>/ AND (re)generate both served
+  // variants: photos-web (1600px JPEG, lightbox/hero) and photos-thumb
+  // (800px WebP, grids). Strict mirror: all three must exist.
+  // Backfills regenerate from the freshly-supplied original
   // — guaranteed-from-original beats whatever was there before.
   for (const r of results) {
     if (DRY) continue;
@@ -368,6 +372,9 @@ async function main() {
       .jpeg({ quality: WEB_QUALITY, mozjpeg: true })
       .withMetadata()
       .toFile(r.webPath);
+    // Grid thumbnail (800px WebP). Generated from the web variant so it stays
+    // byte-identical to what `npm run generate-thumbs` would produce.
+    await makeThumb(r.webPath, r.thumbPath);
   }
 
   // Update data files
