@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 const links = [
   { to: '/gallery', label: 'Gallery' },
   { to: '/about', label: 'About' },
-  { to: '/gear', label: 'Gear' },
   { to: '/contact', label: 'Contact' },
 ];
 
