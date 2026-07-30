@@ -2854,26 +2854,20 @@
   100% { transform: translateY(0)     scale(1);    opacity: 1; }
 }
 
-/* ── Act 3: The Work (parallax) ──────────────────────── */
+/* ── Act 3: The Contact Sheet ─────────────────────────── */
 
 .reel__act--3 {
   background: #0a0908;
-  height: 550vh;          /* 7 frames @ ~78vh each — original cinematic pace */
+  height: 400vh;          /* 4 selects — was 550vh for 7 drifting frames */
 }
 
-/* Sticky pin: frames animate on a fixed 100vh stage while scroll drives them */
+/* Sticky pin: the sheet and stage live on a fixed 100vh stage */
 .reel__act--3 .reel__pin {
   position: sticky;
   top: 0;
   height: 100vh;
   width: 100%;
   overflow: hidden;
-}
-
-/* Parallax container fills the pin */
-.reel__act--3 .reel__parallax {
-  position: absolute;
-  inset: 0;
 }
 
 .reel__act3-head {
@@ -2907,103 +2901,132 @@
   margin: 0;
 }
 
-.reel__parallax {
+/* ── The sheet ── */
+
+/* Sheet sits left, enlargement stage sits right, so you see the body of work
+   and the individual photograph at the same time — the whole point of a
+   contact sheet. GSAP slides the sheet from centre to left as selects begin. */
+.sheet {
   position: absolute;
   inset: 0;
-  perspective: 800px;
-  perspective-origin: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: clamp(24px, 5vw, 84px);
   z-index: 2;
 }
 
-/* ─── Parallax frame layout ──────────────────────────────────
- * .reel__pframe       — outer article. GSAP writes y / opacity here.
- *                       Position + z-index only (no transform conflicts).
- * .reel__pframe-card  — inner wrapper. Owns the depth scale + hover focus.
- *                       Free of GSAP's inline transforms, so CSS hover
- *                       transitions work cleanly.
- * .reel__pframe-photo — the cropped image surface.
- * .reel__pframe-exif  — EXIF overlay that lives inside the card so it
- *                       scales/focuses together with the photo.
- * ──────────────────────────────────────────────────────────── */
-.reel__pframe {
-  position: absolute;
-  display: block;
-  width: 42vw;
-  max-width: 620px;
-  aspect-ratio: 3 / 2;
-  overflow: visible;
-  cursor: default;
+.sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(5px, 0.7vw, 11px);
+  width: min(30vw, 400px);
 }
-.reel__pframe { z-index: 1; }
-/* Lift hovered frame above every other photo so its focused state isn't clipped. */
-.reel__pframe:hover { z-index: 20; }
 
-.reel__pframe-card {
+.sheet__cell {
   position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 4px;
-  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55));
-  transform-origin: center center;
+  margin: 0;
+  aspect-ratio: 3 / 2;
   cursor: zoom-in;
-  transition:
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    filter   0.35s ease,
-    opacity  0.35s ease;
+  background: #16140f;
 }
-/* Uniform frame card. CSS sets the resting scale (bigger frames for the
-   cinematic flow — only 1-2 on screen so they can be large). GSAP animates
-   the OUTER .reel__pframe's opacity + scale + y, so the inner card's CSS
-   scale + hover state aren't disturbed. */
-.reel__pframe-card {
-  transform: scale(1.1);
-  filter: brightness(1.05) drop-shadow(0 24px 52px rgba(0,0,0,0.5));
-}
-
-/* Focus: hovered photo snaps to full readable size + a richer shadow.
-   Overrides the per-layer scale because of specificity (hover is more specific). */
-.reel__pframe:hover .reel__pframe-card {
-  transform: scale(1.2);
-  filter: drop-shadow(0 50px 100px rgba(0, 0, 0, 0.9));
-}
-
-/* When ANY frame is hovered, the others recede — slight blur + dim — so the
-   focused one becomes the unmistakable subject. Mimics a camera's shallow DoF.
-   Targets the inner card (GSAP doesn't touch it, so its inline opacity won't
-   override our 0.35). Uses :has() — supported in all modern browsers. */
-.reel__parallax:has(.reel__pframe:hover) .reel__pframe:not(:hover) .reel__pframe-card {
-  filter: blur(4px) drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5));
-  opacity: 0.35;
-}
-
-.reel__pframe-photo {
+.sheet__cell img {
   width: 100%;
   height: 100%;
-  border-radius: 4px;
-  overflow: hidden;
-  background: #1a1916;
-}
-.reel__pframe-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  object-fit: cover;     /* uniform frames — that's what a contact sheet is */
   display: block;
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
-/* EXIF card: subtle by default, fades to full on focus. Lives inside the
-   card so it scales together with the photo when focus snaps in. */
-.reel__pframe-exif {
+/* Frame number, bottom-left on the frame itself */
+.sheet__num {
   position: absolute;
-  bottom: -12px;
-  left: 12px;
-  right: 12px;
-  transform: translateY(100%);
-  opacity: var(--hud-opacity);
-  transition: opacity 0.22s ease;
+  left: 5px;
+  bottom: 4px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  color: rgba(240, 228, 208, 0.72);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
 }
-.reel__pframe:hover .reel__pframe-exif { opacity: 1; }
+
+/* Select marker — GSAP fades opacity in sync with the enlargement */
+.sheet__mark {
+  position: absolute;
+  inset: -3px;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── The stage: enlarged selects ── */
+
+.sheet__stage {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: clamp(300px, 34vw, 470px);   /* clears the sheet on the left */
+  z-index: 5;
+  pointer-events: none;
+}
+
+.sheet__frame {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(56vw, 840px);
+  height: 72vh;
+  opacity: 0;
+  visibility: hidden;     /* GSAP autoAlpha owns this — prevents a pre-init flash */
+  pointer-events: auto;
+  cursor: zoom-in;
+  will-change: transform, opacity;
+}
+.sheet__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;    /* portraits show whole — no forced 3:2 crop */
+  display: block;
+  filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.7));
+}
+
+.sheet__frame-exif {
+  position: absolute;
+  left: 0;
+  bottom: -10px;
+  opacity: 0.9;
+}
+
+/* ── Outro link ── */
+
+.sheet__cta {
+  position: absolute;
+  left: 50%;
+  bottom: 54px;
+  transform: translateX(-50%);
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 22px;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid rgba(200, 168, 120, 0.5);
+  border-radius: 3px;
+  opacity: 0;
+  visibility: hidden;
+  transition: background 0.22s, color 0.22s, border-color 0.22s;
+}
+.sheet__cta svg { width: 15px; height: 15px; transition: transform 0.22s; }
+.sheet__cta:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #111110;
+}
+.sheet__cta:hover svg { transform: translateX(4px); }
 
 /* ── Act 4: The Destination (CTA tiles) ───────────────── */
 
@@ -3327,18 +3350,31 @@
   .reel__tag-stack .reel__tag:not(:first-child) { opacity: 0 !important; }
   .reel__tag-stack .reel__tag:first-child { opacity: 1 !important; }
   .reel__bg { transform: none !important; }
-  .reel__pframe { transform: none; }
   .reel__scroll-line { animation: none; }
   .map-pin--drop { animation: none; }
+
+  /* Act 3 collapses to a static sheet — the timeline never runs */
+  .reel__act--3 { height: auto; scroll-snap-align: none; }
+  .reel__act--3 .reel__pin { position: relative; height: auto; overflow: visible; }
+  .sheet { position: relative; inset: auto; padding: 96px 24px 32px; }
+  .sheet__grid { margin: 0 auto; }
+  .sheet__cell { opacity: 1 !important; }
+  .sheet__stage { display: none; }
+  .reel__act3-head { position: relative; top: auto; left: auto; transform: none; padding-top: 72px; }
+  .sheet__cta {
+    position: relative; left: auto; bottom: auto; transform: none;
+    margin: 0 auto 56px; opacity: 1 !important; visibility: visible !important;
+  }
 }
 
 /* ── Reel — Tablet (≤ 1024px) ─────────────────────────── */
 
 @media (max-width: 1024px) {
   .reel__act { height: 200vh; }
-  .reel__act--3 { height: 480vh; }  /* tall for the cinematic flow */
+  .reel__act--3 { height: 360vh; }        /* 4 selects, slightly tighter on tablet */
   .reel__tiles { gap: 14px; }
-  .reel__pframe { width: 52vw; }
+  .sheet__grid { width: min(60vw, 520px); }
+  .sheet__frame { width: min(84vw, 900px); height: 70vh; }
 }
 
 /* ── Reel — Mobile (≤ 768px) ──────────────────────────── */
@@ -3357,11 +3393,16 @@
   .reel__counter-divider { display: none; }
   .reel__act2-head { top: 76px; }
 
-  /* ── Act 3 on mobile: memoir reveal disabled, horizontal swipe strip ── */
+  /* ── Act 3 on mobile: static tappable sheet, no pin, no scrubbing ── */
   .reel__act--3 {
     height: auto;
     min-height: auto;
     position: relative;
+  }
+  .reel__act--3 .reel__pin {
+    position: relative;
+    height: auto;
+    overflow: visible;
   }
   .reel__act3-head {
     position: relative;
@@ -3372,55 +3413,30 @@
     width: 100%;
   }
 
-  /* Parallax container becomes the swipe strip */
-  .reel__act--3 .reel__parallax {
+  /* Sheet flows in the page instead of centring in a pin */
+  .sheet {
     position: relative;
     inset: auto;
+    display: block;
+    padding: 0 20px 32px;
+  }
+  .sheet__grid {
     width: 100%;
-    height: auto;
-    display: flex;
-    flex-direction: row;
-    gap: 14px;
-    padding: 0 20px 16px;
-    overflow-x: auto;
-    overflow-y: visible;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    gap: 8px;
   }
-  .reel__act--3 .reel__parallax::-webkit-scrollbar { display: none; }
+  .sheet__cell { opacity: 1 !important; }   /* never dimmed without the timeline */
 
-  /* Each frame is a flex item in the strip, not absolute */
-  .reel__pframe {
-    position: static !important;
-    flex: 0 0 76vw;
-    width: 76vw !important;
-    height: auto;
-    scroll-snap-align: start;
-    opacity: 1 !important;     /* override any GSAP fromTo on mobile */
-    transform: none !important;
-  }
+  /* No enlargement stage on touch — the lightbox does that job */
+  .sheet__stage { display: none; }
 
-  .reel__pframe-card {
-    transform: scale(1) !important;
-    filter: brightness(1.05) drop-shadow(0 12px 28px rgba(0,0,0,0.5));
-    aspect-ratio: 5 / 4;
-  }
-  .reel__pframe-photo { aspect-ratio: 5 / 4; }
-
-  /* EXIF card shown below the photo (no hover on touch) */
-  .reel__pframe-exif {
+  .sheet__cta {
     position: relative;
-    bottom: auto; left: auto; right: auto;
+    left: auto; bottom: auto;
     transform: none;
-    opacity: 1;
-    margin-top: 10px;
-  }
-
-  /* Disable hover dim — no hover on touch */
-  .reel__parallax:has(.reel__pframe:hover) .reel__pframe:not(:hover) .reel__pframe-card {
-    filter: none !important;
+    display: inline-flex;
+    margin: 0 20px 56px;
     opacity: 1 !important;
+    visibility: visible !important;
   }
 
   /* CTA tiles stack vertically */

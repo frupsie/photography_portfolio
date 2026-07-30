@@ -1,32 +1,38 @@
 /**
- * Act 3 - "The Frames" - Cinematic Flow
+ * Act 3 — "The Contact Sheet"
  *
- * Each frame fades in from below, drifts continuously upward as you scroll
- * (scroll-linked / scrubbed), then fades out as the next arrives. Only 1-2
- * frames share the screen at any moment, so frames can be large and never
- * overlap, while the constant scroll-linked drift keeps it immersive -
- * like a film sequence of photographs.
+ * The whole curated pool is laid out as a numbered contact sheet. As you
+ * scroll, four frames are *chosen*: each lifts out of its cell, enlarges to
+ * fill the stage, HOLDS completely still, then settles back. The section ends
+ * on the full bright sheet, handing off to the Gallery.
  *
- * Each frame has its own scrubbed timeline spanning its slice of the
- * 450vh section. Windows overlap ~30% so transitions show 2 frames briefly,
- * always in opposite vertical zones (one leaving the top, one entering the
- * bottom) at different horizontal positions - no collisions.
+ * Why a contact sheet: it's the tool photographers actually use to select, so
+ * the metaphor matches the mechanic — the shuffle reads as "today's edit"
+ * rather than as randomness. It also shows the body of work and the individual
+ * photograph at the same time, which isolated floating frames can't do.
+ *
+ * Two tiers are used deliberately: sheet cells pull the 800px WebP thumbnails
+ * (9 small cells, ~93 KB each), the enlarged stage frame pulls full photos-web.
  */
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { featured as pool } from '../../data/featured';
+import { thumbSrc } from '../../utils/thumb';
 import ExifCard from './ExifCard';
 import PhotoLightbox from './PhotoLightbox';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Wallpaper shuffle: featured.js is a curated POOL the user grows over time.
-// Each page load picks a fresh random 7 from the pool. Frame count stays
-// fixed, so scroll length and cinematic pacing are constant regardless of
-// pool size.
-const FRAMES_PER_RUN = 7;
+// How many of the pool get enlarged per scroll pass. The sheet always shows
+// every photo; only the selection rotates.
+const SELECT_COUNT = 4;
+
+// Dim level for unselected cells while the stage is active. Deep enough that
+// the select clearly dominates, light enough that the sheet still reads as a
+// body of work — below ~0.3 the darker photos vanish into the background.
+const DIM = 0.38;
 
 function shuffle(arr) {
   const out = arr.slice();
@@ -37,119 +43,180 @@ function shuffle(arr) {
   return out;
 }
 
-// Picked at module load — stable for the session, fresh on next reload.
-const frames = shuffle(pool).slice(0, FRAMES_PER_RUN);
-
-// Anchor positions — alternating left / right / centre so consecutive
-// frames (the only pairs that ever coexist) are at different horizontal
-// positions. Exactly FRAMES_PER_RUN entries.
-const POSITIONS = [
-  { top: '34%', left: '10%' },
-  { top: '30%', left: '48%' },
-  { top: '40%', left: '26%' },
-  { top: '28%', left: '52%' },
-  { top: '38%', left: '8%'  },
-  { top: '32%', left: '44%' },
-  { top: '42%', left: '22%' },
-];
+// Sheet order is STABLE (it should feel like your sheet); the selection
+// shuffles per load. Sorted ascending so enlargements progress across the
+// sheet instead of jumping around.
+const selectedIdx = shuffle(pool.map((_, i) => i))
+  .slice(0, Math.min(SELECT_COUNT, pool.length))
+  .sort((a, b) => a - b);
 
 export default function Act3Work() {
   const sectionRef = useRef(null);
-  const photoRefs  = useRef([]);
+  const pinRef     = useRef(null);
+  const stageRef   = useRef(null);
   const headRef    = useRef(null);
+  const outroRef   = useRef(null);
+  const cellRefs   = useRef([]);
+  const frameRefs  = useRef([]);
   const [lbIndex, setLbIndex] = useState(null);
 
-  // Normalize frames for the lightbox
+  // Lightbox browses the whole sheet, in sheet order.
   const lbPhotos = useMemo(
-    () => frames.map((f) => ({ src: f.photo, city: f.city, country: f.country })),
+    () => pool.map((f) => ({ src: f.photo, city: f.city, country: f.country })),
     []
   );
 
+  // Delta from a stage frame's resting position (the stage's centre, since it's
+  // inset:0 + margin:auto) to cell `p`, plus the scale that makes the frame
+  // match that cell's size. offsetWidth is used deliberately — it's a layout
+  // value, so it isn't corrupted by GSAP's in-flight transform.
+  // Read at animation time via function-based GSAP values + invalidateOnRefresh,
+  // so a resize re-derives them instead of reusing stale numbers.
+  const offsetFor = useCallback((p, frameEl) => {
+    const cell  = cellRefs.current[p];
+    const stage = stageRef.current;
+    if (!cell || !stage || !frameEl) return { dx: 0, dy: 0, s: 0.3 };
+    const c = cell.getBoundingClientRect();
+    const s = stage.getBoundingClientRect();
+    return {
+      dx: (c.left + c.width  / 2) - (s.left + s.width  / 2),
+      dy: (c.top  + c.height / 2) - (s.top  + s.height / 2),
+      s:  Math.max(0.05, c.width / Math.max(1, frameEl.offsetWidth)),
+    };
+  }, []);
+
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Mobile renders a plain tappable grid — no pin, no scrubbing.
+    if (window.matchMedia('(max-width: 768px)').matches) return;
 
     const ctx = gsap.context(() => {
-      const N = photoRefs.current.length;
+      const cells  = cellRefs.current.filter(Boolean);
+      const frames = frameRefs.current.filter(Boolean);
+      if (!cells.length || !frames.length) return;
 
-      // ONE master timeline tied to the section scroll. start 'top top' /
-      // end 'bottom bottom' maps progress 0->1 onto exactly the pin's stuck
-      // range, so every frame's window stays within the sticky stage.
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
           end:   'bottom bottom',
           scrub: 1,
+          invalidateOnRefresh: true,
         },
       });
 
-      // Heading: fades in at the very start, out before the first frame.
-      tl.fromTo(headRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.03 }, 0);
-      tl.to(headRef.current, { opacity: 0, y: -10, duration: 0.04 }, 0.07);
+      // Heading in, then out before the sheet takes over.
+      tl.fromTo(headRef.current, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.03 }, 0);
+      tl.to(headRef.current, { autoAlpha: 0, y: -10, duration: 0.03 }, 0.07);
 
-      // Each frame occupies a window [winStart, winStart+winLen] in the
-      // normalized 0..1 timeline. Windows overlap (~30%) so transitions show
-      // 2 frames briefly. The LAST frame holds at centre (no fade out) so it
-      // stays clearly visible when the user reaches the bottom.
-      // Every frame gets an EQUAL-length window. Windows are evenly stepped
-      // so the first starts at 0 and the last ends exactly at 1.0 (= pin
-      // release). Modest overlap so only a short crossfade, not constant churn.
-      const winLen = 1.25 / N;
-      const step   = (1 - winLen) / (N - 1);
+      // Sheet settles in.
+      tl.fromTo('.sheet',
+        { autoAlpha: 0, scale: 0.97 },
+        { autoAlpha: 1, scale: 1, ease: 'power2.out', duration: 0.06 },
+        0.06);
 
-      // Each window is split: fade-in (0–22%), HOLD at full opacity
-      // (22–62%, picture is clearly readable), fade-out (62–100%).
-      photoRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const winStart = i * step;
+      // Dim every cell ONCE and leave them dim. Dimming the container per
+      // cycle flickers, and cells can't brighten above a dimmed parent.
+      tl.to(cells, { opacity: DIM, duration: 0.02 }, 0.12);
 
-        // Fade IN + scale + initial rise.
-        tl.fromTo(el,
-          { autoAlpha: 0, y: '12vh', scale: 0.95 },
-          { autoAlpha: 1, y: '4vh', scale: 1.0, ease: 'sine.out', duration: winLen * 0.22 },
-          winStart);
+      // ── Four select cycles ──────────────────────────────────────────────
+      const SPAN  = 0.72;                        // 0.14 → 0.86
+      const START = 0.14;
+      const cycle = SPAN / frames.length;
 
-        // Continuous, gentle LINEAR drift through the rest of the window.
-        tl.to(el, { y: '-12vh', ease: 'none', duration: winLen * 0.78 }, winStart + winLen * 0.22);
+      selectedIdx.forEach((p, n) => {
+        const at    = START + n * cycle;
+        const frame = frames[n];
+        const mark  = cells[p].querySelector('.sheet__mark');
 
-        // Fade OUT only over the back 38% — leaving a clear ~40% HOLD at full
-        // opacity in the middle where the photo is fully visible & still.
-        tl.to(el, { autoAlpha: 0, ease: 'sine.in', duration: winLen * 0.38 }, winStart + winLen * 0.62);
+        // Lift out of the cell (first 25%)
+        tl.fromTo(frame,
+          {
+            x: () => offsetFor(p, frame).dx,
+            y: () => offsetFor(p, frame).dy,
+            scale: () => offsetFor(p, frame).s,
+            autoAlpha: 0,
+          },
+          { x: 0, y: 0, scale: 1, autoAlpha: 1, ease: 'power2.out', duration: cycle * 0.25 },
+          at);
+        tl.to(cells[p], { opacity: 1, duration: cycle * 0.12 }, at);
+        if (mark) tl.to(mark, { opacity: 1, duration: cycle * 0.12 }, at);
+
+        // HOLD (middle 45%) — nothing animates. The photograph is still.
+
+        // Settle back (last 30%)
+        tl.to(frame, { autoAlpha: 0, scale: 0.97, ease: 'power2.in', duration: cycle * 0.3 },
+          at + cycle * 0.7);
+        tl.to(cells[p], { opacity: DIM, duration: cycle * 0.2 }, at + cycle * 0.75);
+        if (mark) tl.to(mark, { opacity: 0, duration: cycle * 0.2 }, at + cycle * 0.75);
       });
+
+      // Sheet returns to full, gallery link appears.
+      tl.to(cells, { opacity: 1, duration: 0.05 }, 0.88);
+      tl.fromTo(outroRef.current,
+        { autoAlpha: 0, y: 10 },
+        { autoAlpha: 1, y: 0, duration: 0.05 },
+        0.92);
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [offsetFor]);
 
   return (
     <section ref={sectionRef} className="reel__act reel__act--3">
-      <div className="reel__pin">
+      <div ref={pinRef} className="reel__pin">
         <div ref={headRef} className="reel__act3-head">
           <span className="reel__act3-eyebrow">Selected work</span>
-          <h2 className="reel__act3-heading">The Frames</h2>
-          <p className="reel__act3-hint">Hover any frame for camera details</p>
+          <h2 className="reel__act3-heading">The Contact Sheet</h2>
+          <p className="reel__act3-hint">Today's edit — click any frame to open it</p>
         </div>
 
-        <div className="reel__parallax">
-          {frames.map((item, i) => (
-            <article
-              key={item.photo}
-              ref={(el) => (photoRefs.current[i] = el)}
-              className="reel__pframe"
-              style={POSITIONS[i]}
-              onClick={() => setLbIndex(i)}
+        {/* The sheet — every photo in the pool, stable order */}
+        <div className="sheet">
+          <div className="sheet__grid">
+            {pool.map((item, i) => (
+              <figure
+                key={item.photo}
+                ref={(el) => (cellRefs.current[i] = el)}
+                className="sheet__cell"
+                onClick={() => setLbIndex(i)}
+              >
+                <img
+                  src={thumbSrc(item.photo)}
+                  alt={`${item.city}, ${item.country}`}
+                  loading="lazy"
+                  decoding="async"
+                  draggable="false"
+                />
+                <span className="sheet__mark" />
+                <figcaption className="sheet__num">{String(i + 1).padStart(2, '0')}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+
+        {/* The stage — enlarged selects, one visible at a time */}
+        <div ref={stageRef} className="sheet__stage">
+          {selectedIdx.map((p, n) => (
+            <figure
+              key={pool[p].photo}
+              ref={(el) => (frameRefs.current[n] = el)}
+              className="sheet__frame"
+              onClick={() => setLbIndex(p)}
             >
-              <div className="reel__pframe-card">
-                <div className="reel__pframe-photo">
-                  <img src={item.photo} alt={`${item.city}, ${item.country}`}
-                       loading="lazy" draggable="false" />
-                </div>
-                <ExifCard photo={item.photo} compact className="reel__pframe-exif" />
-              </div>
-            </article>
+              <img src={pool[p].photo} alt={`${pool[p].city}, ${pool[p].country}`} draggable="false" />
+              <ExifCard photo={pool[p].photo} compact className="sheet__frame-exif" />
+            </figure>
           ))}
         </div>
+
+        <a ref={outroRef} className="sheet__cta" href="/gallery">
+          See the full gallery
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor"
+               strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 10h12M11 5l5 5-5 5" />
+          </svg>
+        </a>
       </div>
 
       <AnimatePresence>
