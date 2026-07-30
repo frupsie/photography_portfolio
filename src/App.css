@@ -2917,11 +2917,13 @@
   z-index: 2;
 }
 
+/* grid-template-columns is set inline from COLUMNS in Act3Work.jsx — it scales
+   with the pool size so the sheet never outgrows the pin. */
 .sheet__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: clamp(5px, 0.7vw, 11px);
   width: clamp(300px, 26vw, 460px);
+  max-height: 72vh;
   will-change: transform;
 }
 

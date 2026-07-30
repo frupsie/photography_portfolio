@@ -37,6 +37,12 @@ const DIM = 0.38;
 // Gap between the shifted sheet and the enlarged frame.
 const PAIR_GAP = 72;
 
+// Columns scale with the pool so the sheet keeps a roughly square footprint
+// and never grows taller than the 100vh pin. Adding photos makes the frames
+// smaller rather than making the sheet longer — which is how a real contact
+// sheet behaves. 9 -> 3 cols, 16 -> 4, 25 -> 5, 36 -> 6.
+const COLUMNS = Math.max(3, Math.ceil(Math.sqrt(pool.length)));
+
 function shuffle(arr) {
   const out = arr.slice();
   for (let i = out.length - 1; i > 0; i--) {
@@ -121,7 +127,13 @@ export default function Act3Work() {
           trigger: sectionRef.current,
           start: 'top top',
           end:   'bottom bottom',
-          scrub: 1,
+          // 0.3, not 1. Lenis already eases scroll by ~1.1s; a scrub of 1 on
+          // top of that put the animation ~2s behind the wheel. Each select
+          // only occupies ~54vh, so you'd scroll past the whole window before
+          // its photo appeared — the section read as static. Act 2 can afford
+          // scrub:1 because its content is continuous; discrete appearances
+          // can't.
+          scrub: 0.3,
           invalidateOnRefresh: true,
         },
       });
@@ -204,7 +216,11 @@ export default function Act3Work() {
 
         {/* The sheet — every photo in the pool, stable order */}
         <div className="sheet">
-          <div ref={gridRef} className="sheet__grid">
+          <div
+            ref={gridRef}
+            className="sheet__grid"
+            style={{ gridTemplateColumns: `repeat(${COLUMNS}, 1fr)` }}
+          >
             {pool.map((item, i) => (
               <figure
                 key={item.photo}
