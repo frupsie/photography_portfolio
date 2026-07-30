@@ -10,7 +10,6 @@ import CityPage from './components/pages/CityPage';
 import AboutPage from './components/pages/AboutPage';
 import ContactPage from './components/pages/ContactPage';
 import GalleryPage from './components/pages/GalleryPage';
-import FeaturedPage from './pages/FeaturedPage';
 import IntroScreen from './components/IntroScreen';
 import { useLenis, getLenis } from './hooks/useLenis';
 
@@ -69,9 +68,10 @@ export default function App() {
           <Route path="/city/:slug" element={<CityPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/gear" element={<Navigate to="/about" replace />} />
-          <Route path="/featured" element={<FeaturedPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
+          {/* Retired routes — redirects kept for any existing external links */}
+          <Route path="/gear" element={<Navigate to="/about" replace />} />
+          <Route path="/featured" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
       <Footer />

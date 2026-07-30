@@ -6,9 +6,8 @@
  *   "passive"               — chrome hidden, clicks disabled, pins controlled
  *                             externally via `visibleSlugs` (Set of city slugs).
  *
- * Used in two places:
- *   - /featured page (interactive)
- *   - Reel Act 2 "The Journey" (passive)
+ * Currently used by Reel Act 2 "The Journey" (passive mode). The interactive
+ * mode is still supported but has no caller since /featured was retired.
  */
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';

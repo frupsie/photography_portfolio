@@ -1,4 +1,6 @@
 // ─── Act 3 photo pool (home page "The Frames") ───────────────────────────────
+// NOTE: unrelated to the retired /featured page — this file is Act 3's source
+// of photos and is very much in use. Don't remove it during a cleanup sweep.
 // Curated pool. Act 3 picks 7 random entries per page load (wallpaper shuffle).
 // Order does NOT matter — entries are shuffled at runtime.
 // Grow this list freely as you take photos worth showing on the home page.
