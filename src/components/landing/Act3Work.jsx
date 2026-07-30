@@ -34,6 +34,9 @@ const SELECT_COUNT = 4;
 // body of work — below ~0.3 the darker photos vanish into the background.
 const DIM = 0.38;
 
+// Gap between the shifted sheet and the enlarged frame.
+const PAIR_GAP = 72;
+
 function shuffle(arr) {
   const out = arr.slice();
   for (let i = out.length - 1; i > 0; i--) {
@@ -53,7 +56,7 @@ const selectedIdx = shuffle(pool.map((_, i) => i))
 export default function Act3Work() {
   const sectionRef = useRef(null);
   const pinRef     = useRef(null);
-  const stageRef   = useRef(null);
+  const gridRef    = useRef(null);
   const headRef    = useRef(null);
   const outroRef   = useRef(null);
   const cellRefs   = useRef([]);
@@ -66,21 +69,39 @@ export default function Act3Work() {
     []
   );
 
-  // Delta from a stage frame's resting position (the stage's centre, since it's
-  // inset:0 + margin:auto) to cell `p`, plus the scale that makes the frame
-  // match that cell's size. offsetWidth is used deliberately — it's a layout
-  // value, so it isn't corrupted by GSAP's in-flight transform.
+  // Both the sheet and the stage frame rest dead-centre in the pin. While a
+  // select is up they need to sit side by side, so we shift each outward by
+  // half the pair's total width. Derived from real widths at runtime, which
+  // keeps the composition balanced from 1024px to ultrawide.
+  const layoutShift = useCallback(() => {
+    const grid  = gridRef.current;
+    const frame = frameRefs.current[0];
+    if (!grid || !frame) return { grid: 0, frame: 0 };
+    const gw = grid.offsetWidth;
+    const fw = frame.offsetWidth;
+    const total = gw + PAIR_GAP + fw;
+    return {
+      grid:  -(total / 2) + gw / 2,
+      frame:  (total / 2) - fw / 2,
+    };
+  }, []);
+
+  // Delta from the stage frame's resting position (pin centre) to cell `p`,
+  // plus the scale that makes the frame match that cell. offsetWidth is used
+  // deliberately — it's a layout value, so GSAP's in-flight transform can't
+  // corrupt it. The cell rect already includes the sheet's shift, so no
+  // correction is needed there.
   // Read at animation time via function-based GSAP values + invalidateOnRefresh,
   // so a resize re-derives them instead of reusing stale numbers.
   const offsetFor = useCallback((p, frameEl) => {
-    const cell  = cellRefs.current[p];
-    const stage = stageRef.current;
-    if (!cell || !stage || !frameEl) return { dx: 0, dy: 0, s: 0.3 };
+    const cell = cellRefs.current[p];
+    const pin  = pinRef.current;
+    if (!cell || !pin || !frameEl) return { dx: 0, dy: 0, s: 0.3 };
     const c = cell.getBoundingClientRect();
-    const s = stage.getBoundingClientRect();
+    const b = pin.getBoundingClientRect();
     return {
-      dx: (c.left + c.width  / 2) - (s.left + s.width  / 2),
-      dy: (c.top  + c.height / 2) - (s.top  + s.height / 2),
+      dx: (c.left + c.width  / 2) - (b.left + b.width  / 2),
+      dy: (c.top  + c.height / 2) - (b.top  + b.height / 2),
       s:  Math.max(0.05, c.width / Math.max(1, frameEl.offsetWidth)),
     };
   }, []);
@@ -119,6 +140,11 @@ export default function Act3Work() {
       // cycle flickers, and cells can't brighten above a dimmed parent.
       tl.to(cells, { opacity: DIM, duration: 0.02 }, 0.12);
 
+      // Sheet slides from centre to its left seat, making room for the stage.
+      tl.to(gridRef.current,
+        { x: () => layoutShift().grid, ease: 'power2.inOut', duration: 0.04 },
+        0.11);
+
       // ── Four select cycles ──────────────────────────────────────────────
       const SPAN  = 0.72;                        // 0.14 → 0.86
       const START = 0.14;
@@ -137,7 +163,11 @@ export default function Act3Work() {
             scale: () => offsetFor(p, frame).s,
             autoAlpha: 0,
           },
-          { x: 0, y: 0, scale: 1, autoAlpha: 1, ease: 'power2.out', duration: cycle * 0.25 },
+          {
+            x: () => layoutShift().frame,   // right seat, not dead centre
+            y: 0, scale: 1, autoAlpha: 1,
+            ease: 'power2.out', duration: cycle * 0.25,
+          },
           at);
         tl.to(cells[p], { opacity: 1, duration: cycle * 0.12 }, at);
         if (mark) tl.to(mark, { opacity: 1, duration: cycle * 0.12 }, at);
@@ -151,7 +181,8 @@ export default function Act3Work() {
         if (mark) tl.to(mark, { opacity: 0, duration: cycle * 0.2 }, at + cycle * 0.75);
       });
 
-      // Sheet returns to full, gallery link appears.
+      // Sheet returns to centre at full brightness, gallery link appears.
+      tl.to(gridRef.current, { x: 0, ease: 'power2.inOut', duration: 0.05 }, 0.87);
       tl.to(cells, { opacity: 1, duration: 0.05 }, 0.88);
       tl.fromTo(outroRef.current,
         { autoAlpha: 0, y: 10 },
@@ -160,7 +191,7 @@ export default function Act3Work() {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [offsetFor]);
+  }, [offsetFor, layoutShift]);
 
   return (
     <section ref={sectionRef} className="reel__act reel__act--3">
@@ -173,7 +204,7 @@ export default function Act3Work() {
 
         {/* The sheet — every photo in the pool, stable order */}
         <div className="sheet">
-          <div className="sheet__grid">
+          <div ref={gridRef} className="sheet__grid">
             {pool.map((item, i) => (
               <figure
                 key={item.photo}
@@ -196,7 +227,7 @@ export default function Act3Work() {
         </div>
 
         {/* The stage — enlarged selects, one visible at a time */}
-        <div ref={stageRef} className="sheet__stage">
+        <div className="sheet__stage">
           {selectedIdx.map((p, n) => (
             <figure
               key={pool[p].photo}

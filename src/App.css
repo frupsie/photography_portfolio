@@ -2903,16 +2903,17 @@
 
 /* ── The sheet ── */
 
-/* Sheet sits left, enlargement stage sits right, so you see the body of work
-   and the individual photograph at the same time — the whole point of a
-   contact sheet. GSAP slides the sheet from centre to left as selects begin. */
+/* The sheet is CENTRED at rest — that's the "here is the whole body of work"
+   moment at the start and end of the act. GSAP slides it left only while a
+   select is enlarged, so the two sit side by side. Both offsets are computed
+   from real widths at runtime (see layoutShift in Act3Work.jsx) rather than
+   hard-coded here, so the pair stays balanced at any viewport width. */
 .sheet {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding-left: clamp(24px, 5vw, 84px);
+  justify-content: center;
   z-index: 2;
 }
 
@@ -2920,7 +2921,8 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(5px, 0.7vw, 11px);
-  width: min(30vw, 400px);
+  width: clamp(300px, 26vw, 460px);
+  will-change: transform;
 }
 
 .sheet__cell {
@@ -2963,19 +2965,17 @@
 
 .sheet__stage {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  left: clamp(300px, 34vw, 470px);   /* clears the sheet on the left */
+  inset: 0;
   z-index: 5;
   pointer-events: none;
 }
 
+/* Rests centred like the sheet; GSAP shifts it right while active. */
 .sheet__frame {
   position: absolute;
   inset: 0;
   margin: auto;
-  width: min(56vw, 840px);
+  width: clamp(420px, 50vw, 900px);
   height: 72vh;
   opacity: 0;
   visibility: hidden;     /* GSAP autoAlpha owns this — prevents a pre-init flash */
