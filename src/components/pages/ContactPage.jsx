@@ -13,18 +13,16 @@ import { motion } from 'framer-motion';
  * (https://formspree.io/f/XXXXXXXX) into .env as VITE_FORMSPREE_ID=XXXXXXXX
  */
 const FORMSPREE_ID = import.meta.env.VITE_FORMSPREE_ID ?? '';
-const FALLBACK_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? '';
 
-// Neither configured means a submit would open a blank-recipient mail draft —
-// a dead end for the visitor. Shout about it in dev so it can't reach
-// production unnoticed. Silent in the production bundle.
-if (import.meta.env.DEV && !FORMSPREE_ID && !FALLBACK_EMAIL) {
-  console.warn(
-    '[contact] Neither VITE_FORMSPREE_ID nor VITE_CONTACT_EMAIL is set — ' +
-    'the contact form has nowhere to deliver. Copy .env.example to .env and ' +
-    'fill in at least one before deploying.'
-  );
-}
+// Baked in as the default so the contact route works on a fresh deploy with no
+// dashboard configuration. VITE_CONTACT_EMAIL overrides it if you'd rather keep
+// the address out of the repo.
+//
+// Note this address is public either way — Vite inlines VITE_* values into the
+// client bundle at build time, so an env var wouldn't hide it from a scraper,
+// only from the repo. To stop publishing it entirely, set VITE_FORMSPREE_ID:
+// Formspree receives the message server-side and the address never ships.
+const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'ngziyu.co@gmail.com';
 
 const EMPTY = { name: '', email: '', message: '' };
 
@@ -37,7 +35,7 @@ export default function ContactPage() {
 
   /** Pre-filled mailto used when no form backend is configured. */
   const mailtoHref = () => {
-    const to = FALLBACK_EMAIL;
+    const to = CONTACT_EMAIL;
     const subject = encodeURIComponent(`Enquiry from ${form.name || 'the website'}`);
     const body = encodeURIComponent(
       `${form.message}\n\n—\n${form.name}\n${form.email}`
@@ -96,6 +94,13 @@ export default function ContactPage() {
           Available for travel commissions, editorial licensing, and print orders.
         </p>
 
+        {/* Visible address — some people would simply rather use their own mail
+            client than fill in a form. */}
+        <p className="contact-direct">
+          Or email directly:{' '}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </p>
+
         {status === 'sent' ? (
           <motion.div
             className="contact-success"
@@ -132,19 +137,10 @@ export default function ContactPage() {
               />
             </div>
 
-            {import.meta.env.DEV && !canPost && !FALLBACK_EMAIL && (
-              <p className="contact-form__error" role="status">
-                Dev notice: no contact destination configured. Set
-                {' '}<code>VITE_FORMSPREE_ID</code> or <code>VITE_CONTACT_EMAIL</code>
-                {' '}in <code>.env</code> — see <code>.env.example</code>.
-              </p>
-            )}
-
             {status === 'error' && (
               <p className="contact-form__error" role="alert">
-                {errorMsg} — please try again{FALLBACK_EMAIL ? (
-                  <>, or email <a href={`mailto:${FALLBACK_EMAIL}`}>{FALLBACK_EMAIL}</a></>
-                ) : null}.
+                {errorMsg} — please try again, or email{' '}
+                <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
               </p>
             )}
 
