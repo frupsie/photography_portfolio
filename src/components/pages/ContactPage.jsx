@@ -4,75 +4,77 @@ import { motion } from 'framer-motion';
 /**
  * ContactPage
  *
- * Submits to Formspree when VITE_FORMSPREE_ID is set. When it isn't, the form
- * degrades to a pre-filled mailto: link rather than pretending to send —
- * so a deploy without the key still reaches a real inbox, and adding the key
- * later needs no code change.
+ * Submits through Web3Forms, which relays the message to the inbox that owns
+ * the access key — no account, no server, nothing exposed in the bundle beyond
+ * a key that can only ever deliver to that one address.
  *
- * Set up: formspree.io → new form → copy the ID from the endpoint
- * (https://formspree.io/f/XXXXXXXX) into .env as VITE_FORMSPREE_ID=XXXXXXXX
+ * ── SETUP (one time, ~30 seconds) ─────────────────────────────────────────
+ *   1. Go to https://web3forms.com
+ *   2. Enter ngziyu.co@gmail.com — they email an access key immediately
+ *   3. Put it in .env as:  VITE_WEB3FORMS_KEY=your-key-here
+ *   4. Restart the dev server
+ *
+ * On Netlify or Vercel, also add VITE_WEB3FORMS_KEY in the site's environment
+ * variables so production builds pick it up.
+ *
+ * The access key is safe to expose — it is write-only and bound to the
+ * destination address, so it can't be used to read anything or to send
+ * anywhere else.
  */
-const FORMSPREE_ID = import.meta.env.VITE_FORMSPREE_ID ?? '';
+const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY ?? '';
+const ENDPOINT = 'https://api.web3forms.com/submit';
 
-// Baked in as the default so the contact route works on a fresh deploy with no
-// dashboard configuration. VITE_CONTACT_EMAIL overrides it if you'd rather keep
-// the address out of the repo.
-//
-// Note this address is public either way — Vite inlines VITE_* values into the
-// client bundle at build time, so an env var wouldn't hide it from a scraper,
-// only from the repo. To stop publishing it entirely, set VITE_FORMSPREE_ID:
-// Formspree receives the message server-side and the address never ships.
-const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'ngziyu.co@gmail.com';
+// Only surfaced if a send fails, so a visitor is never left with no way through.
+const OWNER_EMAIL = 'ngziyu.co@gmail.com';
+
+if (import.meta.env.DEV && !WEB3FORMS_KEY) {
+  console.warn(
+    '[contact] VITE_WEB3FORMS_KEY is not set — the form will fail to send.\n' +
+    'Get a key at https://web3forms.com (enter ngziyu.co@gmail.com, no account ' +
+    'needed), then add it to .env and restart the dev server.'
+  );
+}
 
 const EMPTY = { name: '', email: '', message: '' };
 
 export default function ContactPage() {
-  const [form, setForm]       = useState(EMPTY);
-  const [status, setStatus]   = useState('idle'); // idle | sending | sent | error
+  const [form, setForm]         = useState(EMPTY);
+  const [status, setStatus]     = useState('idle'); // idle | sending | sent | error
   const [errorMsg, setErrorMsg] = useState('');
-
-  const canPost = Boolean(FORMSPREE_ID);
-
-  /** Pre-filled mailto used when no form backend is configured. */
-  const mailtoHref = () => {
-    const to = CONTACT_EMAIL;
-    const subject = encodeURIComponent(`Enquiry from ${form.name || 'the website'}`);
-    const body = encodeURIComponent(
-      `${form.message}\n\n—\n${form.name}\n${form.email}`
-    );
-    return `mailto:${to}?subject=${subject}&body=${body}`;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // No backend configured — hand off to the visitor's mail client.
-    if (!canPost) {
-      window.location.href = mailtoHref();
-      return;
-    }
-
     setStatus('sending');
     setErrorMsg('');
+
     try {
-      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: `Portfolio enquiry from ${form.name}`,
+          from_name: 'Jayden Ng Photography',
           name: form.name,
           email: form.email,
           message: form.message,
-          _subject: `Portfolio enquiry from ${form.name}`,
         }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.errors?.[0]?.message ?? `Request failed (${res.status})`);
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || `HTTP ${res.status}`);
       }
+
       setForm(EMPTY);
       setStatus('sent');
     } catch (err) {
-      setErrorMsg(err.message || 'Something went wrong.');
+      // Raw API text ("Form must include a 'form_id'…") is a message to the
+      // developer, not the visitor. Log the detail, show something human.
+      console.error('[contact] send failed:', err);
+      setErrorMsg(
+        `Sorry — that didn't send. Please try again, or reach me at ${OWNER_EMAIL}.`
+      );
       setStatus('error');
     }
   };
@@ -92,13 +94,6 @@ export default function ContactPage() {
         <h1 className="content-page__title">Work Together</h1>
         <p className="content-page__sub">
           Available for travel commissions, editorial licensing, and print orders.
-        </p>
-
-        {/* Visible address — some people would simply rather use their own mail
-            client than fill in a form. */}
-        <p className="contact-direct">
-          Or email directly:{' '}
-          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </p>
 
         {status === 'sent' ? (
@@ -138,10 +133,7 @@ export default function ContactPage() {
             </div>
 
             {status === 'error' && (
-              <p className="contact-form__error" role="alert">
-                {errorMsg} — please try again, or email{' '}
-                <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
-              </p>
+              <p className="contact-form__error" role="alert">{errorMsg}</p>
             )}
 
             <motion.button
@@ -151,7 +143,7 @@ export default function ContactPage() {
               whileHover={{ scale: status === 'sending' ? 1 : 1.03 }}
               whileTap={{ scale: status === 'sending' ? 1 : 0.97 }}
             >
-              {status === 'sending' ? 'Sending…' : canPost ? 'Send Message' : 'Send via Email'}
+              {status === 'sending' ? 'Sending…' : 'Send Message'}
             </motion.button>
           </form>
         )}
