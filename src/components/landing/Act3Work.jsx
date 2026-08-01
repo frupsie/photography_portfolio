@@ -112,10 +112,24 @@ export default function Act3Work() {
     };
   }, []);
 
+  // Rebuild the timeline when the desktop/mobile breakpoint is crossed.
+  // Without this, loading below 768px and then widening leaves Act 3 stuck in
+  // its static mobile state until a reload, because the effect below only ran
+  // once and bailed early.
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && !window.matchMedia('(max-width: 768px)').matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const onChange = (e) => setIsDesktop(!e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     // Mobile renders a plain tappable grid — no pin, no scrubbing.
-    if (window.matchMedia('(max-width: 768px)').matches) return;
+    if (!isDesktop) return;
 
     const ctx = gsap.context(() => {
       const cells  = cellRefs.current.filter(Boolean);
@@ -202,8 +216,21 @@ export default function Act3Work() {
         0.92);
     }, sectionRef);
 
-    return () => ctx.revert();
-  }, [offsetFor, layoutShift]);
+    // Safety net: re-measure once everything has actually loaded. Images in
+    // this and earlier acts settle after mount, and a trigger created against
+    // a not-yet-final layout would map scroll to the wrong progress.
+    const onLoad = () => ScrollTrigger.refresh();
+    if (document.readyState === 'complete') {
+      requestAnimationFrame(onLoad);
+    } else {
+      window.addEventListener('load', onLoad, { once: true });
+    }
+
+    return () => {
+      window.removeEventListener('load', onLoad);
+      ctx.revert();
+    };
+  }, [offsetFor, layoutShift, isDesktop]);
 
   return (
     <section ref={sectionRef} className="reel__act reel__act--3">
