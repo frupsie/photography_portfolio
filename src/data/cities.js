@@ -12,7 +12,7 @@ export const cities = [
     year: '2025',
     heroImage: '/photos-web/hainan/IMG_9696.JPG',
     photos: [
-      { src: '/photos-web/hainan/IMG_9696.JPG', alt: 'Hainan street with fish lanterns', orientation: 'landscape' },
+      { src: '/photos-web/hainan/IMG_9696.JPG', alt: 'Giant fish kites strung above a crowded arcaded street of colonial shophouses in Haikou, Hainan', orientation: 'landscape' },
       { src: '/photos-web/hainan/IMG_9597.JPG', alt: 'Hainan',                            orientation: 'landscape' },
       { src: '/photos-web/hainan/IMG_9559.JPG', alt: 'Hainan ultra-wide',                 orientation: 'landscape' },
       { src: '/photos-web/hainan/IMG_9316.JPG', alt: 'Hainan, China', orientation: 'landscape' },
@@ -56,7 +56,7 @@ export const cities = [
       { src: '/photos-web/guangzhou/_MG_7919.JPG',  alt: 'Guangzhou clock tower',      orientation: 'portrait'  },
       { src: '/photos-web/guangzhou/_MG_7936.JPG',  alt: 'Guangzhou street fashion',   orientation: 'portrait'  },
       { src: '/photos-web/guangzhou/_MG_7938.JPG',  alt: 'Guangzhou Manner Coffee',    orientation: 'landscape' },
-      { src: '/photos-web/guangzhou/_MG_7693.JPG', alt: 'Guangzhou, China', orientation: 'portrait' },
+      { src: '/photos-web/guangzhou/_MG_7693.JPG', alt: 'A multi-tiered Buddhist temple lit gold against the night sky, its gilded Buddha visible through the doorway, Guangzhou', orientation: 'portrait' },
     ],
   },
   {
@@ -68,7 +68,7 @@ export const cities = [
     year: '2025',
     heroImage: '/photos-web/shenzhen/DSCF6768.jpg',
     photos: [
-      { src: '/photos-web/shenzhen/DSCF6768.jpg', alt: 'Shenzhen', orientation: 'landscape' },
+      { src: '/photos-web/shenzhen/DSCF6768.jpg', alt: 'The vast latticed elliptical ceiling above a railway station concourse in Shenzhen', orientation: 'landscape' },
       { src: '/photos-web/shenzhen/DSCF6757.JPG', alt: 'Shenzhen, China', orientation: 'landscape' },
       { src: '/photos-web/shenzhen/DSCF6782.JPG', alt: 'Shenzhen, China', orientation: 'landscape' },
       { src: '/photos-web/shenzhen/DSCF6803.JPG', alt: 'Shenzhen, China', orientation: 'landscape' },
@@ -86,7 +86,7 @@ export const cities = [
     year: '2023',
     heroImage: '/photos-web/hong-kong/_MG_3601.JPG',
     photos: [
-      { src: '/photos-web/hong-kong/_MG_3601.JPG', alt: 'Hong Kong skyline from Victoria Peak at golden hour', orientation: 'landscape' },
+      { src: '/photos-web/hong-kong/_MG_3601.JPG', alt: 'Hong Kong Island and Victoria Harbour seen from Victoria Peak at dusk, ICC and IFC rising above the skyline', orientation: 'landscape' },
       { src: '/photos-web/hong-kong/_MG_3652.JPG', alt: 'Hong Kong',                                            orientation: 'landscape' },
       { src: '/photos-web/hong-kong/_MG_3522.JPG', alt: 'Hong Kong, China', orientation: 'portrait' },
       { src: '/photos-web/hong-kong/_MG_3582.JPG', alt: 'Hong Kong, China', orientation: 'portrait' },
@@ -103,7 +103,7 @@ export const cities = [
     year: '2025',
     heroImage: '/photos-web/macau/DSCF6879.JPG',
     photos: [
-      { src: '/photos-web/macau/DSCF6879.JPG', alt: 'Macau Roma Pavilion with Christmas tree', orientation: 'landscape' },
+      { src: '/photos-web/macau/DSCF6879.JPG', alt: 'A Roman-style amphitheatre wrapped in an enormous red ribbon beside a decorated Christmas tree, Macau', orientation: 'landscape' },
     ],
   },
   // Japan
@@ -116,7 +116,7 @@ export const cities = [
     year: '2025',
     heroImage: '/photos-web/tokyo/_MG_4580.JPG',
     photos: [
-      { src: '/photos-web/tokyo/_MG_4580.JPG', alt: 'Tokyo, Japan', orientation: 'landscape' },
+      { src: '/photos-web/tokyo/_MG_4580.JPG', alt: 'Neon signage crowding both sides of a Kabukicho street at night, the Godzilla head looming over Hotel Gracery, Tokyo', orientation: 'landscape' },
       { src: '/photos-web/tokyo/IMG_1943.JPG', alt: 'Tokyo, Japan', orientation: 'portrait' },
       { src: '/photos-web/tokyo/IMG_1953.JPG', alt: 'Tokyo, Japan', orientation: 'portrait' },
       { src: '/photos-web/tokyo/IMG_1992.JPG', alt: 'Tokyo, Japan', orientation: 'portrait' },
@@ -153,7 +153,7 @@ export const cities = [
       { src: '/photos-web/osaka/_MG_5848.JPG', alt: 'Osaka, Japan', orientation: 'portrait' },
       { src: '/photos-web/osaka/_MG_5854.JPG', alt: 'Osaka, Japan', orientation: 'portrait' },
       { src: '/photos-web/osaka/_MG_5858.JPG', alt: 'Osaka, Japan', orientation: 'portrait' },
-      { src: '/photos-web/osaka/_MG_5859.JPG', alt: 'Osaka, Japan', orientation: 'landscape' },
+      { src: '/photos-web/osaka/_MG_5859.JPG', alt: 'Crowds filling Dotonbori beneath the Asahi Super Dry and Glico running man billboards, Osaka', orientation: 'landscape' },
       { src: '/photos-web/osaka/_MG_5886.JPG', alt: 'Osaka, Japan', orientation: 'portrait' },
       { src: '/photos-web/osaka/_MG_5899.JPG', alt: 'Osaka, Japan', orientation: 'landscape' },
       { src: '/photos-web/osaka/_MG_5972.JPG', alt: 'Osaka, Japan', orientation: 'portrait' },
@@ -168,7 +168,7 @@ export const cities = [
     year: '2025',
     heroImage: '/photos-web/kyoto/IMG_0486.JPG',
     photos: [
-      { src: '/photos-web/kyoto/IMG_0486.JPG', alt: 'Kyoto', orientation: 'landscape' },
+      { src: '/photos-web/kyoto/IMG_0486.JPG', alt: 'The red-lacquered Phoenix Hall of Byodo-in mirrored in its still pond on a winter afternoon, Kyoto', orientation: 'landscape' },
       { src: '/photos-web/kyoto/_MG_5512.JPG', alt: 'Kyoto', orientation: 'landscape' },
       { src: '/photos-web/kyoto/IMG_0224.JPG', alt: 'Kyoto, Japan', orientation: 'portrait' },
       { src: '/photos-web/kyoto/IMG_0247.JPG', alt: 'Kyoto, Japan', orientation: 'portrait' },
@@ -193,7 +193,7 @@ export const cities = [
     year: '2025',
     heroImage: '/photos-web/hakone/IMG_1173.JPG',
     photos: [
-      { src: '/photos-web/hakone/IMG_1173.JPG', alt: 'Hakone, Japan', orientation: 'landscape' },
+      { src: '/photos-web/hakone/IMG_1173.JPG', alt: 'Two ropeway gondolas crossing forested hills toward snow-dusted mountains under heavy cloud, Hakone', orientation: 'landscape' },
       { src: '/photos-web/hakone/IMG_0345.JPG', alt: 'Hakone, Japan', orientation: 'portrait' },
       { src: '/photos-web/hakone/IMG_1114.JPG', alt: 'Hakone, Japan', orientation: 'landscape' },
       { src: '/photos-web/hakone/IMG_1127.JPG', alt: 'Hakone, Japan', orientation: 'portrait' },
@@ -213,7 +213,7 @@ export const cities = [
     year: '2025',
     heroImage: '/photos-web/nikko/IMG_1474.JPG',
     photos: [
-      { src: '/photos-web/nikko/IMG_1474.JPG', alt: 'Nikko', orientation: 'landscape' },
+      { src: '/photos-web/nikko/IMG_1474.JPG', alt: 'A vermilion temple hall with black tiled roofs and gold fittings, framed by cedar and pine, Nikko', orientation: 'landscape' },
       { src: '/photos-web/nikko/IMG_1457.JPG', alt: 'Nikko, Japan', orientation: 'portrait' },
       { src: '/photos-web/nikko/IMG_1463.JPG', alt: 'Nikko, Japan', orientation: 'portrait' },
       { src: '/photos-web/nikko/IMG_1514.JPG', alt: 'Nikko, Japan', orientation: 'portrait' },
@@ -237,9 +237,9 @@ export const cities = [
     lat: 35.3192,
     lon: 139.5467,
     year: '2025',
-    heroImage: null,
+    heroImage: '/photos-web/kamakura/IMG_0908.JPG',
     photos: [
-      { src: '/photos-web/kamakura/IMG_0908.JPG', alt: 'Kamakura, Japan', orientation: 'landscape' },
+      { src: '/photos-web/kamakura/IMG_0908.JPG', alt: 'A wet coastal road on an overcast day, cars passing and a lone figure under an umbrella, Kamakura', orientation: 'landscape' },
       { src: '/photos-web/kamakura/IMG_0911.JPG', alt: 'Kamakura, Japan', orientation: 'landscape' },
       { src: '/photos-web/kamakura/IMG_0926.JPG', alt: 'Kamakura, Japan', orientation: 'portrait' },
       { src: '/photos-web/kamakura/IMG_0937.JPG', alt: 'Kamakura, Japan', orientation: 'portrait' },
@@ -255,9 +255,9 @@ export const cities = [
     lat: 37.5665,
     lon: 126.978,
     year: '2024',
-    heroImage: '/photos-web/kamakura/IMG_0908.JPG',
+    heroImage: '/photos-web/seoul/_MG_3836.JPG',
     photos: [
-      { src: '/photos-web/seoul/_MG_3836.JPG', alt: 'Seoul', orientation: 'landscape' },
+      { src: '/photos-web/seoul/_MG_3836.JPG', alt: 'The towering curved bookshelves of Starfield Library in the COEX mall, Seoul', orientation: 'landscape' },
       { src: '/photos-web/seoul/IMG_5335.JPG', alt: 'Seoul, South Korea', orientation: 'portrait' },
       { src: '/photos-web/seoul/_MG_3819.JPG', alt: 'Seoul, South Korea', orientation: 'portrait' },
       { src: '/photos-web/seoul/_MG_3977.JPG', alt: 'Seoul, South Korea', orientation: 'landscape' },

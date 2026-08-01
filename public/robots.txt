@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Update the host after deploying
+Sitemap: https://jaydenng.netlify.app/sitemap.xml

@@ -261,16 +261,31 @@ async function rewriteCities(results) {
       return `${head}${inner}${tail}`;
     });
 
-    // Hero promotion: if the city's heroImage is empty/placeholder, set it to first new photo
+    // Hero promotion: if the city's heroImage is empty/placeholder, set it to
+    // the first new photo.
+    //
+    // The value pattern MUST also match a bare `null`. It previously only
+    // matched a quoted string, so for a city written by hand as
+    // `heroImage: null` the lazy [\s\S]*? ran straight past that city's block
+    // and overwrote the NEXT city's hero instead — which is how Seoul ended up
+    // displaying a Kamakura photograph. Matching `null` keeps the match inside
+    // the intended city.
     const promoter = entries.find((r) => r.promoteToHero);
     if (promoter) {
       const heroRe = new RegExp(
-        `(slug:\\s*['"\`]${slug}['"\`][\\s\\S]*?heroImage:\\s*)['"\`][^'"\`]*['"\`]`,
+        `(slug:\\s*['"\`]${slug}['"\`][\\s\\S]*?heroImage:\\s*)(?:null|['"\`][^'"\`]*['"\`])`,
         'm'
       );
-      if (heroRe.test(src)) {
+      const match = src.match(heroRe);
+      // Guard: refuse the edit if another `slug:` appears between the anchor
+      // and the value we're about to replace — that means we've escaped the
+      // city block and would clobber a neighbour.
+      const escapedBlock = match && /slug:\s*['"`]/.test(match[1].slice(`slug: '${slug}'`.length));
+      if (match && !escapedBlock) {
         src = src.replace(heroRe, `$1'${promoter.publicPath}'`);
         promoter._didPromote = true;
+      } else if (escapedBlock) {
+        console.warn(c.yellow(`  ! Skipped hero promotion for "${slug}" — could not locate its heroImage safely.`));
       }
     }
   }

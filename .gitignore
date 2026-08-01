@@ -34,3 +34,7 @@ public/photos/**/*.PNG
 *.njsproj
 *.sln
 *.sw?
+
+# Local secrets — never commit
+.env
+.env.local

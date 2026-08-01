@@ -1,0 +1,22 @@
+# SPA rewrite: the app uses BrowserRouter, so every path must serve index.html
+# and let React Router resolve it client-side. Without this, /gallery and
+# /city/<slug> return 404 on refresh or when someone opens a shared link.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Hashed build assets are immutable; photos change only when re-imported.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/photos-thumb/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

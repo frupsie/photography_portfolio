@@ -10,6 +10,7 @@ import CityPage from './components/pages/CityPage';
 import AboutPage from './components/pages/AboutPage';
 import ContactPage from './components/pages/ContactPage';
 import GalleryPage from './components/pages/GalleryPage';
+import NotFound from './components/pages/NotFound';
 import IntroScreen from './components/IntroScreen';
 import { useLenis, getLenis } from './hooks/useLenis';
 
@@ -45,8 +46,12 @@ function ScrollProgressBar() {
 export default function App() {
   const location = useLocation();
   useLenis(); // shared smooth-scroll instance, bridged to GSAP ScrollTrigger
+  // The intro is a homepage overture, so it only plays for someone arriving at
+  // "/". Now that deep links resolve (SPA rewrites), a visitor opening a shared
+  // /gallery or /city/<slug> link would otherwise be held behind a viewfinder
+  // animation for content they asked for directly.
   const [showIntro, setShowIntro] = useState(
-    () => !sessionStorage.getItem(INTRO_KEY)
+    () => window.location.pathname === '/' && !sessionStorage.getItem(INTRO_KEY)
   );
 
   const handleIntroDone = () => {
@@ -72,6 +77,7 @@ export default function App() {
           {/* Retired routes — redirects kept for any existing external links */}
           <Route path="/gear" element={<Navigate to="/about" replace />} />
           <Route path="/featured" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AnimatePresence>
       <Footer />

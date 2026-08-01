@@ -97,14 +97,12 @@ export default function AboutPage() {
         </motion.p>
       </section>
 
-      {/* ── ABOUT ── */}
-      <section className="ap-about">
-        <motion.div className="ap-about__photo" {...fadeUp(0.15)}>
-          <div className="ap-about__photo-inner">
-            <span>Portrait</span>
-          </div>
-        </motion.div>
-
+      {/* ── ABOUT ──
+           The portrait slot was removed before launch — an empty dashed
+           placeholder reads as unfinished on a live site. To bring it back,
+           restore a .ap-about__photo block here with a real image and drop
+           the --full modifier below. */}
+      <section className="ap-about ap-about--full">
         <motion.div className="ap-about__body" {...fadeUp(0.22)}>
           <p className="ap-bio">
             Based in <strong>Singapore</strong>, I travel across Asia with a camera
@@ -115,9 +113,6 @@ export default function AboutPage() {
             My work spans street photography, landscapes, and architecture — always
             searching for the frame that captures a place's atmosphere rather than
             just its surface.
-          </p>
-          <p className="ap-bio">
-            [Replace this with your own story.]
           </p>
 
           {/* ── Big travel numbers ──────────────────────────────── */}

@@ -1258,6 +1258,13 @@
   border-bottom: 1px solid var(--glass-border);
 }
 
+/* No portrait slot — bio runs full width. Drop this modifier when a real
+   portrait is added back. */
+.ap-about--full {
+  grid-template-columns: 1fr;
+  max-width: 780px;
+}
+
 .ap-about__photo-inner {
   width: 100%;
   aspect-ratio: 3 / 4;
@@ -1624,6 +1631,54 @@
 .contact-form__submit:hover {
   opacity: 0.85;
 }
+
+.contact-form__submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.contact-form__error {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: #e0857a;
+  margin: 0;
+}
+.contact-form__error a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── 404 ── */
+.notfound__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 32px;
+}
+.notfound__link {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 28px;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid rgba(200, 168, 120, 0.45);
+  border-radius: 3px;
+  color: var(--accent);
+  transition: background 0.22s, color 0.22s, border-color 0.22s;
+}
+.notfound__link:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #111110;
+}
+.notfound__link--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #111110;
+}
+.notfound__link--primary:hover { opacity: 0.85; }
 
 .contact-success {
   text-align: center;
@@ -3621,6 +3676,40 @@
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.footer__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+/* Social icons — only render when SOCIAL is filled in (see Footer.jsx) */
+.footer__social {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.footer__social-link {
+  display: inline-flex;
+  color: var(--text-muted);
+  transition: color 0.2s, transform 0.2s;
+}
+.footer__social-link svg { width: 19px; height: 19px; display: block; }
+.footer__social-link:hover {
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+.footer__social-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+@media (max-width: 640px) {
+  .footer__right { align-items: flex-start; }
+  .footer__nav { justify-content: flex-start; }
 }
 
 .footer__link {
