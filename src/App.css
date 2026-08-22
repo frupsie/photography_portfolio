@@ -4501,3 +4501,137 @@
     margin: 0 16px 48px; opacity: 1 !important; visibility: visible !important;
   }
 }
+
+/* ── Sandbox: Act 2 map pins, v2 ───────────────────────────────────────────
+   Scoped to .map-pin--v2 so the live .map-pin is untouched. Three problems
+   with the incumbent pin: it is 16x32 of hit area with no expansion, it has a
+   zero-offset flat shadow that reads as a sticker on the dark map, and its
+   white 2px ring is the brightest thing in a near-black composition. */
+
+.map-pin--v2 {
+  height: 38px;
+  position: relative;
+  /* The whole pin lifts on hover; the head also grows. */
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.25s ease;
+}
+
+/* Hit target. The icon box is only 16px wide, so clicking a 12px head is a
+   precision task; this widens the target without redrawing anything. */
+.map-pin--v2::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  /* Sized to the declustered minimum spacing (24px), so neighbouring targets
+     meet without overlapping. Before declustering this had to stay small to
+     avoid burying adjacent pins; now the spacing does that work. */
+  width: 24px;
+  height: 30px;
+  border-radius: 12px / 15px;
+}
+
+.map-pin--v2 .map-pin__head {
+  width: 12px;
+  height: 12px;
+  border: none;
+  background: var(--accent-light, #e8d4b0);
+  /* Dark casing first so adjacent pins stay separable, then a gold halo, then
+     a real drop shadow — offset and blurred, not a flat glow. */
+  box-shadow: 0 0 0 2px #0a0908,
+              0 0 0 3px rgba(200, 168, 120, 0.9),
+              0 3px 9px rgba(0, 0, 0, 0.6),
+              0 0 14px 2px rgba(200, 168, 120, 0.28);
+  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s ease;
+}
+
+/* Tapering stem reads as a pin standing on the map rather than a lollipop. */
+.map-pin--v2 .map-pin__shaft {
+  width: 2px;
+  flex: 1;
+  opacity: 1;
+  background: linear-gradient(to bottom,
+              rgba(200, 168, 120, 0.95),
+              rgba(200, 168, 120, 0.15));
+}
+
+/* Contact shadow — grounds the pin at its true coordinate. */
+.map-pin--v2 .map-pin__ground {
+  width: 8px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  filter: blur(1px);
+  flex-shrink: 0;
+  transition: width 0.22s ease, opacity 0.22s ease;
+}
+
+.map-pin--v2:hover,
+.leaflet-marker-icon:focus-visible .map-pin--v2 {
+  transform: translateY(-3px);
+}
+
+.map-pin--v2:hover .map-pin__head,
+.leaflet-marker-icon:focus-visible .map-pin--v2 .map-pin__head {
+  width: 15px;
+  height: 15px;
+  box-shadow: 0 0 0 2px #0a0908,
+              0 0 0 3px rgba(232, 212, 176, 1),
+              0 5px 14px rgba(0, 0, 0, 0.65),
+              0 0 20px 5px rgba(200, 168, 120, 0.5);
+}
+
+/* Shadow widens and softens as the pin lifts. */
+.map-pin--v2:hover .map-pin__ground,
+.leaflet-marker-icon:focus-visible .map-pin--v2 .map-pin__ground {
+  width: 11px;
+  opacity: 0.7;
+}
+
+/* Leaflet's marker is the focusable element, so the ring belongs on it. */
+.leaflet-marker-icon:focus-visible {
+  outline: 2px solid var(--accent, #c8a878);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* The eyebrow/heading block sits over the map at z-index 4 and would swallow
+   clicks on the northern pins now that pins are live. */
+.reel__act--2v2 .reel__act2-head { pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .map-pin--v2,
+  .map-pin--v2 .map-pin__head,
+  .map-pin--v2 .map-pin__ground { transition: none; }
+}
+
+/* Declustered pins. The offset is a variable, not a transform, so the hover
+   lift composes with it instead of replacing it. A fanned pin is displaced
+   from its true coordinate by up to 15px, so it earns a leader line back to
+   the real point rather than quietly lying about where the city is. */
+.map-pin--v2 {
+  transform: translate(var(--fan-x, 0px), var(--fan-y, 0px));
+}
+
+.map-pin--v2:hover,
+.leaflet-marker-icon:focus-visible .map-pin--v2 {
+  transform: translate(var(--fan-x, 0px), calc(var(--fan-y, 0px) - 3px));
+}
+
+.map-pin--fanned::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 76%;
+  width: 1px;
+  height: var(--fan-dist, 0px);
+  background: linear-gradient(to bottom,
+              rgba(200, 168, 120, 0.55),
+              rgba(200, 168, 120, 0.12));
+  transform-origin: top center;
+  transform: rotate(var(--fan-lead, 0deg));
+  pointer-events: none;
+}
