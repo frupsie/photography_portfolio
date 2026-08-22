@@ -69,10 +69,13 @@
               rgba(10, 9, 8, 0.55) 34%,
               rgba(10, 9, 8, 0.10) 68%);
 }
+/* No max-width here. With border-box, a ch-based cap on this box would be
+   eaten by its own 6vw side padding, leaving the h1 a content box too narrow
+   for the name, which the line mask below then clips. The measure cap belongs
+   on the paragraph, which is the only thing that needs one. */
 .hv2-open__type {
   position: relative;
   padding: 0 6vw 8vh;
-  max-width: 62ch;
 }
 .hv2-open__name {
   font-family: var(--hv2-display);
@@ -84,6 +87,8 @@
   color: var(--hv2-paper);
 }
 /* Masked rows so the name can rise into place without clipping descenders. */
+/* overflow:hidden clips both axes, so this mask only ever wraps text that
+   already fits. Width is inherited from the unconstrained h1 above. */
 .hv2-open__line { display: block; overflow: hidden; padding-bottom: 0.06em; }
 .hv2-open__line > span { display: block; }
 .hv2-open__sub {
