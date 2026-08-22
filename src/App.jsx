@@ -15,7 +15,6 @@ import IntroScreen from './components/IntroScreen';
 // Sandbox — unlinked route for comparing a redesign against the live acts.
 // See CLAUDE.md: visual changes are staged, never edited in place.
 import JourneyAct from './components/sandbox/JourneyAct';
-import Act2JourneyV2 from './components/sandbox/Act2JourneyV2';
 import { useLenis, getLenis } from './hooks/useLenis';
 
 const INTRO_KEY = 'jayden_intro_seen';
@@ -80,7 +79,6 @@ export default function App() {
           <Route path="/gallery" element={<GalleryPage />} />
           {/* Sandbox — not in the navbar, not in the sitemap */}
           <Route path="/sandbox/journey" element={<JourneyAct />} />
-          <Route path="/sandbox/act2" element={<Act2JourneyV2 />} />
           {/* Retired routes — redirects kept for any existing external links */}
           <Route path="/gear" element={<Navigate to="/about" replace />} />
           <Route path="/featured" element={<Navigate to="/" replace />} />
