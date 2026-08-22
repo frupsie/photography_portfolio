@@ -47,3 +47,7 @@ public/photos/**/*.PNG
 
 # Impeccable live-server runtime artifact
 .impeccable/live/
+
+# Third-party agent skills installed per machine (npx skills add)
+.agents/
+skills-lock.json

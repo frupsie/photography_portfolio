@@ -1,0 +1,288 @@
+/* Sandbox: HomeV2 - staged homepage overhaul at /sandbox/home.
+   Namespaced .hv2 so the live Reel is untouched, and kept out of App.css so
+   deleting this component removes its styles with it.
+
+   Locks: one dark theme, one gold accent, radius 0 everywhere.
+   Display face is Bricolage Grotesque, deliberately rotated off the
+   Playfair Display + Inter pairing the live site uses. */
+
+.hv2 {
+  --hv2-ink: #0a0908;
+  --hv2-ink-2: #100e0c;
+  --hv2-paper: #e8e3da;
+  --hv2-quiet: #9d968a;        /* 5.4:1 on --hv2-ink, clears AA for body */
+  --hv2-gold: #c8a878;
+  --hv2-rule: rgba(200, 168, 120, 0.18);
+  --hv2-display: "Bricolage Grotesque", "Archivo", system-ui, sans-serif;
+  --hv2-body: "Archivo", system-ui, sans-serif;
+
+  background: var(--hv2-ink);
+  color: var(--hv2-paper);
+  font-family: var(--hv2-body);
+}
+
+.hv2 ::selection { background: var(--hv2-gold); color: var(--hv2-ink); }
+
+/* One CTA treatment, reused. Radius 0, like everything else. */
+.hv2-cta {
+  display: inline-block;
+  padding: 14px 26px;
+  border: 1px solid var(--hv2-gold);
+  border-radius: 0;
+  color: var(--hv2-paper);           /* 12.4:1 on the ink ground */
+  background: transparent;
+  font-family: var(--hv2-body);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hv2-cta:hover { background: var(--hv2-gold); color: var(--hv2-ink); }
+.hv2-cta:active { transform: translateY(1px); }
+.hv2-cta:focus-visible { outline: 2px solid var(--hv2-gold); outline-offset: 3px; }
+.hv2-cta--lg { padding: 18px 38px; font-size: 0.9rem; }
+
+/* ── 1. Opening ── */
+.hv2-open {
+  position: relative;
+  min-height: 100dvh;                /* never 100vh: iOS address bar */
+  display: grid;
+  align-items: end;
+  overflow: hidden;
+}
+.hv2-open__media { position: absolute; inset: 0; }
+.hv2-open__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+}
+/* Scrim, not a vignette ring: the type sits bottom-left so the weight goes there. */
+.hv2-open__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top,
+              rgba(10, 9, 8, 0.92) 0%,
+              rgba(10, 9, 8, 0.55) 34%,
+              rgba(10, 9, 8, 0.10) 68%);
+}
+.hv2-open__type {
+  position: relative;
+  padding: 0 6vw 8vh;
+  max-width: 62ch;
+}
+.hv2-open__name {
+  font-family: var(--hv2-display);
+  font-weight: 800;
+  font-size: clamp(3.2rem, 12vw, 9rem);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  margin: 0 0 22px;
+  color: var(--hv2-paper);
+}
+/* Masked rows so the name can rise into place without clipping descenders. */
+.hv2-open__line { display: block; overflow: hidden; padding-bottom: 0.06em; }
+.hv2-open__line > span { display: block; }
+.hv2-open__sub {
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.55;
+  max-width: 46ch;
+  color: var(--hv2-paper);
+  margin: 0 0 30px;
+}
+
+/* ── 2. Index ── */
+.hv2-index {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 5vw;
+  padding: 16vh 6vw;
+  align-items: start;
+}
+.hv2-index__title {
+  font-family: var(--hv2-display);
+  font-weight: 600;
+  font-size: clamp(1.8rem, 3.4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  margin: 0 0 8vh;
+  max-width: 20ch;
+}
+.hv2-index__group { margin-bottom: 6vh; }
+.hv2-index__group ul { list-style: none; margin: 0; padding: 0; }
+/* One hairline above each cluster, never one per row. */
+.hv2-index__country {
+  font-family: var(--hv2-body);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hv2-quiet);
+  border-top: 1px solid var(--hv2-rule);
+  padding-top: 14px;
+  margin: 0 0 6px;
+}
+.hv2-index__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 13px 0;
+  min-height: 44px;                  /* touch target */
+  text-decoration: none;
+  color: var(--hv2-paper);
+  transition: color 0.2s ease,
+              padding-left 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hv2-index__row:hover,
+.hv2-index__row.is-active { color: var(--hv2-gold); padding-left: 12px; }
+.hv2-index__row:focus-visible { outline: 2px solid var(--hv2-gold); outline-offset: 2px; }
+.hv2-index__city {
+  font-family: var(--hv2-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.hv2-index__year {
+  font-size: 0.8rem;
+  color: var(--hv2-quiet);
+  font-variant-numeric: tabular-nums;
+}
+
+.hv2-index__plate {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--hv2-ink-2);
+  overflow: hidden;
+}
+.hv2-index__plate-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hv2-index__plate-img.is-active { opacity: 1; }
+.hv2-index__plate-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 12%;
+  text-align: center;
+  color: var(--hv2-quiet);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border: 1px solid var(--hv2-rule);
+}
+.hv2-index__platewrap { position: sticky; top: 18vh; }
+.hv2-index__plate-cap {
+  display: block;
+  padding-top: 12px;
+  color: var(--hv2-quiet);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── 3. Frames ── */
+.hv2-frames { padding: 12vh 6vw 16vh; }
+.hv2-frames__title {
+  font-family: var(--hv2-display);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  max-width: 24ch;
+  margin: 0 0 7vh;
+}
+/* Asymmetric on purpose: six cells, three sizes, no repeated row shape. */
+.hv2-frames__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+}
+.hv2-frame {
+  display: block;
+  text-decoration: none;
+}
+/* The caption sits below the photograph, never on it. A label overlaid on an
+   image is decoration; a caption under it is information. */
+.hv2-frame__plate {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--hv2-ink-2);
+}
+.hv2-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.86);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.4s ease;
+}
+.hv2-frame:hover img { transform: scale(1.04); filter: brightness(1); }
+.hv2-frame:focus-visible { outline: 2px solid var(--hv2-gold); outline-offset: 3px; }
+.hv2-frame__cap {
+  display: block;
+  padding-top: 10px;
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hv2-quiet);
+  transition: color 0.2s ease;
+}
+.hv2-frame:hover .hv2-frame__cap { color: var(--hv2-gold); }
+.hv2-frame--tall  { grid-column: span 2; }
+.hv2-frame--wide  { grid-column: span 4; }
+.hv2-frame--small { grid-column: span 3; }
+.hv2-frame--tall  .hv2-frame__plate { aspect-ratio: 3 / 4; }
+.hv2-frame--wide  .hv2-frame__plate { aspect-ratio: 16 / 9; }
+.hv2-frame--small .hv2-frame__plate { aspect-ratio: 4 / 3; }
+
+/* ── 4. Closer ── */
+.hv2-closer {
+  padding: 18vh 6vw 20vh;
+  border-top: 1px solid var(--hv2-rule);
+}
+.hv2-closer__lead {
+  font-family: var(--hv2-display);
+  font-weight: 600;
+  font-size: clamp(2rem, 5.5vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 16ch;
+  margin: 0 0 6vh;
+  color: var(--hv2-paper);
+}
+
+/* ── Mobile collapse, declared explicitly per section ── */
+@media (max-width: 900px) {
+  .hv2-index { grid-template-columns: 1fr; gap: 6vh; padding: 10vh 6vw; }
+  .hv2-index__platewrap { position: relative; top: auto; order: -1; }
+  .hv2-index__plate { aspect-ratio: 3 / 2; }
+  .hv2-index__title { margin-bottom: 5vh; }
+  .hv2-frames__grid { grid-template-columns: repeat(2, 1fr); }
+  .hv2-frame--tall,
+  .hv2-frame--wide,
+  .hv2-frame--small { grid-column: span 2; }
+  .hv2-frame--tall .hv2-frame__plate { aspect-ratio: 4 / 5; }
+  .hv2-open__type { padding: 0 6vw 10vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hv2-frame img,
+  .hv2-index__row,
+  .hv2-index__plate-img,
+  .hv2-cta { transition: none; }
+  .hv2-open__img { transform: none !important; }
+}
