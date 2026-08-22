@@ -310,6 +310,9 @@ export default function JourneyAct() {
                   ref={(el) => (cellRefs.current[i] = el)}
                   className="journey__cell"
                   onClick={() => setLbIndex(i)}
+                  // Names the pin on hover while it is still a dot — the
+                  // clusters make it otherwise impossible to tell which is which.
+                  title={`${city.name}, ${city.country}`}
                 >
                   <span className="journey__glyph" aria-hidden="true" />
                   <img
