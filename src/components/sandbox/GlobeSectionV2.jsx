@@ -53,28 +53,32 @@ function frameCount(city) {
 // The taller icon box (16x38 vs the live 16x32) is the pin plus its ground
 // shadow; the anchor still sits on the shadow's centre so the point lands on
 // the true coordinate.
-function makePinIcon(slug, dimmed, drop = false, f = null) {
+// Icons are cached by identity. react-leaflet calls marker.setIcon() whenever
+// the `icon` prop is a different object, and Leaflet's setIcon replaces the
+// marker's DOM element outright — so returning a fresh icon each render tore
+// every pin down and restarted its drop animation on every scroll tick.
+const ICON_CACHE = new Map();
+
+function makePinIcon(slug, dimmed, drop = false) {
+  const cacheKey = `${slug}:${dimmed}:${drop}`;
+  const hit = ICON_CACHE.get(cacheKey);
+  if (hit) return hit;
   const classes = ['map-pin', 'map-pin--v2'];
   if (dimmed) classes.push('map-pin--dim');
   if (drop) classes.push('map-pin--drop');
-  if (f) classes.push('map-pin--fanned');
-  const style = f
-    ? `--fan-x:${f.fx}px;--fan-y:${f.fy}px;--fan-dist:${f.dist}px;--fan-lead:${f.lead}deg`
-    : '';
-  return L.divIcon({
+  const icon = L.divIcon({
     className: '',
-    html: `<div class="${classes.join(' ')}" style="${style}">
+    html: `<div class="${classes.join(' ')}" data-slug="${slug}">
              <div class="map-pin__head"></div>
              <div class="map-pin__shaft"></div>
              <div class="map-pin__ground"></div>
            </div>`,
     iconSize: [16, 38],
     iconAnchor: [8, 34],
-    // The fan displacement is baked into the anchor rather than passed as the
-    // Tooltip's `offset` prop: react-leaflet does not re-apply that prop after
-    // mount, and the offset is only known once the map has laid out.
-    tooltipAnchor: [f ? f.fx : 0, (f ? f.fy : 0) - 30],
+    tooltipAnchor: [0, -30],
   });
+  ICON_CACHE.set(cacheKey, icon);
+  return icon;
 }
 
 /**
@@ -93,15 +97,21 @@ function makePinIcon(slug, dimmed, drop = false, f = null) {
 const COLLIDE_PX = 20;
 const FAN_RADIUS = 17;
 
-function Decluster({ cities: list, onFan }) {
+function Decluster({ cities: list, markers }) {
   const map = useMap();
-  const lastRef = useRef('');
+  // Depend on the slug list, not the array: `cities` is a fresh array on every
+  // scroll tick, which would restart this effect continuously.
+  const key = list.map((c) => c.slug).join(',');
 
   useEffect(() => {
     if (!map) return;
 
     const apply = () => {
-      const pts = list.map((c) => ({ slug: c.slug, p: map.latLngToContainerPoint([c.lat, c.lon]) }));
+      const pts = list.map((c) => ({
+        slug: c.slug,
+        ll: [c.lat, c.lon],
+        p: map.latLngToContainerPoint([c.lat, c.lon]),
+      }));
 
       // Greedy single-link grouping; n is 13, so the naive pass is fine.
       const seen = new Set();
@@ -120,47 +130,55 @@ function Decluster({ cities: list, onFan }) {
         groups.push(g);
       }
 
-      const next = {};
       for (const g of groups) {
-        if (g.length === 1) continue;
-        // Place the group evenly on one circle around its centroid, so the
-        // offset each pin needs is (its slot on the circle) minus (where it
-        // actually is). Offsetting each pin from its own position instead
-        // leaves the spacing as uneven as the source coordinates were.
         const cx = g.reduce((t, m) => t + m.p.x, 0) / g.length;
         const cy = g.reduce((t, m) => t + m.p.y, 0) / g.length;
         const r = FAN_RADIUS * (g.length > 4 ? 1.35 : 1);
+
         g.forEach((m, i) => {
+          const marker = markers.current[m.slug];
+          if (!marker) return;
+          const el = marker.getElement()?.querySelector('.map-pin--v2');
+
+          if (g.length === 1) {
+            // Always reset from the city's true coordinate, never from where
+            // the marker currently sits, or repeated passes compound the drift.
+            marker.setLatLng(m.ll);
+            el?.classList.remove('map-pin--fanned');
+            return;
+          }
+
           // Start at 12 o'clock so a pair separates vertically, which reads
           // more clearly than a horizontal pair on a coastline.
           const angle = -Math.PI / 2 + (i / g.length) * Math.PI * 2;
-          const fx = +(cx + Math.cos(angle) * r - m.p.x).toFixed(1);
-          const fy = +(cy + Math.sin(angle) * r - m.p.y).toFixed(1);
-          next[m.slug] = {
-            fx,
-            fy,
-            dist: +Math.hypot(fx, fy).toFixed(1),
+          const fx = cx + Math.cos(angle) * r - m.p.x;
+          const fy = cy + Math.sin(angle) * r - m.p.y;
+
+          // Move the marker rather than transforming its icon: Leaflet then
+          // positions the tooltip correctly on its own, and nothing has to be
+          // rebuilt. Rebuilding the icon is what made the pins flicker and
+          // restart their drop animation on every scroll tick.
+          marker.setLatLng(map.containerPointToLatLng(L.point(m.p.x + fx, m.p.y + fy)));
+
+          if (el) {
+            el.classList.add('map-pin--fanned');
+            el.style.setProperty('--fan-dist', `${Math.hypot(fx, fy).toFixed(1)}px`);
             // Leader angle is computed here rather than in CSS: atan2()/sqrt()
             // as CSS functions are recent additions with uneven support.
-            lead: +((Math.atan2(-fx, -fy) * 180) / Math.PI).toFixed(1),
-          };
+            el.style.setProperty('--fan-lead', `${((Math.atan2(-fx, -fy) * 180) / Math.PI).toFixed(1)}deg`);
+          }
         });
       }
-
-      // Only publish real changes — this runs on every moveend during a scroll.
-      const key = JSON.stringify(next);
-      if (key === lastRef.current) return;
-      lastRef.current = key;
-      onFan(next);
     };
 
+    // Markers are added by their own effects, which run after this one.
     const raf = requestAnimationFrame(apply);
-    map.on('zoomend moveend resize', apply);
+    map.on('zoomend resize', apply);
     return () => {
       cancelAnimationFrame(raf);
-      map.off('zoomend moveend resize', apply);
+      map.off('zoomend resize', apply);
     };
-  }, [map, list, onFan]);
+  }, [map, key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }
@@ -200,9 +218,9 @@ export default function GlobeSectionV2({
   interactivePins = false,
 } = {}) {
   const navigate = useNavigate();
+  const markerRefs = useRef({});
   const passive = mode === 'passive';
   const pinsLive = !passive || interactivePins;
-  const [fan, setFan] = useState({});
   const [activeCountry, setActiveCountry] = useState(null);
   const [activeBounds, setActiveBounds] = useState(null);
 
@@ -248,20 +266,23 @@ export default function GlobeSectionV2({
 
           {!passive && <ZoomControl position="topright" />}
           <MapController bounds={activeBounds} defaultView={ASIA_VIEW} interactive={!passive} />
-          {pinsLive && <Decluster cities={visibleCities} onFan={setFan} />}
+          {pinsLive && <Decluster cities={visibleCities} markers={markerRefs} />}
 
           {visibleCities.map((city) => {
             const focused = activeCountry !== null;
             const isActive = !focused || (COUNTRY_SLUGS[activeCountry]?.includes(city.slug) ?? false);
             const dimmed = focused && !isActive;
             const frames = frameCount(city);
-            const f = fan[city.slug] ?? null;
 
             return (
               <Marker
                 key={city.slug}
+                ref={(m) => {
+                  if (m) markerRefs.current[city.slug] = m;
+                  else delete markerRefs.current[city.slug];
+                }}
                 position={[city.lat, city.lon]}
-                icon={makePinIcon(city.slug, dimmed, passive, f)}
+                icon={makePinIcon(city.slug, dimmed, passive)}
                 // Overlapping pins (Guangzhou/Shenzhen/Dongguan sit within a few
                 // px at the default zoom) — hovering lifts one clear of the others.
                 riseOnHover
