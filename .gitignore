@@ -38,3 +38,9 @@ public/photos/**/*.PNG
 # Local secrets — never commit
 .env
 .env.local
+
+# Agent tooling — installed per machine, not part of the site.
+# settings.json and launch.json stay tracked: they're small, project-level,
+# and useful to anyone who clones this.
+.claude/skills/
+.claude/settings.local.json

@@ -15,6 +15,23 @@ export default function IntroScreen({ onDone }) {
   const [pct, setPct]     = useState(0);
   const timers = useRef([]);
 
+  // Reduced motion: skip the whole sequence rather than soften it.
+  //
+  // This is the most aggressive motion on the site — shutter blades closing over
+  // the full viewport, then .intro__flash animating opacity 0 -> 1 in 70ms, a
+  // near-white flash on a near-black page. A luminance jump that size is a
+  // vestibular and photosensitivity concern, and the only escape was a 9.6px
+  // skip control nobody is hunting for. There is no reduced version of this
+  // worth showing, so hand straight off to the site.
+  const [reduced] = useState(
+    () => typeof window !== 'undefined'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+
+  useEffect(() => {
+    if (reduced) onDone();
+  }, [reduced, onDone]);
+
   const schedule = (fn, delay) => {
     const id = setTimeout(fn, delay);
     timers.current.push(id);
@@ -40,6 +57,7 @@ export default function IntroScreen({ onDone }) {
   }, [phase]);
 
   useEffect(() => {
+    if (reduced) return;              // handed off above; run no timers
     schedule(() => setPhase('hud'),      400);
     schedule(() => setPhase('lock'),    2800);
     schedule(() => setPhase('shutter'), 3300);
@@ -47,7 +65,7 @@ export default function IntroScreen({ onDone }) {
     schedule(() => setPhase('exit'),    3550);
     schedule(() => onDone(),            4150);
     return clearAll;
-  }, []);
+  }, [reduced]);
 
   const skip = () => {
     clearAll();
@@ -56,6 +74,9 @@ export default function IntroScreen({ onDone }) {
     schedule(() => setPhase('exit'),   300);
     schedule(() => onDone(),           850);
   };
+
+  // Render nothing at all under reduced motion — no shutter, no flash, no frame.
+  if (reduced) return null;
 
   const isHud     = ['hud', 'lock', 'shutter', 'flash', 'exit'].includes(phase);
   const isLocked  = ['lock', 'shutter', 'flash', 'exit'].includes(phase);

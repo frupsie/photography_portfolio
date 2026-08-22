@@ -37,6 +37,10 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://jaydenng.netlify.app/city/hangzhou</loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://jaydenng.netlify.app/city/tokyo</loc>
     <changefreq>monthly</changefreq>
   </url>

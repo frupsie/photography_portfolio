@@ -17,36 +17,30 @@ import 'leaflet/dist/leaflet.css';
 import { cities } from '../data/cities';
 
 // ─── Which city slugs belong to each country ──────────────────────────────────
-const COUNTRY_SLUGS = {
-  China:         ['hainan', 'guangzhou', 'shenzhen', 'hong-kong', 'macau'],
-  Japan:         ['tokyo', 'osaka', 'kyoto', 'hakone', 'nikko'],
-  'South Korea': ['seoul'],
-};
+// Derived from cities.js rather than hand-listed. As a hardcoded object this was
+// a second source of truth — adding a city to cities.js without also editing it
+// here silently dropped that city from its country's zoom, with nothing to flag
+// it. Kamakura had already been lost that way.
+const COUNTRY_SLUGS = cities.reduce((acc, c) => {
+  (acc[c.country] ??= []).push(c.slug);
+  return acc;
+}, {});
 
-// ─── Compute LatLngBounds framing a set of cities ─────────────────────────────
-function boundsFor(cityList, padFactor = 0.25) {
-  const lats = cityList.map(c => c.lat);
-  const lons = cityList.map(c => c.lon);
-  const latPad = Math.max((Math.max(...lats) - Math.min(...lats)) * padFactor, 0.4);
-  const lonPad = Math.max((Math.max(...lons) - Math.min(...lons)) * padFactor, 0.4);
+const ASIA_VIEW = { center: [29, 118], zoom: 4 };
+
+// ─── Compute LatLngBounds that frames every pin in a country ──────────────────
+function countryBounds(country) {
+  const slugs         = COUNTRY_SLUGS[country];
+  const countryCities = cities.filter(c => slugs.includes(c.slug));
+  const lats = countryCities.map(c => c.lat);
+  const lons = countryCities.map(c => c.lon);
+  const latPad = Math.max((Math.max(...lats) - Math.min(...lats)) * 0.25, 0.4);
+  const lonPad = Math.max((Math.max(...lons) - Math.min(...lons)) * 0.25, 0.4);
   return L.latLngBounds(
     [Math.min(...lats) - latPad, Math.min(...lons) - lonPad],
     [Math.max(...lats) + latPad, Math.max(...lons) + lonPad],
   );
 }
-
-// The default view frames the cities that actually exist rather than a fixed
-// centre and zoom. The old hardcoded [29, 118] sat ~7 degrees west of the real
-// centre of the collection, wasting the frame on inland China and pushing Japan
-// against the right edge. Deriving it also means the map reframes itself when
-// a city is added instead of quietly drifting off-centre.
-//
-// Handing bounds to Leaflet (rather than a zoom number) lets it pick the zoom
-// that fits the actual container, so the framing holds on any screen size.
-const COLLECTION_BOUNDS = boundsFor(cities, 0.12);
-
-const countryBounds = (country) =>
-  boundsFor(cities.filter(c => COUNTRY_SLUGS[country].includes(c.slug)));
 
 // ─── Custom gold map-pin DivIcon ──────────────────────────────────────────────
 // `drop` enables the CSS drop-in animation (used in passive/reveal mode).
@@ -67,17 +61,10 @@ function makePinIcon(dimmed, drop = false) {
   });
 }
 
-const DEFAULT_FIT = { padding: [24, 24], maxZoom: 8 };
-const COUNTRY_FIT = { padding: [60, 60], maxZoom: 11 };
-
 // ─── Map controller: disables scroll zoom, animates to bounds/view ────────────
-function MapController({ bounds, defaultBounds, interactive }) {
+function MapController({ bounds, defaultView, interactive }) {
   const map     = useMap();
   const prevRef = useRef(null);
-  // Kept in a ref so the ResizeObserver below always refits to the CURRENT
-  // target without needing to be torn down and rebuilt on every bounds change.
-  const targetRef = useRef(bounds ?? defaultBounds);
-  targetRef.current = bounds ?? defaultBounds;
 
   useEffect(() => {
     map.scrollWheelZoom.disable();
@@ -90,61 +77,15 @@ function MapController({ bounds, defaultBounds, interactive }) {
     }
   }, [map, interactive]);
 
-  // Re-fit whenever the container's size changes.
-  //
-  // This map is lazy-loaded inside a sticky, GSAP-pinned section, so Leaflet's
-  // initial fitBounds can run before the pin has its final layout — it was
-  // measuring the container as ~434px when it is really ~1096px, leaving the
-  // map roughly 2.5x too far out. Leaflet's own resize handling calls
-  // invalidateSize(), which refreshes dimensions but PRESERVES zoom, so the bad
-  // fit was never corrected. Refitting explicitly is what actually fixes it.
-  useEffect(() => {
-    const el = map.getContainer();
-    let timer;
-
-    const refit = () => {
-      map.invalidateSize({ animate: false });
-      const target = targetRef.current;
-      if (target) {
-        // animate:false — this is a correction, not a journey. Flying on every
-        // resize tick would look like a glitch.
-        map.fitBounds(target, {
-          ...(target === defaultBounds ? DEFAULT_FIT : COUNTRY_FIT),
-          animate: false,
-        });
-      }
-    };
-
-    // Trailing debounce: a ResizeObserver can fire rapidly while the pinned
-    // section animates, and refitting mid-animation is wasted work.
-    const observer = new ResizeObserver(() => {
-      clearTimeout(timer);
-      timer = setTimeout(refit, 120);
-    });
-    observer.observe(el);
-
-    // Guard for the case where the pin settles without the map's own box
-    // changing size, which the observer would never see.
-    const raf = requestAnimationFrame(refit);
-
-    return () => {
-      clearTimeout(timer);
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-    };
-  }, [map, defaultBounds]);
-
   useEffect(() => {
     if (bounds === prevRef.current) return;
     prevRef.current = bounds;
     if (bounds) {
-      map.flyToBounds(bounds, { ...COUNTRY_FIT, duration: 1.4 });
+      map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 11, duration: 1.4 });
     } else {
-      // Back to the whole collection, framed to the container rather than a
-      // fixed zoom that would be wrong on a different screen size.
-      map.flyToBounds(defaultBounds, { ...DEFAULT_FIT, duration: 1.4 });
+      map.flyTo(defaultView.center, defaultView.zoom, { duration: 1.4 });
     }
-  }, [bounds, map, defaultBounds]);
+  }, [bounds, map, defaultView]);
 
   return null;
 }
@@ -193,26 +134,26 @@ export default function GlobeSection({
 
       <div className="globe-canvas-wrapper">
         <MapContainer
-          bounds={COLLECTION_BOUNDS}
-          boundsOptions={DEFAULT_FIT}
-          // zoomSnap 0 lets fitBounds land on a fractional zoom. With the
-          // default snap of 1 it rounds DOWN to the nearest whole level, which
-          // was leaving the pins filling only ~47% of the frame — a whole zoom
-          // step further out than the bounds actually needed.
-          zoomSnap={0}
+          center={ASIA_VIEW.center}
+          zoom={ASIA_VIEW.zoom}
           style={{ width: '100%', height: '100%' }}
           zoomControl={false}
           scrollWheelZoom={false}
           attributionControl={false}
           dragging={!passive}
         >
+          {/* dark_all, not voyager. Voyager is Carto's pale pastel style, and on
+              a page whose binding commitment is near-black grounds with muted
+              gold it made 20% of the homepage scroll the brightest thing on the
+              site — country labels reading louder than the section heading, and
+              the eyebrow and heading nearly illegible against it. */}
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             maxZoom={19}
           />
 
           {!passive && <ZoomControl position="topright" />}
-          <MapController bounds={activeBounds} defaultBounds={COLLECTION_BOUNDS} interactive={!passive} />
+          <MapController bounds={activeBounds} defaultView={ASIA_VIEW} interactive={!passive} />
 
           {visibleCities.map((city) => {
             const focused  = activeCountry !== null;

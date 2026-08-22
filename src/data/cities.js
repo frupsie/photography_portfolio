@@ -106,6 +106,18 @@ export const cities = [
       { src: '/photos-web/macau/DSCF6879.JPG', alt: 'A Roman-style amphitheatre wrapped in an enormous red ribbon beside a decorated Christmas tree, Macau', orientation: 'landscape' },
     ],
   },
+  {
+    slug: 'hangzhou',
+    name: 'Hangzhou',
+    country: 'China',
+    lat: 30.2741,
+    lon: 120.1551,
+    year: '2026',
+    // Left null deliberately — `npm run import-photos` promotes the first
+    // imported photo to hero automatically.
+    heroImage: null,
+    photos: [],
+  },
   // Japan
   {
     slug: 'tokyo',
