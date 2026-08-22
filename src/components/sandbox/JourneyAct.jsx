@@ -101,7 +101,7 @@ export default function JourneyAct() {
   const bounds = useMemo(() => {
     const lats = cities.map((c) => c.lat);
     const lons = cities.map((c) => c.lon);
-    const pad = 0.55;
+    const pad = 0.10;
     const dLat = (Math.max(...lats) - Math.min(...lats)) * pad;
     const dLon = (Math.max(...lons) - Math.min(...lons)) * pad;
     return [
@@ -276,16 +276,15 @@ export default function JourneyAct() {
         <div ref={mapWrapRef} className="journey__map" aria-hidden="true">
           <MapContainer
             bounds={bounds}
-            boundsOptions={{ padding: [30, 30], maxZoom: 7 }}
-            zoomSnap={0}
+            boundsOptions={{ padding: [20, 20], maxZoom: 7 }}
             zoomControl={false}
             scrollWheelZoom={false}
             attributionControl={false}
             dragging={false}
             style={{ width: '100%', height: '100%' }}
           >
-            <TileLayer url={TILE_BASE} maxZoom={19} />
-            <TileLayer url={TILE_LABELS} maxZoom={19} ref={labelsRef} />
+            <TileLayer url={TILE_BASE} maxZoom={19} detectRetina />
+            <TileLayer url={TILE_LABELS} maxZoom={19} detectRetina ref={labelsRef} />
             <MapBridge onReady={setMap} />
           </MapContainer>
         </div>
