@@ -67,10 +67,17 @@ function makePinIcon(dimmed, drop = false) {
   });
 }
 
+const DEFAULT_FIT = { padding: [24, 24], maxZoom: 8 };
+const COUNTRY_FIT = { padding: [60, 60], maxZoom: 11 };
+
 // ─── Map controller: disables scroll zoom, animates to bounds/view ────────────
 function MapController({ bounds, defaultBounds, interactive }) {
   const map     = useMap();
   const prevRef = useRef(null);
+  // Kept in a ref so the ResizeObserver below always refits to the CURRENT
+  // target without needing to be torn down and rebuilt on every bounds change.
+  const targetRef = useRef(bounds ?? defaultBounds);
+  targetRef.current = bounds ?? defaultBounds;
 
   useEffect(() => {
     map.scrollWheelZoom.disable();
@@ -83,15 +90,59 @@ function MapController({ bounds, defaultBounds, interactive }) {
     }
   }, [map, interactive]);
 
+  // Re-fit whenever the container's size changes.
+  //
+  // This map is lazy-loaded inside a sticky, GSAP-pinned section, so Leaflet's
+  // initial fitBounds can run before the pin has its final layout — it was
+  // measuring the container as ~434px when it is really ~1096px, leaving the
+  // map roughly 2.5x too far out. Leaflet's own resize handling calls
+  // invalidateSize(), which refreshes dimensions but PRESERVES zoom, so the bad
+  // fit was never corrected. Refitting explicitly is what actually fixes it.
+  useEffect(() => {
+    const el = map.getContainer();
+    let timer;
+
+    const refit = () => {
+      map.invalidateSize({ animate: false });
+      const target = targetRef.current;
+      if (target) {
+        // animate:false — this is a correction, not a journey. Flying on every
+        // resize tick would look like a glitch.
+        map.fitBounds(target, {
+          ...(target === defaultBounds ? DEFAULT_FIT : COUNTRY_FIT),
+          animate: false,
+        });
+      }
+    };
+
+    // Trailing debounce: a ResizeObserver can fire rapidly while the pinned
+    // section animates, and refitting mid-animation is wasted work.
+    const observer = new ResizeObserver(() => {
+      clearTimeout(timer);
+      timer = setTimeout(refit, 120);
+    });
+    observer.observe(el);
+
+    // Guard for the case where the pin settles without the map's own box
+    // changing size, which the observer would never see.
+    const raf = requestAnimationFrame(refit);
+
+    return () => {
+      clearTimeout(timer);
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
+  }, [map, defaultBounds]);
+
   useEffect(() => {
     if (bounds === prevRef.current) return;
     prevRef.current = bounds;
     if (bounds) {
-      map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 11, duration: 1.4 });
+      map.flyToBounds(bounds, { ...COUNTRY_FIT, duration: 1.4 });
     } else {
       // Back to the whole collection, framed to the container rather than a
       // fixed zoom that would be wrong on a different screen size.
-      map.flyToBounds(defaultBounds, { padding: [40, 40], maxZoom: 8, duration: 1.4 });
+      map.flyToBounds(defaultBounds, { ...DEFAULT_FIT, duration: 1.4 });
     }
   }, [bounds, map, defaultBounds]);
 
@@ -143,7 +194,7 @@ export default function GlobeSection({
       <div className="globe-canvas-wrapper">
         <MapContainer
           bounds={COLLECTION_BOUNDS}
-          boundsOptions={{ padding: [40, 40], maxZoom: 8 }}
+          boundsOptions={DEFAULT_FIT}
           // zoomSnap 0 lets fitBounds land on a fractional zoom. With the
           // default snap of 1 it rounds DOWN to the nearest whole level, which
           // was leaving the pins filling only ~47% of the frame — a whole zoom
