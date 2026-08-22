@@ -100,10 +100,17 @@
 }
 
 /* ── 2. Index ── */
+/* Capped and centred. Without a max-width the fr columns kept growing with the
+   viewport: at 2000px the list stretched to 1118px, which pushed each year 985px
+   from its city, while the plate stayed pinned at its cap and read as stranded.
+   Both columns are now bounded, so the composition holds at any width. */
 .hv2-index {
   display: grid;
-  grid-template-columns: 1.35fr 0.65fr;
-  gap: 5vw;
+  grid-template-columns: minmax(280px, 460px) minmax(0, 660px);
+  justify-content: space-between;
+  gap: clamp(48px, 5vw, 96px);
+  max-width: 1440px;
+  margin-inline: auto;
   padding: 16vh 6vw;
   align-items: start;
 }
@@ -192,11 +199,13 @@
   line-height: 1.6;
   border: 1px solid var(--hv2-rule);
 }
+/* 660x440 at 3:2 is ~290k px2, matching the 485x607 portrait it replaced.
+   The 420px cap made it 60% smaller in area, which is why it read as shrunken. */
 .hv2-index__platewrap {
   position: sticky;
   top: 18vh;
   width: 100%;
-  max-width: 420px;
+  max-width: 660px;
   justify-self: end;
 }
 .hv2-index__plate-cap {
