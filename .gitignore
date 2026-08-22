@@ -44,3 +44,6 @@ public/photos/**/*.PNG
 # and useful to anyone who clones this.
 .claude/skills/
 .claude/settings.local.json
+
+# Impeccable live-server runtime artifact
+.impeccable/live/
