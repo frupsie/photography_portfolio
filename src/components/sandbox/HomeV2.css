@@ -97,6 +97,7 @@
   max-width: 46ch;
   color: var(--hv2-paper);
   margin: 0 0 30px;
+  text-wrap: pretty;
 }
 
 /* ── 2. Index ── */
@@ -122,6 +123,7 @@
   letter-spacing: -0.025em;
   margin: 0 0 8vh;
   max-width: 20ch;
+  text-wrap: balance;
 }
 .hv2-index__group { margin-bottom: 6vh; }
 .hv2-index__group ul { list-style: none; margin: 0; padding: 0; }
@@ -218,7 +220,15 @@
 }
 
 /* ── 3. Frames ── */
-.hv2-frames { padding: 12vh 6vw 16vh; }
+/* Same 1440px cap as the index. Unbounded, the grid ran 1756px at a 2000px
+   viewport, which made a single photograph 1166x792 and the tall cells taller
+   than many screens. Bottom padding stays larger than top on purpose: optically
+   even vertical padding reads bottom-light. */
+.hv2-frames {
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: 12vh 6vw 16vh;
+}
 .hv2-frames__title {
   font-family: var(--hv2-display);
   font-weight: 600;
@@ -227,6 +237,7 @@
   line-height: 1.1;
   max-width: 24ch;
   margin: 0 0 7vh;
+  text-wrap: balance;
 }
 /* Asymmetric on purpose: six cells, three sizes, no repeated row shape. */
 .hv2-frames__grid {
@@ -277,6 +288,8 @@
 
 /* ── 4. Closer ── */
 .hv2-closer {
+  max-width: 1440px;
+  margin-inline: auto;
   padding: 18vh 6vw 20vh;
   border-top: 1px solid var(--hv2-rule);
 }
@@ -289,6 +302,7 @@
   max-width: 16ch;
   margin: 0 0 6vh;
   color: var(--hv2-paper);
+  text-wrap: balance;
 }
 
 /* ── Mobile collapse, declared explicitly per section ── */
