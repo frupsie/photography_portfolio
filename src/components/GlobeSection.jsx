@@ -23,21 +23,30 @@ const COUNTRY_SLUGS = {
   'South Korea': ['seoul'],
 };
 
-const ASIA_VIEW = { center: [29, 118], zoom: 4 };
-
-// ─── Compute LatLngBounds that frames every pin in a country ──────────────────
-function countryBounds(country) {
-  const slugs         = COUNTRY_SLUGS[country];
-  const countryCities = cities.filter(c => slugs.includes(c.slug));
-  const lats = countryCities.map(c => c.lat);
-  const lons = countryCities.map(c => c.lon);
-  const latPad = Math.max((Math.max(...lats) - Math.min(...lats)) * 0.25, 0.4);
-  const lonPad = Math.max((Math.max(...lons) - Math.min(...lons)) * 0.25, 0.4);
+// ─── Compute LatLngBounds framing a set of cities ─────────────────────────────
+function boundsFor(cityList, padFactor = 0.25) {
+  const lats = cityList.map(c => c.lat);
+  const lons = cityList.map(c => c.lon);
+  const latPad = Math.max((Math.max(...lats) - Math.min(...lats)) * padFactor, 0.4);
+  const lonPad = Math.max((Math.max(...lons) - Math.min(...lons)) * padFactor, 0.4);
   return L.latLngBounds(
     [Math.min(...lats) - latPad, Math.min(...lons) - lonPad],
     [Math.max(...lats) + latPad, Math.max(...lons) + lonPad],
   );
 }
+
+// The default view frames the cities that actually exist rather than a fixed
+// centre and zoom. The old hardcoded [29, 118] sat ~7 degrees west of the real
+// centre of the collection, wasting the frame on inland China and pushing Japan
+// against the right edge. Deriving it also means the map reframes itself when
+// a city is added instead of quietly drifting off-centre.
+//
+// Handing bounds to Leaflet (rather than a zoom number) lets it pick the zoom
+// that fits the actual container, so the framing holds on any screen size.
+const COLLECTION_BOUNDS = boundsFor(cities, 0.12);
+
+const countryBounds = (country) =>
+  boundsFor(cities.filter(c => COUNTRY_SLUGS[country].includes(c.slug)));
 
 // ─── Custom gold map-pin DivIcon ──────────────────────────────────────────────
 // `drop` enables the CSS drop-in animation (used in passive/reveal mode).
@@ -59,7 +68,7 @@ function makePinIcon(dimmed, drop = false) {
 }
 
 // ─── Map controller: disables scroll zoom, animates to bounds/view ────────────
-function MapController({ bounds, defaultView, interactive }) {
+function MapController({ bounds, defaultBounds, interactive }) {
   const map     = useMap();
   const prevRef = useRef(null);
 
@@ -80,9 +89,11 @@ function MapController({ bounds, defaultView, interactive }) {
     if (bounds) {
       map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 11, duration: 1.4 });
     } else {
-      map.flyTo(defaultView.center, defaultView.zoom, { duration: 1.4 });
+      // Back to the whole collection, framed to the container rather than a
+      // fixed zoom that would be wrong on a different screen size.
+      map.flyToBounds(defaultBounds, { padding: [40, 40], maxZoom: 8, duration: 1.4 });
     }
-  }, [bounds, map, defaultView]);
+  }, [bounds, map, defaultBounds]);
 
   return null;
 }
@@ -131,8 +142,13 @@ export default function GlobeSection({
 
       <div className="globe-canvas-wrapper">
         <MapContainer
-          center={ASIA_VIEW.center}
-          zoom={ASIA_VIEW.zoom}
+          bounds={COLLECTION_BOUNDS}
+          boundsOptions={{ padding: [40, 40], maxZoom: 8 }}
+          // zoomSnap 0 lets fitBounds land on a fractional zoom. With the
+          // default snap of 1 it rounds DOWN to the nearest whole level, which
+          // was leaving the pins filling only ~47% of the frame — a whole zoom
+          // step further out than the bounds actually needed.
+          zoomSnap={0}
           style={{ width: '100%', height: '100%' }}
           zoomControl={false}
           scrollWheelZoom={false}
@@ -145,7 +161,7 @@ export default function GlobeSection({
           />
 
           {!passive && <ZoomControl position="topright" />}
-          <MapController bounds={activeBounds} defaultView={ASIA_VIEW} interactive={!passive} />
+          <MapController bounds={activeBounds} defaultBounds={COLLECTION_BOUNDS} interactive={!passive} />
 
           {visibleCities.map((city) => {
             const focused  = activeCountry !== null;
