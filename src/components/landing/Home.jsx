@@ -1,26 +1,19 @@
 /**
- * HomeV2 - staged homepage overhaul. Viewable at /sandbox/home.
+ * Home - the homepage.
  *
- * Built with the design-taste-frontend skill in "Redesign - Overhaul" mode:
- * content, IA and routes are preserved, the four-act cinematic concept is not.
- * Live Reel.jsx and its four acts are untouched.
+ * Replaces the four-act cinematic Reel. Content, IA and routes are unchanged;
+ * the acts and their scroll choreography are gone.
  *
- * Dials: DESIGN_VARIANCE 9 / MOTION_INTENSITY 9 / VISUAL_DENSITY 2
+ * Four sections, four layout families: full-bleed opening, sticky typographic
+ * index with a photographic reveal, pinned horizontal pan of the favourites
+ * pool, full-width closer.
  *
- * Locked decisions (audited in the pre-flight before shipping):
+ * Locked decisions:
  *   Theme      one dark theme, no section inverts
- *   Accent     one muted gold, used identically everywhere (binding, PRODUCT.md)
- *   Radius     0 everywhere. An archive has square corners.
+ *   Accent     one muted gold (binding, PRODUCT.md)
+ *   Radius     0 everywhere
  *   Eyebrows   zero
  *   Em-dashes  zero in any user-visible string
- *
- * What the overhaul drops from the live homepage, and why:
- *   - The "cities / countries / frames" stat row. Three numbers with small caps
- *     labels is the hero-metric template; the counts now live inside a sentence.
- *   - The "Scroll" cue. If the reader has not scrolled, they are in the hero.
- *   - The 01..12 numbering on contact-sheet frames. Countable things do not
- *     need counting.
- *   - Playfair Display + Inter, the default "elegant portfolio" pairing.
  */
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
@@ -28,7 +21,8 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { cities } from '../../data/cities';
 import { featured } from '../../data/featured';
-import './HomeV2.css';
+import { thumbSrc } from '../../utils/thumb';
+import './Home.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -63,7 +57,6 @@ const spellCap = (n) => {
   return w.charAt(0).toUpperCase() + w.slice(1);
 };
 
-const thumb = (src) => src.replace('/photos-web/', '/photos-thumb/').replace(/\.(jpe?g|JPE?G)$/, '.webp');
 
 // Sandbox-only picture overrides. cities.js stays the single source of truth for
 // the live site, so a city whose hero does not suit this layout is corrected
@@ -78,20 +71,6 @@ const plateSrc = (c) => PLATE_OVERRIDE[c.slug] ?? c.heroImage;
 // rather than adding a second hand-kept mapping.
 const SLUG_BY_NAME = Object.fromEntries(cities.map((c) => [c.name, c.slug]));
 
-/** The display face is loaded from the sandbox only, so live pages are unaffected. */
-function useSandboxFonts() {
-  useEffect(() => {
-    const id = 'hv2-fonts';
-    if (document.getElementById(id)) return;
-    const link = document.createElement('link');
-    link.id = id;
-    link.rel = 'stylesheet';
-    link.href =
-      'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Archivo:wght@400;500&display=swap';
-    document.head.appendChild(link);
-  }, []);
-}
-
 /* ── 1. Opening frame ──────────────────────────────────────────────────────
    Layout family: full-bleed photograph with the type anchored off-centre.
    Anti-centre per 4.3 (VARIANCE 9). Four text elements maximum, and it uses
@@ -104,12 +83,12 @@ function Opening() {
     const ctx = gsap.context(() => {
       // Motivation: the photograph settles as the reader arrives, so the frame
       // reads as something being looked at rather than a background.
-      gsap.from('.hv2-open__img', {
+      gsap.from('.home-open__img', {
         scale: 1.08,
         duration: 1.6,
         ease: 'expo.out',
       });
-      gsap.from('.hv2-open__line > *', {
+      gsap.from('.home-open__line > *', {
         yPercent: 115,
         duration: 1.1,
         ease: 'expo.out',
@@ -118,7 +97,7 @@ function Opening() {
       });
       // Parallax: the image drifts slower than the page, holding the reader a
       // beat longer on the first frame.
-      gsap.to('.hv2-open__img', {
+      gsap.to('.home-open__img', {
         yPercent: 12,
         ease: 'none',
         scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true },
@@ -128,10 +107,10 @@ function Opening() {
   }, []);
 
   return (
-    <section className="hv2-open" ref={root}>
-      <div className="hv2-open__media">
+    <section className="home-open" ref={root}>
+      <div className="home-open__media">
         <img
-          className="hv2-open__img"
+          className="home-open__img"
           src={OPENING.heroImage}
           alt={`${OPENING.name}, ${OPENING.country}`}
           fetchPriority="high"
@@ -139,15 +118,15 @@ function Opening() {
         />
       </div>
 
-      <div className="hv2-open__type">
-        <h1 className="hv2-open__name">
-          <span className="hv2-open__line"><span>Jayden</span></span>
-          <span className="hv2-open__line"><span>Ng</span></span>
+      <div className="home-open__type">
+        <h1 className="home-open__name">
+          <span className="home-open__line"><span>Jayden</span></span>
+          <span className="home-open__line"><span>Ng</span></span>
         </h1>
-        <p className="hv2-open__sub">
+        <p className="home-open__sub">
           Photographs from {spell(cities.length)} cities across Japan, China and South Korea.
         </p>
-        <Link className="hv2-cta" to="/gallery">See the gallery</Link>
+        <Link className="home-cta" to="/gallery">See the gallery</Link>
       </div>
     </section>
   );
@@ -167,8 +146,8 @@ function Index() {
     const ctx = gsap.context(() => {
       // Motivation: each cluster arrives as the reader reaches it, so the index
       // builds in reading order instead of appearing pre-assembled.
-      gsap.utils.toArray('.hv2-index__group').forEach((g) => {
-        gsap.from(g.querySelectorAll('.hv2-index__row'), {
+      gsap.utils.toArray('.home-index__group').forEach((g) => {
+        gsap.from(g.querySelectorAll('.home-index__row'), {
           opacity: 0,
           y: 18,
           duration: 0.7,
@@ -182,24 +161,24 @@ function Index() {
   }, []);
 
   return (
-    <section className="hv2-index" ref={root}>
-      <div className="hv2-index__list">
-        <h2 className="hv2-index__title">Where the work comes from</h2>
+    <section className="home-index" ref={root}>
+      <div className="home-index__list">
+        <h2 className="home-index__title">Where the work comes from</h2>
 
         {COUNTRY_ORDER.filter((c) => BY_COUNTRY[c]).map((country) => (
-          <div className="hv2-index__group" key={country}>
-            <h3 className="hv2-index__country">{country}</h3>
+          <div className="home-index__group" key={country}>
+            <h3 className="home-index__country">{country}</h3>
             <ul>
               {BY_COUNTRY[country].map((c) => (
                 <li key={c.slug}>
                   <Link
-                    className={`hv2-index__row${active === c.slug ? ' is-active' : ''}`}
+                    className={`home-index__row${active === c.slug ? ' is-active' : ''}`}
                     to={`/city/${c.slug}`}
                     onMouseEnter={() => setActive(c.slug)}
                     onFocus={() => setActive(c.slug)}
                   >
-                    <span className="hv2-index__city">{c.name}</span>
-                    <span className="hv2-index__year">{c.year}</span>
+                    <span className="home-index__city">{c.name}</span>
+                    <span className="home-index__year">{c.year}</span>
                   </Link>
                 </li>
               ))}
@@ -210,28 +189,28 @@ function Index() {
 
       {/* Decorative in the strict sense: the same photograph is reachable by
           activating the row, so it is hidden from assistive tech. */}
-      <div className="hv2-index__platewrap" aria-hidden="true">
-        <div className="hv2-index__plate">
+      <div className="home-index__platewrap" aria-hidden="true">
+        <div className="home-index__plate">
         {WITH_HERO.map((c) => (
           <img
             key={c.slug}
-            src={thumb(plateSrc(c))}
+            src={thumbSrc(plateSrc(c))}
             alt=""
             loading="lazy"
             decoding="async"
-            className={`hv2-index__plate-img${active === c.slug ? ' is-active' : ''}`}
+            className={`home-index__plate-img${active === c.slug ? ' is-active' : ''}`}
           />
         ))}
           {/* Empty state: a city can be in the log before its photographs are
               imported (Hangzhou today). Without this the plate goes blank
               under a caption naming the city, which reads as a broken image. */}
           {activeCity && !activeCity.heroImage && (
-            <span className="hv2-index__plate-empty">
+            <span className="home-index__plate-empty">
               Photographs from {activeCity.name} are not online yet.
             </span>
           )}
         </div>
-        <span className="hv2-index__plate-cap">
+        <span className="home-index__plate-cap">
           {activeCity ? `${activeCity.name}, ${activeCity.country}` : ''}
         </span>
       </div>
@@ -297,28 +276,28 @@ function Frames() {
   }, []);
 
   return (
-    <section className="hv2-frames" ref={wrap}>
-      <div className="hv2-frames__head">
-        <h2 className="hv2-frames__title">
+    <section className="home-frames" ref={wrap}>
+      <div className="home-frames__head">
+        <h2 className="home-frames__title">
           {spellCap(featured.length)} favourites from {TOTAL_FRAMES} photographs.
         </h2>
       </div>
 
-      <div className="hv2-frames__track" ref={track}>
+      <div className="home-frames__track" ref={track}>
         {featured.map((f, i) => (
           <Link
-            className={`hv2-frame hv2-frame--${STRIP_SIZE[i % STRIP_SIZE.length]}`}
+            className={`home-frame home-frame--${STRIP_SIZE[i % STRIP_SIZE.length]}`}
             style={{ '--drop': `${STRIP_DROP[i % STRIP_DROP.length]}vh` }}
             to={`/city/${SLUG_BY_NAME[f.city] ?? ''}`}
             key={f.photo}
           >
-            <span className="hv2-frame__plate">
+            <span className="home-frame__plate">
               {/* alt is empty by design: the visible caption below names the
                   photograph, and it is inside the same link, so repeating it
                   here would make screen readers say the city twice. */}
-              <img src={thumb(f.photo)} alt="" loading="lazy" decoding="async" />
+              <img src={thumbSrc(f.photo)} alt="" loading="lazy" decoding="async" />
             </span>
-            <span className="hv2-frame__cap">{f.city}</span>
+            <span className="home-frame__cap">{f.city}</span>
           </Link>
         ))}
       </div>
@@ -331,19 +310,18 @@ function Frames() {
    (contact) does not duplicate the hero's (portfolio). */
 function Closer() {
   return (
-    <section className="hv2-closer">
-      <p className="hv2-closer__lead">
+    <section className="home-closer">
+      <p className="home-closer__lead">
         The archive grows after every trip. Hangzhou is next.
       </p>
-      <Link className="hv2-cta hv2-cta--lg" to="/contact">Get in touch</Link>
+      <Link className="home-cta home-cta--lg" to="/contact">Get in touch</Link>
     </section>
   );
 }
 
-export default function HomeV2() {
-  useSandboxFonts();
+export default function Home() {
   return (
-    <main className="hv2">
+    <main className="home">
       <Opening />
       <Index />
       <Frames />

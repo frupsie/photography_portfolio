@@ -1,15 +1,18 @@
-// ─── Act 3 photo pool (home page "The Frames") ───────────────────────────────
-// NOTE: unrelated to the retired /featured page — this file is Act 3's source
-// of photos and is very much in use. Don't remove it during a cleanup sweep.
-// Curated pool. Act 3 picks 7 random entries per page load (wallpaper shuffle).
-// Order does NOT matter — entries are shuffled at runtime.
-// Grow this list freely as you take photos worth showing on the home page.
+// ─── Homepage favourites pool ────────────────────────────────────────────────
+// Source for the homepage's horizontal frame strip ("Nine favourites from N
+// photographs"). Every entry here appears; the strip is not shuffled or
+// sampled, so this list is the running order.
+//
+// Curated by hand. Add a photograph only when it earns a place; the strip
+// grows with the list, and its length sets how long the pinned pan holds the
+// reader.
 //
 // To add a photo:
 //   1. Make sure it exists at /public/photos-web/<city>/<file>.JPG (imported)
 //   2. Append an entry below with photo / city / country / year
 //
 // photo: path relative to /public (same convention as heroImage in cities.js)
+// city:  must match a `name` in cities.js; the link target is derived from it
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const featured = [

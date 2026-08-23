@@ -1,9 +1,8 @@
 /**
- * LandingPage — a thin wrapper around the cinematic Reel experience.
- * The Reel's four acts are the whole homepage.
+ * LandingPage - thin wrapper around the homepage composition.
  */
-import Reel from './landing/Reel';
+import Home from './landing/Home';
 
 export default function LandingPage() {
-  return <Reel />;
+  return <Home />;
 }

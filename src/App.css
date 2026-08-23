@@ -692,23 +692,6 @@
 }
 
 /* ===== GLOBE ===== */
-.globe-container {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-}
-
-.globe-hint {
-  position: absolute;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 243, 226, 0.40);
-}
 
 /* ===== CITY LABELS ===== */
 .city-label-arc {
@@ -2395,7 +2378,6 @@
   padding: 4px 13px;
 }
 
-
 .gallery-filter__divider {
   width: 1px;
   height: 16px;
@@ -2451,8 +2433,8 @@
   margin: 0 auto;
 }
 
-@media (max-width: 900px)  { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px)  { .gallery-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 900px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .gallery-grid { grid-template-columns: 1fr 1fr; } }
 
 .gallery-item {
   position: relative;
@@ -2645,316 +2627,27 @@
    REEL — Cinematic scroll landing (4 acts)
    ===================================================== */
 
-.reel {
-  position: relative;
-  width: 100%;
-  background: #0a0908;
-  color: var(--text);
-  /* HUD elements (top/bottom bars, AF brackets, EXIF strip) sit at this
-     opacity by default — subtle, atmospheric, doesn't fight the photo. */
-  --hud-opacity: 0.22;
-}
-
 /* Each act = 220vh of scroll, sticky inner = 100vh viewport.
  * The 120vh "scrub zone" (act height - pin height) is where the timeline plays.
  * IMPORTANT: no overflow on the outer act — that would break position:sticky. */
-.reel__act {
-  position: relative;
-  height: 220vh;
-  width: 100%;
-}
-
-.reel__pin {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-}
-
-.reel__pin--centred {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 48px;
-}
 
 /* ── Act 1: Viewfinder ─────────────────────────────────── */
 
-.reel__act--1 { background: #0a0908; }
-
-.reel__bg {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  transform-origin: center;
-}
-.reel__bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-.reel__bg-tint {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg,
-    rgba(10, 9, 8, 0.45) 0%,
-    rgba(10, 9, 8, 0.18) 40%,
-    rgba(10, 9, 8, 0.55) 100%);
-}
-
 /* Centre: name + tagline stack */
-.reel__centre {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  pointer-events: none;
-  padding: 0 48px;
-}
-.reel__name {
-  font-family: var(--font-heading);
-  font-size: clamp(3.4rem, 9vw, 8rem);
-  font-weight: 300;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  margin: 0 0 28px;
-  color: #f4ece1;
-  text-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
-}
-.reel__tag-stack {
-  position: relative;
-  height: 1.6em;
-  width: 100%;
-  max-width: 600px;
-}
-.reel__tag {
-  position: absolute;
-  inset: 0;
-  font-family: var(--font-body);
-  font-size: clamp(0.9rem, 1.6vw, 1.15rem);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(228, 221, 212, 0.92);
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
-}
 
 /* Scroll hint at bottom */
-.reel__scroll-hint {
-  position: absolute;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.62rem;
-  letter-spacing: 0.3em;
-  color: rgba(228, 221, 212, 0.5);
-  text-transform: uppercase;
-  opacity: var(--hud-opacity);
-  transition: opacity 0.3s ease;
-}
-.reel__scroll-line {
-  display: block;
-  width: 1px;
-  height: 36px;
-  background: linear-gradient(to bottom, rgba(228, 221, 212, 0.5), transparent);
-  animation: reelScrollPulse 2.2s ease-in-out infinite;
-}
-@keyframes reelScrollPulse {
-  0%, 100% { transform: scaleY(0.4); transform-origin: top; opacity: 0.3; }
-  50%      { transform: scaleY(1);   transform-origin: top; opacity: 0.7; }
-}
 
 /* ── Act 2: The Journey (map + counter) ──────────────── */
 
-.reel__act--2 {
-  background: #0a0908;
-}
-
-.reel__map-wrap {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-.reel__map-wrap .globe-section {
-  padding: 0;
-  height: 100%;
-}
-.reel__map-wrap .globe-canvas-wrapper {
-  height: 100vh !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  border-radius: 0;
-  border: none;
-  background: #0a0908;
-}
-.reel__map-vignette {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center,
-    transparent 30%,
-    rgba(10, 9, 8, 0.45) 90%);
-}
-.reel__map-fallback {
-  position: absolute;
-  inset: 0;
-  background: #1a1916;
-}
-
 /* Counter anchor — CSS handles centering, GSAP animates the inner element only */
-.reel__counter-anchor {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 4;
-  pointer-events: none;
-}
-.reel__counter {
-  z-index: 4;
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  padding: 22px 36px;
-  background: rgba(10, 9, 8, 0.78);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(228, 221, 212, 0.08);
-  border-radius: 4px;
-  pointer-events: none;
-}
-.reel__counter-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  min-width: 80px;
-}
-.reel__counter-num {
-  font-family: var(--font-heading);
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  font-weight: 300;
-  color: #f4ece1;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-.reel__counter-label {
-  font-size: 0.6rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.reel__counter-divider {
-  width: 1px;
-  height: 32px;
-  background: rgba(228, 221, 212, 0.18);
-}
-
-.reel__act2-head {
-  position: absolute;
-  top: 88px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 4;
-  text-align: center;
-  pointer-events: none;
-}
-.reel__act2-eyebrow {
-  display: block;
-  font-size: 0.62rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-.reel__act2-heading {
-  font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
-  font-weight: 300;
-  color: #f4ece1;
-  letter-spacing: 0.02em;
-  margin: 0;
-}
 
 /* Globe in passive mode — strip chrome */
-.globe-section--passive {
-  padding: 0;
-  background: transparent;
-  height: 100%;
-}
-.globe-section--passive .globe-section__header,
-.globe-section--passive .globe-section__hint,
-.globe-section--passive .globe-tabs { display: none; }
 
 /* Pin drop animation (used in passive mode) */
-.map-pin--drop {
-  animation: pinDrop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-}
-@keyframes pinDrop {
-  0%   { transform: translateY(-24px) scale(0.4); opacity: 0; }
-  60%  { transform: translateY(2px)   scale(1.05); opacity: 1; }
-  100% { transform: translateY(0)     scale(1);    opacity: 1; }
-}
 
 /* ── Act 3: The Contact Sheet ─────────────────────────── */
 
-.reel__act--3 {
-  background: #0a0908;
-  height: 400vh;          /* 4 selects — was 550vh for 7 drifting frames */
-}
-
 /* Sticky pin: the sheet and stage live on a fixed 100vh stage */
-.reel__act--3 .reel__pin {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-}
-
-.reel__act3-head {
-  position: absolute;
-  top: 88px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  text-align: center;
-  pointer-events: none;
-}
-.reel__act3-eyebrow {
-  display: block;
-  font-size: 0.62rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-.reel__act3-heading {
-  font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
-  font-weight: 300;
-  color: #f4ece1;
-  margin: 0 0 6px;
-}
-.reel__act3-hint {
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
-  color: var(--text-muted);
-  margin: 0;
-}
 
 /* ── The sheet ── */
 
@@ -3086,40 +2779,6 @@
 .sheet__cta:hover svg { transform: translateX(4px); }
 
 /* ── Act 4: The Destination (CTA tiles) ───────────────── */
-
-.reel__act--4 {
-  background: linear-gradient(180deg, #0a0908 0%, #14110d 100%);
-}
-
-.reel__act4-head {
-  text-align: center;
-  margin-bottom: 48px;
-  z-index: 4;
-}
-.reel__act4-eyebrow {
-  display: block;
-  font-size: 0.62rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 12px;
-}
-.reel__act4-heading {
-  font-family: var(--font-heading);
-  font-size: clamp(2rem, 4vw, 3.4rem);
-  font-weight: 300;
-  color: #f4ece1;
-  letter-spacing: -0.01em;
-  margin: 0;
-}
-
-.reel__tiles {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  width: 100%;
-  max-width: 1100px;
-}
 
 .cta-tile {
   position: relative;
@@ -3400,24 +3059,24 @@
 
 @media (prefers-reduced-motion: reduce) {
   /* Acts become full-viewport stills with scroll-snap */
-  .reel__act { height: 100vh; scroll-snap-align: start; }
-  .reel { scroll-snap-type: y mandatory; }
+  
+  
   /* All HUD elements at default opacity, no scroll-driven anims */
-  .reel__name, .reel__tag-stack .reel__tag { opacity: 1 !important; transform: none !important; }
-  .reel__tag-stack .reel__tag:not(:first-child) { opacity: 0 !important; }
-  .reel__tag-stack .reel__tag:first-child { opacity: 1 !important; }
-  .reel__bg { transform: none !important; }
-  .reel__scroll-line { animation: none; }
-  .map-pin--drop { animation: none; }
+  
+  
+  
+  
+  
+  
 
   /* Act 3 collapses to a static sheet — the timeline never runs */
-  .reel__act--3 { height: auto; scroll-snap-align: none; }
-  .reel__act--3 .reel__pin { position: relative; height: auto; overflow: visible; }
+  
+  
   .sheet { position: relative; inset: auto; padding: 96px 24px 32px; }
   .sheet__grid { margin: 0 auto; }
   .sheet__cell { opacity: 1 !important; }
   .sheet__stage { display: none; }
-  .reel__act3-head { position: relative; top: auto; left: auto; transform: none; padding-top: 72px; }
+  
   .sheet__cta {
     position: relative; left: auto; bottom: auto; transform: none;
     margin: 0 auto 56px; opacity: 1 !important; visibility: visible !important;
@@ -3427,9 +3086,9 @@
 /* ── Reel — Tablet (≤ 1024px) ─────────────────────────── */
 
 @media (max-width: 1024px) {
-  .reel__act { height: 200vh; }
-  .reel__act--3 { height: 360vh; }        /* 4 selects, slightly tighter on tablet */
-  .reel__tiles { gap: 14px; }
+  
+          /* 4 selects, slightly tighter on tablet */
+  
   .sheet__grid { width: min(60vw, 520px); }
   .sheet__frame { width: min(84vw, 900px); height: 70vh; }
 }
@@ -3437,38 +3096,23 @@
 /* ── Reel — Mobile (≤ 768px) ──────────────────────────── */
 
 @media (max-width: 768px) {
-  .reel__act { height: 180vh; }
+  
 
   /* Centre */
-  .reel__name { font-size: clamp(2.6rem, 11vw, 4.2rem); margin-bottom: 18px; }
-  .reel__tag { font-size: 0.78rem; letter-spacing: 0.16em; }
-  .reel__scroll-hint { bottom: 22px; }
+  
+  
+  
 
   /* Counter */
-  .reel__counter { gap: 16px; padding: 16px 22px; flex-wrap: wrap; max-width: 88vw; justify-content: center; }
-  .reel__counter-item { min-width: 64px; }
-  .reel__counter-divider { display: none; }
-  .reel__act2-head { top: 76px; }
+  
+  
+  
+  
 
   /* ── Act 3 on mobile: static tappable sheet, no pin, no scrubbing ── */
-  .reel__act--3 {
-    height: auto;
-    min-height: auto;
-    position: relative;
-  }
-  .reel__act--3 .reel__pin {
-    position: relative;
-    height: auto;
-    overflow: visible;
-  }
-  .reel__act3-head {
-    position: relative;
-    top: auto; left: auto;
-    transform: none;
-    padding: 72px 24px 28px;
-    text-align: center;
-    width: 100%;
-  }
+  
+  
+  
 
   /* Sheet flows in the page instead of centring in a pin */
   .sheet {
@@ -3497,24 +3141,13 @@
   }
 
   /* CTA tiles stack vertically */
-  .reel__pin--centred { padding: 60px 24px; justify-content: flex-start; }
-  .reel__tiles {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    max-height: 70vh;
-    overflow: hidden;
-  }
+  
+  
   .cta-tile { aspect-ratio: 16 / 7; }
-  .reel__act4-head { margin-bottom: 24px; }
+  
 }
 
 /* ── Reel — Small mobile (≤ 480px) ────────────────────── */
-
-@media (max-width: 480px) {
-  .reel__name { font-size: clamp(2.2rem, 13vw, 3.6rem); }
-  .reel__counter-num { font-size: 1.5rem; }
-  .reel__tiles { max-height: 80vh; }
-}
 
 /* =====================================================
    SCROLL PROGRESS BAR
@@ -4041,218 +3674,16 @@
 
 /* ===== GLOBE SECTION ===== */
 
-.globe-section {
-  background: var(--bg);
-  padding: 80px 0 48px;
-}
-
 /* Loading placeholder — reserves space while lazy chunk loads */
-.globe-section--loading {
-  height: calc(60vh + 140px);
-  min-height: 520px;
-  background: var(--bg);
-}
-
-.globe-section__header {
-  text-align: center;
-  padding: 0 24px 28px;
-}
-
-.globe-section__heading {
-  font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  color: var(--text);
-  margin: 0 0 8px;
-}
-
-.globe-section__sub {
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0;
-}
 
 /* Globe canvas container */
-.globe-canvas-wrapper {
-  width: 100%;
-  height: 60vh;
-  min-height: 380px;
-  max-height: 680px;
-  position: relative;
-  background: #e8e3da; /* warm neutral matches CartoDB Voyager tile background */
-  border-top: 1px solid rgba(200, 184, 160, 0.08);
-  border-bottom: 1px solid rgba(200, 184, 160, 0.08);
-  border-radius: 4px;
-  overflow: hidden;
-}
 
 /* ── Custom gold map pin ── */
-.map-pin {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 16px;
-  height: 32px;
-  cursor: pointer;
-  transition: opacity 0.25s;
-}
-
-.map-pin__head {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--accent);
-  border: 2px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  flex-shrink: 0;
-}
-
-.map-pin__shaft {
-  width: 2px;
-  flex: 1;
-  background: var(--accent);
-  opacity: 0.85;
-}
-
-.map-pin__tip {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--accent);
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-.map-pin--dim {
-  opacity: 0.22;
-}
 
 /* ── Leaflet tooltip overrides ── */
-.leaflet-tooltip.map-tooltip {
-  background: rgba(13, 10, 8, 0.90);
-  border: 1px solid rgba(168, 144, 112, 0.28);
-  border-radius: 5px;
-  padding: 4px 10px 5px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
-  font-family: var(--font-body);
-  color: #e4ddd4;
-  /* hide the default white arrow */
-}
-.leaflet-tooltip.map-tooltip::before {
-  display: none;
-}
 
 /* Permanent origin label — sits next to Singapore */
-.leaflet-tooltip.map-tooltip--origin {
-  background: rgba(200, 168, 120, 0.96);
-  color: #1a1410;
-  border-color: rgba(0, 0, 0, 0.18);
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  padding: 3px 9px 4px;
-}
-
-.map-tooltip__city {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  color: var(--accent-light);
-}
-
-.map-tooltip__country {
-  display: block;
-  font-size: 0.60rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
 
 /* ── Zoom control — dark theme to complement the light map ── */
-.globe-canvas-wrapper .leaflet-control-zoom {
-  border: none;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.22);
-  margin: 12px;
-}
-
-.globe-canvas-wrapper .leaflet-control-zoom a {
-  background: rgba(20, 18, 14, 0.86);
-  color: rgba(228, 221, 212, 0.80);
-  border-color: rgba(168, 144, 112, 0.18);
-  transition: background 0.2s, color 0.2s;
-  width: 28px;
-  height: 28px;
-  line-height: 28px;
-  font-size: 15px;
-}
-
-.globe-canvas-wrapper .leaflet-control-zoom a:hover {
-  background: rgba(40, 35, 28, 0.94);
-  color: var(--accent-light);
-}
-
-.globe-section__hint {
-  text-align: center;
-  padding-top: 18px;
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  opacity: 0.45;
-}
-
-@media (max-width: 768px) {
-  .globe-section { padding: 60px 0 36px; }
-  .globe-canvas-wrapper { height: 52vh; min-height: 320px; }
-}
-
-@media (max-width: 480px) {
-  .globe-section { padding: 48px 0 28px; }
-  .globe-canvas-wrapper { height: 46vh; min-height: 280px; }
-}
 
 /* ── Country tab strip ── */
-.globe-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 28px;
-  flex-wrap: wrap;
-  padding-inline: 20px;
-}
-
-.globe-tab {
-  padding: 7px 22px;
-  border-radius: 999px;
-  border: 1px solid rgba(168, 144, 112, 0.35);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.25s, color 0.25s, border-color 0.25s, opacity 0.2s;
-}
-
-.globe-tab:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent-light);
-}
-
-.globe-tab--active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #0d0a08;
-  font-weight: 600;
-}
-
-.globe-tab:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}

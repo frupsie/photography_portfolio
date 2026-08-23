@@ -1,37 +1,40 @@
-/* Sandbox: HomeV2 - staged homepage overhaul at /sandbox/home.
-   Namespaced .hv2 so the live Reel is untouched, and kept out of App.css so
-   deleting this component removes its styles with it.
+/* Home - the homepage. Promoted from the sandbox after review; the four-act
+   Reel it replaced is gone.
+
+   Kept out of App.css deliberately: this is the project's first
+   component-scoped stylesheet, and the audit flagged the 4,200-line global
+   sheet as a systemic issue.
 
    Locks: one dark theme, one gold accent, radius 0 everywhere.
    Display face is Bricolage Grotesque, deliberately rotated off the
    Playfair Display + Inter pairing the live site uses. */
 
-.hv2 {
-  --hv2-ink: #0a0908;
-  --hv2-ink-2: #100e0c;
-  --hv2-paper: #e8e3da;
-  --hv2-quiet: #9d968a;        /* 5.4:1 on --hv2-ink, clears AA for body */
-  --hv2-gold: #c8a878;
-  --hv2-rule: rgba(200, 168, 120, 0.18);
-  --hv2-display: "Bricolage Grotesque", "Archivo", system-ui, sans-serif;
-  --hv2-body: "Archivo", system-ui, sans-serif;
+.home {
+  --home-ink: #0a0908;
+  --home-ink-2: #100e0c;
+  --home-paper: #e8e3da;
+  --home-quiet: #9d968a;        /* 5.4:1 on --home-ink, clears AA for body */
+  --home-gold: #c8a878;
+  --home-rule: rgba(200, 168, 120, 0.18);
+  --home-display: "Bricolage Grotesque", "Archivo", system-ui, sans-serif;
+  --home-body: "Archivo", system-ui, sans-serif;
 
-  background: var(--hv2-ink);
-  color: var(--hv2-paper);
-  font-family: var(--hv2-body);
+  background: var(--home-ink);
+  color: var(--home-paper);
+  font-family: var(--home-body);
 }
 
-.hv2 ::selection { background: var(--hv2-gold); color: var(--hv2-ink); }
+.home ::selection { background: var(--home-gold); color: var(--home-ink); }
 
 /* One CTA treatment, reused. Radius 0, like everything else. */
-.hv2-cta {
+.home-cta {
   display: inline-block;
   padding: 14px 26px;
-  border: 1px solid var(--hv2-gold);
+  border: 1px solid var(--home-gold);
   border-radius: 0;
-  color: var(--hv2-paper);           /* 12.4:1 on the ink ground */
+  color: var(--home-paper);           /* 12.4:1 on the ink ground */
   background: transparent;
-  font-family: var(--hv2-body);
+  font-family: var(--home-body);
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -39,28 +42,28 @@
   transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
               color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.hv2-cta:hover { background: var(--hv2-gold); color: var(--hv2-ink); }
-.hv2-cta:active { transform: translateY(1px); }
-.hv2-cta:focus-visible { outline: 2px solid var(--hv2-gold); outline-offset: 3px; }
-.hv2-cta--lg { padding: 18px 38px; font-size: 0.9rem; }
+.home-cta:hover { background: var(--home-gold); color: var(--home-ink); }
+.home-cta:active { transform: translateY(1px); }
+.home-cta:focus-visible { outline: 2px solid var(--home-gold); outline-offset: 3px; }
+.home-cta--lg { padding: 18px 38px; font-size: 0.9rem; }
 
 /* ── 1. Opening ── */
-.hv2-open {
+.home-open {
   position: relative;
   min-height: 100dvh;                /* never 100vh: iOS address bar */
   display: grid;
   align-items: end;
   overflow: hidden;
 }
-.hv2-open__media { position: absolute; inset: 0; }
-.hv2-open__img {
+.home-open__media { position: absolute; inset: 0; }
+.home-open__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   will-change: transform;
 }
 /* Scrim, not a vignette ring: the type sits bottom-left so the weight goes there. */
-.hv2-open__media::after {
+.home-open__media::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -73,29 +76,29 @@
    eaten by its own 6vw side padding, leaving the h1 a content box too narrow
    for the name, which the line mask below then clips. The measure cap belongs
    on the paragraph, which is the only thing that needs one. */
-.hv2-open__type {
+.home-open__type {
   position: relative;
   padding: 0 6vw 8vh;
 }
-.hv2-open__name {
-  font-family: var(--hv2-display);
+.home-open__name {
+  font-family: var(--home-display);
   font-weight: 800;
   font-size: clamp(3.2rem, 12vw, 9rem);
   line-height: 0.92;
   letter-spacing: -0.035em;
   margin: 0 0 22px;
-  color: var(--hv2-paper);
+  color: var(--home-paper);
 }
 /* Masked rows so the name can rise into place without clipping descenders. */
 /* overflow:hidden clips both axes, so this mask only ever wraps text that
    already fits. Width is inherited from the unconstrained h1 above. */
-.hv2-open__line { display: block; overflow: hidden; padding-bottom: 0.06em; }
-.hv2-open__line > span { display: block; }
-.hv2-open__sub {
+.home-open__line { display: block; overflow: hidden; padding-bottom: 0.06em; }
+.home-open__line > span { display: block; }
+.home-open__sub {
   font-size: clamp(1rem, 1.6vw, 1.2rem);
   line-height: 1.55;
   max-width: 46ch;
-  color: var(--hv2-paper);
+  color: var(--home-paper);
   margin: 0 0 30px;
   text-wrap: pretty;
 }
@@ -105,7 +108,7 @@
    viewport: at 2000px the list stretched to 1118px, which pushed each year 985px
    from its city, while the plate stayed pinned at its cap and read as stranded.
    Both columns are now bounded, so the composition holds at any width. */
-.hv2-index {
+.home-index {
   display: grid;
   grid-template-columns: minmax(280px, 460px) minmax(0, 660px);
   justify-content: space-between;
@@ -115,8 +118,8 @@
   padding: 16vh 6vw;
   align-items: start;
 }
-.hv2-index__title {
-  font-family: var(--hv2-display);
+.home-index__title {
+  font-family: var(--home-display);
   font-weight: 600;
   font-size: clamp(1.8rem, 3.4vw, 3rem);
   line-height: 1.05;
@@ -125,21 +128,21 @@
   max-width: 20ch;
   text-wrap: balance;
 }
-.hv2-index__group { margin-bottom: 6vh; }
-.hv2-index__group ul { list-style: none; margin: 0; padding: 0; }
+.home-index__group { margin-bottom: 6vh; }
+.home-index__group ul { list-style: none; margin: 0; padding: 0; }
 /* One hairline above each cluster, never one per row. */
-.hv2-index__country {
-  font-family: var(--hv2-body);
+.home-index__country {
+  font-family: var(--home-body);
   font-size: 0.74rem;
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--hv2-quiet);
-  border-top: 1px solid var(--hv2-rule);
+  color: var(--home-quiet);
+  border-top: 1px solid var(--home-rule);
   padding-top: 14px;
   margin: 0 0 6px;
 }
-.hv2-index__row {
+.home-index__row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -147,39 +150,39 @@
   padding: 13px 0;
   min-height: 44px;                  /* touch target */
   text-decoration: none;
-  color: var(--hv2-paper);
+  color: var(--home-paper);
   transition: color 0.2s ease,
               padding-left 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.hv2-index__row:hover,
-.hv2-index__row.is-active { color: var(--hv2-gold); padding-left: 12px; }
-.hv2-index__row:focus-visible { outline: 2px solid var(--hv2-gold); outline-offset: 2px; }
-.hv2-index__city {
-  font-family: var(--hv2-display);
+.home-index__row:hover,
+.home-index__row.is-active { color: var(--home-gold); padding-left: 12px; }
+.home-index__row:focus-visible { outline: 2px solid var(--home-gold); outline-offset: 2px; }
+.home-index__city {
+  font-family: var(--home-display);
   font-weight: 600;
   font-size: clamp(1.5rem, 3vw, 2.4rem);
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
-.hv2-index__year {
+.home-index__year {
   font-size: 0.8rem;
-  color: var(--hv2-quiet);
+  color: var(--home-quiet);
   font-variant-numeric: tabular-nums;
 }
 
 /* Landscape, because the photographs are. Eleven of the twelve heroes are
    roughly 3:2; a portrait box was cropping the top and bottom off all of them. */
-.hv2-index__plate {
+.home-index__plate {
   position: relative;
   aspect-ratio: 3 / 2;
-  background: var(--hv2-ink-2);
+  background: var(--home-ink-2);
   overflow: hidden;
 }
 /* contain, not cover: one hero (Guangzhou) is portrait, and a landscape box
    with cover would centre-crop it as badly as the portrait box cropped the
    rest. At 3:2 the landscape shots fill this exactly; the outliers sit on the
    dark ground instead of losing content. */
-.hv2-index__plate-img {
+.home-index__plate-img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -188,32 +191,32 @@
   opacity: 0;
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.hv2-index__plate-img.is-active { opacity: 1; }
-.hv2-index__plate-empty {
+.home-index__plate-img.is-active { opacity: 1; }
+.home-index__plate-empty {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
   padding: 0 12%;
   text-align: center;
-  color: var(--hv2-quiet);
+  color: var(--home-quiet);
   font-size: 0.9rem;
   line-height: 1.6;
-  border: 1px solid var(--hv2-rule);
+  border: 1px solid var(--home-rule);
 }
 /* 660x440 at 3:2 is ~290k px2, matching the 485x607 portrait it replaced.
    The 420px cap made it 60% smaller in area, which is why it read as shrunken. */
-.hv2-index__platewrap {
+.home-index__platewrap {
   position: sticky;
   top: 18vh;
   width: 100%;
   max-width: 660px;
   justify-self: end;
 }
-.hv2-index__plate-cap {
+.home-index__plate-cap {
   display: block;
   padding-top: 12px;
-  color: var(--hv2-quiet);
+  color: var(--home-quiet);
   font-size: 0.74rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -222,7 +225,7 @@
 /* ── 3. Frames: pinned horizontal pan ── */
 /* Full bleed on purpose. The track has to run past the viewport edge for the
    pan to have anywhere to go, so the 1440px cap lives on the heading only. */
-.hv2-frames {
+.home-frames {
   position: relative;
   min-height: 100dvh;                  /* never 100vh: iOS address bar */
   display: flex;
@@ -232,14 +235,14 @@
   overflow: hidden;
   padding: 10vh 0 12vh;
 }
-.hv2-frames__head {
+.home-frames__head {
   max-width: 1440px;
   width: 100%;
   margin-inline: auto;
   padding: 0 6vw;
 }
-.hv2-frames__title {
-  font-family: var(--hv2-display);
+.home-frames__title {
+  font-family: var(--home-display);
   font-weight: 600;
   font-size: clamp(1.6rem, 3vw, 2.6rem);
   letter-spacing: -0.025em;
@@ -249,7 +252,7 @@
   text-wrap: balance;
 }
 
-.hv2-frames__track {
+.home-frames__track {
   display: flex;
   align-items: center;
   gap: clamp(20px, 3vw, 48px);
@@ -258,7 +261,7 @@
   will-change: transform;
 }
 
-.hv2-frame {
+.home-frame {
   flex: 0 0 auto;
   display: block;
   text-decoration: none;
@@ -267,18 +270,18 @@
 /* No aspect-ratio and no width. Height is fixed, width comes from the image's
    own proportions, so a portrait sits narrow beside a wide landscape and
    neither is cropped. This is what makes the strip orientation-agnostic. */
-.hv2-frame__plate {
+.home-frame__plate {
   display: block;
   overflow: hidden;
-  background: var(--hv2-ink-2);
+  background: var(--home-ink-2);
   width: max-content;
 }
 /* Frame scale sets the pan length: the track is the sum of these widths, and
    the pinned scroll distance equals the track minus one viewport. */
-.hv2-frame--lg .hv2-frame__plate { height: 46vh; }
-.hv2-frame--md .hv2-frame__plate { height: 36vh; }
-.hv2-frame--sm .hv2-frame__plate { height: 28vh; }
-.hv2-frame__plate img {
+.home-frame--lg .home-frame__plate { height: 46vh; }
+.home-frame--md .home-frame__plate { height: 36vh; }
+.home-frame--sm .home-frame__plate { height: 28vh; }
+.home-frame__plate img {
   width: auto;
   height: 100%;
   display: block;
@@ -286,54 +289,54 @@
   transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.4s ease;
 }
-.hv2-frame:hover img { transform: scale(1.04); filter: brightness(1); }
-.hv2-frame:focus-visible { outline: 2px solid var(--hv2-gold); outline-offset: 3px; }
+.home-frame:hover img { transform: scale(1.04); filter: brightness(1); }
+.home-frame:focus-visible { outline: 2px solid var(--home-gold); outline-offset: 3px; }
 /* Caption below the photograph, never on it, and inside its own frame. */
-.hv2-frame__cap {
+.home-frame__cap {
   display: block;
   padding-top: 10px;
   font-size: 0.76rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--hv2-quiet);
+  color: var(--home-quiet);
   transition: color 0.2s ease;
 }
-.hv2-frame:hover .hv2-frame__cap { color: var(--hv2-gold); }
+.home-frame:hover .home-frame__cap { color: var(--home-gold); }
 
 /* ── 4. Closer ── */
-.hv2-closer {
+.home-closer {
   max-width: 1440px;
   margin-inline: auto;
   padding: 18vh 6vw 20vh;
-  border-top: 1px solid var(--hv2-rule);
+  border-top: 1px solid var(--home-rule);
 }
-.hv2-closer__lead {
-  font-family: var(--hv2-display);
+.home-closer__lead {
+  font-family: var(--home-display);
   font-weight: 600;
   font-size: clamp(2rem, 5.5vw, 4.4rem);
   line-height: 1.02;
   letter-spacing: -0.03em;
   max-width: 16ch;
   margin: 0 0 6vh;
-  color: var(--hv2-paper);
+  color: var(--home-paper);
   text-wrap: balance;
 }
 
 /* ── Mobile collapse, declared explicitly per section ── */
 @media (max-width: 900px) {
-  .hv2-index { grid-template-columns: 1fr; gap: 6vh; padding: 10vh 6vw; }
-  .hv2-index__platewrap {
+  .home-index { grid-template-columns: 1fr; gap: 6vh; padding: 10vh 6vw; }
+  .home-index__platewrap {
     position: relative;
     top: auto;
     order: -1;
     max-width: none;
     justify-self: stretch;
   }
-  .hv2-index__title { margin-bottom: 5vh; }
+  .home-index__title { margin-bottom: 5vh; }
   /* No pin, no scroll hijack on touch. The track becomes a normal swipeable
      strip with snap points, which is what a phone expects. */
-  .hv2-frames { min-height: 0; padding: 10vh 0 12vh; }
-  .hv2-frames__track {
+  .home-frames { min-height: 0; padding: 10vh 0 12vh; }
+  .home-frames__track {
     /* width must drop back to auto here. Keeping max-content makes the track
        size to its own content, so scrollWidth equals clientWidth, nothing is
        scrollable, and the parent's overflow:hidden clips every frame after the
@@ -345,25 +348,25 @@
     padding-bottom: 8px;
     -webkit-overflow-scrolling: touch;
   }
-  .hv2-frame { scroll-snap-align: start; transform: none; }
-  .hv2-frame--lg .hv2-frame__plate,
-  .hv2-frame--md .hv2-frame__plate,
-  .hv2-frame--sm .hv2-frame__plate { height: 32vh; }
-  .hv2-open__type { padding: 0 6vw 10vh; }
+  .home-frame { scroll-snap-align: start; transform: none; }
+  .home-frame--lg .home-frame__plate,
+  .home-frame--md .home-frame__plate,
+  .home-frame--sm .home-frame__plate { height: 32vh; }
+  .home-open__type { padding: 0 6vw 10vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   /* Same escape hatch as touch: a scrollable strip the reader drives. */
-  .hv2-frames__track {
+  .home-frames__track {
     width: auto;                  /* see the touch fallback: max-content kills scrolling */
     overflow-x: auto;
     transform: none !important;
     scroll-snap-type: x mandatory;
   }
-  .hv2-frame { transform: none; }
-  .hv2-frame img,
-  .hv2-index__row,
-  .hv2-index__plate-img,
-  .hv2-cta { transition: none; }
-  .hv2-open__img { transform: none !important; }
+  .home-frame { transform: none; }
+  .home-frame img,
+  .home-index__row,
+  .home-index__plate-img,
+  .home-cta { transition: none; }
+  .home-open__img { transform: none !important; }
 }
