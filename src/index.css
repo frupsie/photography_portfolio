@@ -1,7 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=Inter:wght@300;400;500&display=swap');
-/* Homepage faces. The homepage runs Bricolage Grotesque + Archivo; the rest of
-   the site still runs Playfair Display + Inter. See Home.css. */
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Archivo:wght@400;500&display=swap');
+/* One request, two variable families, full weight ranges rather than a handful
+   of discrete cuts. Playfair Display and Inter were retired here: the homepage
+   established Bricolage Grotesque + Archivo, and running two type systems meant
+   16% of the homepage's own text was still Inter via the shared chrome. */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Archivo:wght@300..700&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -19,8 +20,14 @@
   --accent-glow: rgba(168, 144, 112, 0.20);
   --glass: rgba(16, 14, 12, 0.55);
   --glass-border: rgba(200, 184, 160, 0.07);
-  --font-heading: 'Playfair Display', Georgia, serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  /* Display. Optical-size axis means it holds at 11px labels and 9rem names. */
+  --font-heading: 'Bricolage Grotesque', 'Archivo', system-ui, sans-serif;
+  --font-body: 'Archivo', system-ui, sans-serif;
+  /* Data: EXIF values, counters, tallies. This token was referenced in four
+     places and never defined, so those fell through to their inline fallbacks
+     while three other rules hardcoded Courier New. One role, one definition,
+     and no third webfont to download for it. */
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 }
 
 html {

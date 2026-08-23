@@ -6,8 +6,8 @@
    sheet as a systemic issue.
 
    Locks: one dark theme, one gold accent, radius 0 everywhere.
-   Display face is Bricolage Grotesque, deliberately rotated off the
-   Playfair Display + Inter pairing the live site uses. */
+   Faces come from index.css: Bricolage Grotesque for display, Archivo for
+   body. They started here and are now the whole site's. */
 
 .home {
   --home-ink: #0a0908;
@@ -16,8 +16,11 @@
   --home-quiet: #9d968a;        /* 5.4:1 on --home-ink, clears AA for body */
   --home-gold: #c8a878;
   --home-rule: rgba(200, 168, 120, 0.18);
-  --home-display: "Bricolage Grotesque", "Archivo", system-ui, sans-serif;
-  --home-body: "Archivo", system-ui, sans-serif;
+  /* Aliases, not copies. These were the homepage's private families while it
+     was staged; now the same two faces are the site's, so there is one
+     definition in index.css and this points at it. */
+  --home-display: var(--font-heading);
+  --home-body: var(--font-body);
 
   background: var(--home-ink);
   color: var(--home-paper);
