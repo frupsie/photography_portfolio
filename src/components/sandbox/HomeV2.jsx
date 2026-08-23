@@ -59,6 +59,15 @@ const spell = (n) => WORDS[n] ?? String(n);
 
 const thumb = (src) => src.replace('/photos-web/', '/photos-thumb/').replace(/\.(jpe?g|JPE?G)$/, '.webp');
 
+// Sandbox-only picture overrides. cities.js stays the single source of truth for
+// the live site, so a city whose hero does not suit this layout is corrected
+// here rather than there. Guangzhou's hero is the one portrait among twelve
+// landscape heroes, and both the index plate and the frame grid are landscape.
+const PLATE_OVERRIDE = {
+  guangzhou: '/photos-web/guangzhou/_MG_7643.JPG',
+};
+const plateSrc = (c) => PLATE_OVERRIDE[c.slug] ?? c.heroImage;
+
 /** The display face is loaded from the sandbox only, so live pages are unaffected. */
 function useSandboxFonts() {
   useEffect(() => {
@@ -196,7 +205,7 @@ function Index() {
         {WITH_HERO.map((c) => (
           <img
             key={c.slug}
-            src={thumb(c.heroImage)}
+            src={thumb(plateSrc(c))}
             alt=""
             loading="lazy"
             decoding="async"
@@ -262,7 +271,7 @@ function Frames() {
               {/* alt is empty by design: the visible caption below names the
                   photograph, and it is inside the same link, so repeating it
                   here would make screen readers say the city twice. */}
-              <img src={thumb(c.heroImage)} alt="" loading="lazy" decoding="async" />
+              <img src={thumb(plateSrc(c))} alt="" loading="lazy" decoding="async" />
             </span>
             <span className="hv2-frame__cap">{c.name}</span>
           </Link>
