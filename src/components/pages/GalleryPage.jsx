@@ -14,20 +14,24 @@ const countries = [...new Set(cities.map(c => c.country))];
 function buildPhotoList() {
   const list = [];
   const seen = new Set();
-  const push = (src, orientation, city) => {
+  const push = (src, orientation, city, alt) => {
     if (!src || seen.has(src)) return;
     seen.add(src);
-    list.push({ src, city: city.name, country: city.country, slug: city.slug, orientation });
+    // alt carried through from cities.js. It was being dropped here, so every
+    // grid image announced only its city name even where a real description
+    // existed; CityPage was already using photo.alt correctly.
+    list.push({ src, city: city.name, country: city.country, slug: city.slug, orientation, alt });
   };
 
   cities.forEach(city => {
     if (city.heroImage && !city.heroImage.includes('placeholder')) {
-      push(city.heroImage, 'landscape', city);
+      push(city.heroImage, 'landscape', city, city.heroAlt);
     }
     city.photos.forEach(photo => {
       const src         = typeof photo === 'string' ? photo : photo.src;
       const orientation = typeof photo === 'string' ? 'landscape' : (photo.orientation ?? 'landscape');
-      push(src, orientation, city);
+      const alt         = typeof photo === 'string' ? undefined : photo.alt;
+      push(src, orientation, city, alt);
     });
   });
   return list;
@@ -184,7 +188,12 @@ export default function GalleryPage() {
               >
                 {/* Grid shows the 800px WebP thumbnail; the lightbox loads
                     the full photos-web version on demand. */}
-                <img src={thumbSrc(photo.src)} alt={photo.city} loading="lazy" decoding="async" />
+                <img
+                  src={thumbSrc(photo.src)}
+                  alt={photo.alt || `${photo.city}, ${photo.country}`}
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div className="gallery-item__overlay">
                   <span className="gallery-item__city">{photo.city}</span>
                   <span className="gallery-item__country">{photo.country}</span>
