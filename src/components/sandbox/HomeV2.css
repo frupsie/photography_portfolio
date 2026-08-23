@@ -264,22 +264,23 @@
   text-decoration: none;
   transform: translateY(var(--drop, 0));
 }
+/* No aspect-ratio and no width. Height is fixed, width comes from the image's
+   own proportions, so a portrait sits narrow beside a wide landscape and
+   neither is cropped. This is what makes the strip orientation-agnostic. */
 .hv2-frame__plate {
   display: block;
   overflow: hidden;
   background: var(--hv2-ink-2);
-  aspect-ratio: 3 / 2;
+  width: max-content;
 }
 /* Frame scale sets the pan length: the track is the sum of these widths, and
-   the pinned scroll distance equals the track minus one viewport. At 62/46/34
-   the section held the reader for about seven screens, which is too long. */
-.hv2-frame--lg .hv2-frame__plate { height: 52vh; }
-.hv2-frame--md .hv2-frame__plate { height: 40vh; }
-.hv2-frame--sm .hv2-frame__plate { height: 30vh; }
+   the pinned scroll distance equals the track minus one viewport. */
+.hv2-frame--lg .hv2-frame__plate { height: 46vh; }
+.hv2-frame--md .hv2-frame__plate { height: 36vh; }
+.hv2-frame--sm .hv2-frame__plate { height: 28vh; }
 .hv2-frame__plate img {
-  width: 100%;
+  width: auto;
   height: 100%;
-  object-fit: cover;
   display: block;
   filter: brightness(0.86);
   transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
@@ -347,7 +348,7 @@
   .hv2-frame { scroll-snap-align: start; transform: none; }
   .hv2-frame--lg .hv2-frame__plate,
   .hv2-frame--md .hv2-frame__plate,
-  .hv2-frame--sm .hv2-frame__plate { height: 34vh; }
+  .hv2-frame--sm .hv2-frame__plate { height: 32vh; }
   .hv2-open__type { padding: 0 6vw 10vh; }
 }
 

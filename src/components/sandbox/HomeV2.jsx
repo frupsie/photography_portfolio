@@ -27,6 +27,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { cities } from '../../data/cities';
+import { featured } from '../../data/featured';
 import './HomeV2.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -56,6 +57,11 @@ const OPENING = WITH_HERO.find((c) => c.slug === 'kyoto') ?? WITH_HERO[0];
 const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
   'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
 const spell = (n) => WORDS[n] ?? String(n);
+// Sentence case, for a spelled number opening a sentence.
+const spellCap = (n) => {
+  const w = spell(n);
+  return w.charAt(0).toUpperCase() + w.slice(1);
+};
 
 const thumb = (src) => src.replace('/photos-web/', '/photos-thumb/').replace(/\.(jpe?g|JPE?G)$/, '.webp');
 
@@ -67,6 +73,10 @@ const PLATE_OVERRIDE = {
   guangzhou: '/photos-web/guangzhou/_MG_7643.JPG',
 };
 const plateSrc = (c) => PLATE_OVERRIDE[c.slug] ?? c.heroImage;
+
+// featured.js stores a city name, not a slug. Derive the link from cities.js
+// rather than adding a second hand-kept mapping.
+const SLUG_BY_NAME = Object.fromEntries(cities.map((c) => [c.name, c.slug]));
 
 /** The display face is loaded from the sandbox only, so live pages are unaffected. */
 function useSandboxFonts() {
@@ -230,25 +240,24 @@ function Index() {
 }
 
 /* ── 3. Frames ─────────────────────────────────────────────────────────────
-   Layout family: pinned horizontal pan. Scrolling down moves the archive
-   sideways, so the reader travels the photographs in the order they were
-   taken instead of scanning a static grid. That is the whole justification
-   for the motion; without it this would be GSAP for show.
+   Layout family: pinned horizontal pan. Scrolling down moves the strip
+   sideways, so the reader travels the selection instead of scanning a static
+   block. That is the justification for the motion.
 
-   It also earns the section a layout family the page does not otherwise use,
-   which the section-repetition rule asks for.
+   Source is featured.js, the curated favourites pool, not one photograph per
+   city. A city-derived strip is as long as the travel list and says nothing
+   about which frames are actually good.
 
-   Sizes and vertical offsets cycle so the strip reads as a hung wall rather
-   than a conveyor of identical tiles (VARIANCE 9). */
+   Orientation-agnostic by construction: each frame fixes a HEIGHT and lets
+   width follow the image's natural ratio. Portraits come out narrow,
+   landscapes wide, and nothing is ever cropped. Today's pool is all 3:2, but
+   adding a vertical shot needs no code change. */
 const STRIP_SIZE = ['lg', 'sm', 'md', 'sm', 'lg', 'md'];
 const STRIP_DROP = [0, 9, -7, 11, 0, -9];   // vh, breaks the shared baseline
 
 function Frames() {
   const wrap = useRef(null);
   const track = useRef(null);
-  // Every hero except the one already used as the opening frame. Showing the
-  // same photograph twice on one page would weaken both.
-  const picks = WITH_HERO.filter((c) => c.slug !== OPENING.slug);
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -273,32 +282,43 @@ function Frames() {
       });
     }, wrap);
 
-    return () => ctx.revert();
+    // Frame widths are only known once each image reports its natural ratio,
+    // and those widths are what set the pan distance. Refresh after they land.
+    const imgs = [...track.current.querySelectorAll('img')];
+    let alive = true;
+    Promise.all(
+      imgs.map((img) => (img.complete ? null : new Promise((res) => {
+        img.addEventListener('load', res, { once: true });
+        img.addEventListener('error', res, { once: true });
+      }))),
+    ).then(() => { if (alive) ScrollTrigger.refresh(); });
+
+    return () => { alive = false; ctx.revert(); };
   }, []);
 
   return (
     <section className="hv2-frames" ref={wrap}>
       <div className="hv2-frames__head">
         <h2 className="hv2-frames__title">
-          {TOTAL_FRAMES} photographs, kept in order of arrival.
+          {spellCap(featured.length)} favourites from {TOTAL_FRAMES} photographs.
         </h2>
       </div>
 
       <div className="hv2-frames__track" ref={track}>
-        {picks.map((c, i) => (
+        {featured.map((f, i) => (
           <Link
             className={`hv2-frame hv2-frame--${STRIP_SIZE[i % STRIP_SIZE.length]}`}
             style={{ '--drop': `${STRIP_DROP[i % STRIP_DROP.length]}vh` }}
-            to={`/city/${c.slug}`}
-            key={c.slug}
+            to={`/city/${SLUG_BY_NAME[f.city] ?? ''}`}
+            key={f.photo}
           >
             <span className="hv2-frame__plate">
               {/* alt is empty by design: the visible caption below names the
                   photograph, and it is inside the same link, so repeating it
                   here would make screen readers say the city twice. */}
-              <img src={thumb(plateSrc(c))} alt="" loading="lazy" decoding="async" />
+              <img src={thumb(f.photo)} alt="" loading="lazy" decoding="async" />
             </span>
-            <span className="hv2-frame__cap">{c.name}</span>
+            <span className="hv2-frame__cap">{f.city}</span>
           </Link>
         ))}
       </div>
