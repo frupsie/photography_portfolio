@@ -230,43 +230,68 @@ function Index() {
 }
 
 /* ── 3. Frames ─────────────────────────────────────────────────────────────
-   Layout family: asymmetric editorial grid. Explicitly not three equal cards
-   (9.C) and not a zigzag of image/text splits (4.7). Cell count matches the
-   content exactly, so there is no empty tile. */
-const FRAME_PLAN = ['tall', 'wide', 'small', 'small', 'tall', 'wide'];
+   Layout family: pinned horizontal pan. Scrolling down moves the archive
+   sideways, so the reader travels the photographs in the order they were
+   taken instead of scanning a static grid. That is the whole justification
+   for the motion; without it this would be GSAP for show.
+
+   It also earns the section a layout family the page does not otherwise use,
+   which the section-repetition rule asks for.
+
+   Sizes and vertical offsets cycle so the strip reads as a hung wall rather
+   than a conveyor of identical tiles (VARIANCE 9). */
+const STRIP_SIZE = ['lg', 'sm', 'md', 'sm', 'lg', 'md'];
+const STRIP_DROP = [0, 9, -7, 11, 0, -9];   // vh, breaks the shared baseline
 
 function Frames() {
-  const root = useRef(null);
-  const picks = WITH_HERO.filter((c) => c.slug !== OPENING.slug).slice(0, FRAME_PLAN.length);
+  const wrap = useRef(null);
+  const track = useRef(null);
+  // Every hero except the one already used as the opening frame. Showing the
+  // same photograph twice on one page would weaken both.
+  const picks = WITH_HERO.filter((c) => c.slug !== OPENING.slug);
 
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const narrow = window.matchMedia('(max-width: 900px)').matches;
+    // Touch and reduced-motion get a real scrollable strip instead. Hijacking
+    // the scroll on a phone is hostile, and the CSS fallback already works.
+    if (reduce || narrow || !wrap.current || !track.current) return;
+
     const ctx = gsap.context(() => {
-      // Motivation: reveals the frame the way a print appears in a tray, and
-      // gives the grid a reading direction it would not otherwise have.
-      gsap.utils.toArray('.hv2-frame').forEach((el, i) => {
-        gsap.from(el, {
-          opacity: 0,
-          y: 40,
-          duration: 0.9,
-          ease: 'expo.out',
-          delay: (i % 2) * 0.08,
-          scrollTrigger: { trigger: el, start: 'top 85%' },
-        });
+      const distance = () => Math.max(0, track.current.scrollWidth - window.innerWidth);
+      gsap.to(track.current, {
+        x: () => -distance(),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: wrap.current,
+          start: 'top top',              // pin the moment the section lands
+          end: () => `+=${distance()}`,  // scroll length equals the travel
+          pin: true,
+          scrub: 1,
+          invalidateOnRefresh: true,     // recompute on resize and font load
+        },
       });
-    }, root);
+    }, wrap);
+
     return () => ctx.revert();
   }, []);
 
   return (
-    <section className="hv2-frames" ref={root}>
-      <h2 className="hv2-frames__title">
-        {TOTAL_FRAMES} photographs, kept in order of arrival.
-      </h2>
+    <section className="hv2-frames" ref={wrap}>
+      <div className="hv2-frames__head">
+        <h2 className="hv2-frames__title">
+          {TOTAL_FRAMES} photographs, kept in order of arrival.
+        </h2>
+      </div>
 
-      <div className="hv2-frames__grid">
+      <div className="hv2-frames__track" ref={track}>
         {picks.map((c, i) => (
-          <Link className={`hv2-frame hv2-frame--${FRAME_PLAN[i]}`} to={`/city/${c.slug}`} key={c.slug}>
+          <Link
+            className={`hv2-frame hv2-frame--${STRIP_SIZE[i % STRIP_SIZE.length]}`}
+            style={{ '--drop': `${STRIP_DROP[i % STRIP_DROP.length]}vh` }}
+            to={`/city/${c.slug}`}
+            key={c.slug}
+          >
             <span className="hv2-frame__plate">
               {/* alt is empty by design: the visible caption below names the
                   photograph, and it is inside the same link, so repeating it

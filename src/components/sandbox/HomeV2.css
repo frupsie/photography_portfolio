@@ -219,15 +219,24 @@
   text-transform: uppercase;
 }
 
-/* ── 3. Frames ── */
-/* Same 1440px cap as the index. Unbounded, the grid ran 1756px at a 2000px
-   viewport, which made a single photograph 1166x792 and the tall cells taller
-   than many screens. Bottom padding stays larger than top on purpose: optically
-   even vertical padding reads bottom-light. */
+/* ── 3. Frames: pinned horizontal pan ── */
+/* Full bleed on purpose. The track has to run past the viewport edge for the
+   pan to have anywhere to go, so the 1440px cap lives on the heading only. */
 .hv2-frames {
+  position: relative;
+  min-height: 100dvh;                  /* never 100vh: iOS address bar */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6vh;
+  overflow: hidden;
+  padding: 10vh 0 12vh;
+}
+.hv2-frames__head {
   max-width: 1440px;
+  width: 100%;
   margin-inline: auto;
-  padding: 12vh 6vw 16vh;
+  padding: 0 6vw;
 }
 .hv2-frames__title {
   font-family: var(--hv2-display);
@@ -236,36 +245,38 @@
   letter-spacing: -0.025em;
   line-height: 1.1;
   max-width: 24ch;
-  margin: 0 0 7vh;
+  margin: 0;
   text-wrap: balance;
 }
-/* Asymmetric on purpose: six cells, three sizes, no repeated row shape. */
-.hv2-frames__grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 14px;
-  /* Grid items stretch to the row height by default. Combined with a plate that
-     filled that height, the caption was pushed outside its own item and landed
-     on top of the next row. Sizing items to their content keeps each caption
-     inside the cell it belongs to. */
-  align-items: start;
+
+.hv2-frames__track {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 3vw, 48px);
+  padding-inline: 6vw;                 /* first frame aligns to the page gutter */
+  width: max-content;
+  will-change: transform;
 }
+
 .hv2-frame {
+  flex: 0 0 auto;
   display: block;
   text-decoration: none;
+  transform: translateY(var(--drop, 0));
 }
-/* The caption sits below the photograph, never on it. A label overlaid on an
-   image is decoration; a caption under it is information. */
-/* No height here: aspect-ratio owns it. A height of 100% resolved against the
-   stretched grid item, so the plate ate the whole cell and the caption
-   overflowed into the row below. */
 .hv2-frame__plate {
   display: block;
-  width: 100%;
   overflow: hidden;
   background: var(--hv2-ink-2);
+  aspect-ratio: 3 / 2;
 }
-.hv2-frame img {
+/* Frame scale sets the pan length: the track is the sum of these widths, and
+   the pinned scroll distance equals the track minus one viewport. At 62/46/34
+   the section held the reader for about seven screens, which is too long. */
+.hv2-frame--lg .hv2-frame__plate { height: 52vh; }
+.hv2-frame--md .hv2-frame__plate { height: 40vh; }
+.hv2-frame--sm .hv2-frame__plate { height: 30vh; }
+.hv2-frame__plate img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -276,6 +287,7 @@
 }
 .hv2-frame:hover img { transform: scale(1.04); filter: brightness(1); }
 .hv2-frame:focus-visible { outline: 2px solid var(--hv2-gold); outline-offset: 3px; }
+/* Caption below the photograph, never on it, and inside its own frame. */
 .hv2-frame__cap {
   display: block;
   padding-top: 10px;
@@ -286,12 +298,6 @@
   transition: color 0.2s ease;
 }
 .hv2-frame:hover .hv2-frame__cap { color: var(--hv2-gold); }
-.hv2-frame--tall  { grid-column: span 2; }
-.hv2-frame--wide  { grid-column: span 4; }
-.hv2-frame--small { grid-column: span 3; }
-.hv2-frame--tall  .hv2-frame__plate { aspect-ratio: 3 / 4; }
-.hv2-frame--wide  .hv2-frame__plate { aspect-ratio: 16 / 9; }
-.hv2-frame--small .hv2-frame__plate { aspect-ratio: 4 / 3; }
 
 /* ── 4. Closer ── */
 .hv2-closer {
@@ -323,15 +329,37 @@
     justify-self: stretch;
   }
   .hv2-index__title { margin-bottom: 5vh; }
-  .hv2-frames__grid { grid-template-columns: repeat(2, 1fr); }
-  .hv2-frame--tall,
-  .hv2-frame--wide,
-  .hv2-frame--small { grid-column: span 2; }
-  .hv2-frame--tall .hv2-frame__plate { aspect-ratio: 4 / 5; }
+  /* No pin, no scroll hijack on touch. The track becomes a normal swipeable
+     strip with snap points, which is what a phone expects. */
+  .hv2-frames { min-height: 0; padding: 10vh 0 12vh; }
+  .hv2-frames__track {
+    /* width must drop back to auto here. Keeping max-content makes the track
+       size to its own content, so scrollWidth equals clientWidth, nothing is
+       scrollable, and the parent's overflow:hidden clips every frame after the
+       first out of reach. */
+    width: auto;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    transform: none !important;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .hv2-frame { scroll-snap-align: start; transform: none; }
+  .hv2-frame--lg .hv2-frame__plate,
+  .hv2-frame--md .hv2-frame__plate,
+  .hv2-frame--sm .hv2-frame__plate { height: 34vh; }
   .hv2-open__type { padding: 0 6vw 10vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Same escape hatch as touch: a scrollable strip the reader drives. */
+  .hv2-frames__track {
+    width: auto;                  /* see the touch fallback: max-content kills scrolling */
+    overflow-x: auto;
+    transform: none !important;
+    scroll-snap-type: x mandatory;
+  }
+  .hv2-frame { transform: none; }
   .hv2-frame img,
   .hv2-index__row,
   .hv2-index__plate-img,
