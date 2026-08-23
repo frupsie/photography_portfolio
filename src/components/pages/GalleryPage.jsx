@@ -25,7 +25,14 @@ function buildPhotoList() {
 
   cities.forEach(city => {
     if (city.heroImage && !city.heroImage.includes('placeholder')) {
-      push(city.heroImage, 'landscape', city, city.heroAlt);
+      // The hero file usually appears in city.photos too, where it carries a
+      // real description. Because the hero is pushed first and `seen` dedupes
+      // by src, pushing it without that alt made the described version
+      // unreachable and left the grid announcing "City, Country".
+      const heroEntry = city.photos?.find(
+        (ph) => (typeof ph === 'string' ? ph : ph.src) === city.heroImage,
+      );
+      push(city.heroImage, 'landscape', city, typeof heroEntry === 'object' ? heroEntry?.alt : undefined);
     }
     city.photos.forEach(photo => {
       const src         = typeof photo === 'string' ? photo : photo.src;
