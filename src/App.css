@@ -425,12 +425,24 @@
   content: '';
   position: absolute;
   inset: 0;
-  /* Extends 2× below the navbar so the gradient fades gently */
-  height: 120px;
+  /* The nav sits over whatever photograph the homepage hero happens to be, and
+     that photograph is real: the current one has a bright sky reading roughly
+     rgb(156,193,211) directly behind the links. At the previous 0.55/120px the
+     composited ground was light enough that even pure white text measured only
+     4.39:1, so no colour change alone could have fixed it.
+
+     0.85 over 170px puts the ground at roughly rgb(82,83,84) even under a
+     near-white sky, which is what makes this independent of the image rather
+     than tuned to today's hero. It stays a gradient, not a bar: no border, no
+     blur, no filled chrome, per the minimal-chrome commitment. */
+  height: 170px;
   top: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to bottom, rgba(10, 9, 8, 0.55) 0%, transparent 100%);
+  background: linear-gradient(to bottom,
+              rgba(10, 9, 8, 0.85) 0%,
+              rgba(10, 9, 8, 0.45) 45%,
+              transparent 100%);
   pointer-events: none;
   z-index: -1;
 }
@@ -460,7 +472,8 @@
   font-family: var(--font-heading);
   font-size: 1.05rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.95);
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(10, 9, 8, 0.55);
   letter-spacing: 0.06em;
   transition: color 0.25s;
 }
@@ -490,14 +503,20 @@
   font-weight: 400;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(228, 221, 212, 0.45);
+  /* Was 0.45, which measured 1.84:1 over the hero and is the worst text on the
+     site. Active/inactive hierarchy is carried by .navbar__link-bar and the
+     hover shift, so it does not need to be carried by near-invisibility. */
+  color: rgba(228, 221, 212, 0.85);
+  /* Not credited by WCAG, but it keeps the labels legible if a future hero is
+     brighter than anything in the archive today. */
+  text-shadow: 0 1px 3px rgba(10, 9, 8, 0.55);
   transition: color 0.25s;
   padding-bottom: 4px;
 }
 
 .navbar__link:hover,
 .navbar__link--active {
-  color: rgba(228, 221, 212, 0.9);
+  color: var(--text);
 }
 
 .navbar__link-bar {
