@@ -154,9 +154,17 @@
   transition: color 0.2s ease,
               padding-left 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.home-index__row:hover,
-.home-index__row.is-active { color: var(--home-gold); padding-left: 12px; }
+/* Gated on real hover. On touch nothing sets `active` by pointing, so the
+   default city was rendering gold as if selected: a state signal for a state
+   the reader never entered. */
+@media (hover: hover) and (pointer: fine) {
+  .home-index__row:hover,
+  .home-index__row.is-active { color: var(--home-gold); padding-left: 12px; }
+}
 .home-index__row:focus-visible { outline: 2px solid var(--home-gold); outline-offset: 2px; }
+/* Per-row frame. Hidden on desktop, where the sticky plate does this job
+   better; it is the only thing doing it at all below 900px. */
+.home-index__thumb { display: none; }
 .home-index__city {
   font-family: var(--home-display);
   font-weight: 600;
@@ -325,13 +333,34 @@
 /* ── Mobile collapse, declared explicitly per section ── */
 @media (max-width: 900px) {
   .home-index { grid-template-columns: 1fr; gap: 6vh; padding: 10vh 6vw; }
-  .home-index__platewrap {
-    position: relative;
-    top: auto;
-    order: -1;
-    max-width: none;
-    justify-self: stretch;
+  /* The plate is retired here rather than restacked. It could not swap without
+     hover, so it sat showing the hero photograph a second time directly above
+     the heading that would have explained it. */
+  .home-index__platewrap { display: none; }
+
+  .home-index__row {
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
   }
+  .home-index__thumb {
+    display: block;
+    flex: 0 0 auto;
+    width: 72px;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background: var(--home-ink-2);
+  }
+  .home-index__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  /* A city can be in the log before its photographs are imported. An outlined
+     blank keeps that honest instead of showing a broken-looking dark box. */
+  .home-index__thumb--empty { border: 1px solid var(--home-rule); background: none; }
+  .home-index__city { flex: 1 1 auto; }
   .home-index__title { margin-bottom: 5vh; }
   /* No pin, no scroll hijack on touch. The track becomes a normal swipeable
      strip with snap points, which is what a phone expects. */

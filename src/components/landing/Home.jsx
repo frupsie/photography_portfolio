@@ -177,6 +177,18 @@ function Index() {
                     onMouseEnter={() => setActive(c.slug)}
                     onFocus={() => setActive(c.slug)}
                   >
+                    {/* Touch has no hover, so the sticky plate's "names summon
+                        photographs" idea cannot fire there. Each row carries its
+                        own frame instead; the plate is hidden below 900px. Same
+                        URLs as the plate, so no extra downloads. */}
+                    <span
+                      className={`home-index__thumb${c.heroImage ? '' : ' home-index__thumb--empty'}`}
+                      aria-hidden="true"
+                    >
+                      {c.heroImage && (
+                        <img src={thumbSrc(plateSrc(c))} alt="" loading="lazy" decoding="async" />
+                      )}
+                    </span>
                     <span className="home-index__city">{c.name}</span>
                     <span className="home-index__year">{c.year}</span>
                   </Link>
