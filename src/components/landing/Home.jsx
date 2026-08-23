@@ -257,9 +257,10 @@ function Frames() {
     // the scroll on a phone is hostile, and the CSS fallback already works.
     if (reduce || narrow || !wrap.current || !track.current) return;
 
+    let st = null;
     const ctx = gsap.context(() => {
       const distance = () => Math.max(0, track.current.scrollWidth - window.innerWidth);
-      gsap.to(track.current, {
+      const tween = gsap.to(track.current, {
         x: () => -distance(),
         ease: 'none',
         scrollTrigger: {
@@ -271,7 +272,33 @@ function Frames() {
           invalidateOnRefresh: true,     // recompute on resize and font load
         },
       });
+      st = tween.scrollTrigger;
     }, wrap);
+
+    // Keyboard focus has to drive the pan, not fight it.
+    //
+    // Tabbing to an off-screen frame makes the browser scroll it into view. It
+    // cannot move the track, which GSAP positions by transform, so it scrolls
+    // the section box instead: overflow:hidden blocks a scrollbar but not
+    // programmatic scrolling. The section ends up displaced by up to 2300px
+    // with no way for the reader to undo it, while GSAP still believes the pan
+    // is where it left it.
+    //
+    // So: undo the container scroll, and convert the focused frame's position
+    // along the track into the page scroll that brings it into view. The pan
+    // then lands on that frame as if the reader had scrolled there.
+    const onFocusIn = (e) => {
+      const frame = e.target.closest?.('.home-frame');
+      if (!frame || !st) return;
+      const undo = () => { if (wrap.current) wrap.current.scrollLeft = 0; };
+      undo();
+      requestAnimationFrame(undo);      // again after the browser's own attempt
+      const margin = window.innerWidth * 0.06;   // matches the track gutter
+      const target = st.start + Math.max(0, frame.offsetLeft - margin);
+      window.scrollTo({ top: Math.min(target, st.end), behavior: 'auto' });
+    };
+    const trackEl = track.current;
+    trackEl.addEventListener('focusin', onFocusIn);
 
     // Frame widths are only known once each image reports its natural ratio,
     // and those widths are what set the pan distance. Refresh after they land.
@@ -284,7 +311,11 @@ function Frames() {
       }))),
     ).then(() => { if (alive) ScrollTrigger.refresh(); });
 
-    return () => { alive = false; ctx.revert(); };
+    return () => {
+      alive = false;
+      trackEl.removeEventListener('focusin', onFocusIn);
+      ctx.revert();
+    };
   }, []);
 
   return (
@@ -332,12 +363,14 @@ function Closer() {
 }
 
 export default function Home() {
+  // div, not main: App.jsx owns the single <main> landmark for every route,
+  // so declaring one here would nest two landmarks.
   return (
-    <main className="home">
+    <div className="home">
       <Opening />
       <Index />
       <Frames />
       <Closer />
-    </main>
+    </div>
   );
 }

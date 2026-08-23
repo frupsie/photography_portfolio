@@ -66,5 +66,13 @@ A new city needs an entry in `src/data/cities.js` first — name, country, lat/l
   pane throttles `requestAnimationFrame`, which freezes GSAP and makes working code look
   broken. This has caused a false bug report.
 - Screenshot at **~1100px**. Forcing 1440px renders scaled down too small to judge.
+- **A pane that is not focused dispatches no focus events.** `document.hasFocus()` false
+  means `element.focus()` still sets `activeElement` but fires no `focus` or `focusin`, so
+  any handler hanging off them looks dead when it is fine. Test those handlers by
+  dispatching the event directly (`el.dispatchEvent(new FocusEvent('focusin', {bubbles:true}))`)
+  and say plainly that real keyboard focus was not exercised.
+- **The same throttling freezes CSS transitions, not just GSAP.** A transitioned property
+  reports its start value forever, and `!important` will not move it. Add
+  `transition: none !important` before measuring or screenshotting a transitioned state.
 - Measuring geometry proves position and spacing. It does not prove something looks right —
   look at it.

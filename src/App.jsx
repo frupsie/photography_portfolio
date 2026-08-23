@@ -65,8 +65,15 @@ export default function App() {
         {showIntro && <IntroScreen key="intro" onDone={handleIntroDone} />}
       </AnimatePresence>
       <ScrollToTop />
+      {/* First thing in the tab order. Every page routes through one landmark
+          below, so this target is stable no matter which route is mounted. */}
+      <a className="skip-link" href="#main">Skip to content</a>
       <Navbar />
       <ScrollProgressBar />
+      {/* The single <main> for the whole app. Pages render their own sections
+          inside it; none declares its own landmark, which is what kept five of
+          the six pages without one. */}
+      <main id="main" tabIndex={-1}>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<LandingPage />} />
@@ -80,6 +87,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AnimatePresence>
+      </main>
       <Footer />
       <BackToTopButton />
     </div>
