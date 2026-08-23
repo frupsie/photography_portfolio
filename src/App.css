@@ -1350,11 +1350,14 @@
 }
 
 .ap-stats-exif__sep {
-  color: var(--glass-border);
+  /* Decorative and aria-hidden, so exempt from the 4.5 floor, but it was
+     --glass-border (0.07 alpha) with a further 0.6 opacity on top, landing at
+     1.12:1. The old comment claimed this made the dot readable; it did not.
+     One explicit value instead of alpha on alpha: 2.7:1, visible as a divider
+     without competing with the labels either side. */
+  color: #5f5951;
   font-size: 1rem;
   line-height: 1;
-  /* bump contrast a touch so the dot is readable */
-  opacity: 0.6;
   user-select: none;
 }
 
@@ -1612,6 +1615,14 @@
   font-size: 1rem;
   transition: border-color 0.2s;
   resize: vertical;
+}
+
+/* No ::placeholder rule existed, so placeholders fell to the browser default
+   (roughly 54% of the input colour) and measured 3.82:1. */
+.contact-form__field input::placeholder,
+.contact-form__field textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;                        /* Firefox applies its own opacity */
 }
 
 .contact-form__field input:focus,
@@ -2381,7 +2392,9 @@
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   font-family: var(--font-mono);
-  color: rgba(200, 168, 120, 0.5);
+  /* The accent at full strength measures 6.20:1; the 0.5 alpha was what
+     dropped this count to 2.97. The tally is data, so it keeps the accent. */
+  color: var(--accent);
   white-space: nowrap;
   pointer-events: none;
   align-self: center;
@@ -3370,7 +3383,7 @@
   font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(228, 221, 212, 0.4);
+  color: var(--text-muted);          /* was 0.4 alpha, 3.15:1 */
   transition: color 0.25s;
 }
 
@@ -3389,7 +3402,9 @@
 .footer__copy {
   font-size: 0.65rem;
   letter-spacing: 0.1em;
-  color: rgba(200, 184, 160, 0.2);
+  /* Was rgba(200,184,160,0.2), which resolved to 1.49:1. Alpha made the
+     contrast depend on whatever sat behind it; a token does not. */
+  color: var(--text-muted);
 }
 
 /* ── Responsive ── */

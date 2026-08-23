@@ -14,7 +14,12 @@
   --bg: #111110;
   --bg-secondary: #1a1916;
   --text: #e4ddd4;
-  --text-muted: #7a7268;
+  /* Secondary text. Was #7a7268, which measured 3.99:1 on --bg and 3.71:1 on
+     --bg-secondary, so it failed the 4.5 body-text floor on both surfaces and
+     no colour above it could compensate. This clears the floor on the canvas,
+     the elevated surface and the footer's darker gradient.
+     Warm grey, derived from the palette hue rather than a neutral grey. */
+  --text-muted: #8c8479;
   --accent: #a89070;
   --accent-light: #c4b094;
   --accent-glow: rgba(168, 144, 112, 0.20);
