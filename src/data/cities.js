@@ -1,5 +1,3 @@
-export const SINGAPORE = { lat: 1.3521, lon: 103.8198 };
-
 export const cities = [
   // China
   {

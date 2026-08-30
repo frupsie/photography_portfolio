@@ -21,7 +21,7 @@ export default function NotFound() {
         <span className="content-page__label">Error 404</span>
         <h1 className="content-page__title">Out of frame</h1>
         <p className="content-page__sub">
-          That page doesn&rsquo;t exist — it may have moved, or the link may be
+          That page doesn&rsquo;t exist. It may have moved, or the link may be
           incomplete.
         </p>
 

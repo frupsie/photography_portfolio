@@ -40,6 +40,15 @@ html {
   /* Let html grow with content so window is the scroll container */
   overflow-x: clip;
   background: var(--bg);
+  /* The navbar is fixed and opaque on every route but Home (see
+     .navbar--solid); without this, any native scroll-into-view — Tab
+     moving focus onto something near the top of a page, an anchor jump —
+     can land a freshly focused element (or, on Gallery, its own <h1>)
+     flush against the viewport top and get it covered by the bar sitting
+     on top of it. Measured across breakpoints: the navbar is 65–69px
+     tall everywhere; 84px clears it with room to spare at all of them,
+     so one value covers the site rather than three per-breakpoint ones. */
+  scroll-padding-top: 84px;
 }
 
 body {

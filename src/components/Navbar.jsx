@@ -36,7 +36,16 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="navbar">
+      {/* .navbar::before's gradient is hand-tuned to fade a hero photograph
+          into readable text — it only makes sense over Home's full-bleed
+          image. Every other route is a flat dark page with real foreground
+          content (stat numbers, list items, headings) that scrolls past
+          this same fixed bar constantly, and the photo-tuned fade was
+          instead dimming that content as it passed underneath — a flicker
+          that read as a glitch, not a page-specific choice. navbar--solid
+          swaps it for an opaque bar matching the page background, which
+          doesn't apply to Home so the hero look is untouched. */}
+      <nav className={`navbar${pathname === '/' ? '' : ' navbar--solid'}`}>
         <a href="/" className="navbar__logo" onClick={handleHome}>
           Jayden Ng
         </a>

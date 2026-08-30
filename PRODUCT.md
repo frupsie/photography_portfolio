@@ -52,7 +52,6 @@ that happens to be a portfolio.
   host **must** rewrite all paths to `index.html`; configs exist for Netlify and Vercel.
 - Scroll experience built on GSAP ScrollTrigger with Lenis smooth scroll. The two are
   bridged through a single shared RAF ticker — animation work must respect that.
-- Map is Leaflet (2D tiles), not a 3D globe.
 - Three image tiers: full-resolution originals (**local only, gitignored, never
   deployed**), 1600px JPEG served to lightbox and heroes, 800px WebP served to all grids.
 - Currently 13 cities / 129 photographs across China, Japan, and South Korea.
@@ -71,8 +70,10 @@ that happens to be a portfolio.
   length. This is part of the work and its credibility, not decoration.
 - The name **Jayden Ng**, and Singapore as home base.
 
-**Explicitly not binding:** the four-act cinematic scroll homepage. It is the current
-identity but the owner has left it open to reconsideration, including its concept.
+**Explicitly not binding:** the homepage concept. The current homepage — full-bleed
+opening, sticky typographic city index, pinned horizontal pan of the favourites, closer —
+replaced an earlier four-act cinematic scroll. The owner has left it open to further
+reconsideration, including its concept.
 
 ## Evidence on Hand
 

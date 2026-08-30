@@ -82,7 +82,10 @@
   padding: 0 clamp(8px, 1.5vw, 14px);
   gap: 0;
   font-family: var(--font-body);
-  font-size: clamp(0.58rem, 1.3vw, 0.72rem);
+  /* Was clamp(0.58rem, 1.3vw, 0.72rem) — even the upper bound (11.52px)
+     was fine, but the floor (9.28px) is what mobile widths actually
+     resolved to. Raised both ends to clear the 11px legibility floor. */
+  font-size: clamp(0.7rem, 1.3vw, 0.8rem);
   color: #f0f0f0;
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
@@ -91,7 +94,7 @@
 .intro__topbar-mode {
   border: 1px solid rgba(240, 240, 240, 0.8);
   padding: 1px 7px;
-  font-size: clamp(0.54rem, 1.1vw, 0.68rem);
+  font-size: clamp(0.7rem, 1.1vw, 0.75rem);
   letter-spacing: 0.12em;
   margin-right: clamp(10px, 1.8vw, 20px);
   line-height: 1.6;
@@ -112,17 +115,18 @@
   align-items: center;
   gap: clamp(5px, 0.9vw, 10px);
   color: #909090;
-  font-size: clamp(0.50rem, 0.95vw, 0.63rem);
+  /* 0.68rem is 10.88px — still under the 11px floor. 0.7rem clears it. */
+  font-size: clamp(0.7rem, 0.95vw, 0.75rem);
   letter-spacing: 0.08em;
 }
 
 .intro__topbar-wb {
   color: #b0b0b0;
-  font-size: clamp(0.48rem, 0.92vw, 0.62rem);
+  font-size: clamp(0.7rem, 0.92vw, 0.78rem);
 }
 
 .intro__topbar-icon {
-  font-size: clamp(0.58rem, 1.1vw, 0.75rem);
+  font-size: clamp(0.7rem, 1.1vw, 0.78rem);
   opacity: 0.7;
 }
 
@@ -191,7 +195,9 @@
 
 .intro__af-status {
   font-family: var(--font-body);
-  font-size: clamp(0.44rem, 0.85vw, 0.55rem);
+  /* Was clamp(0.44rem, 0.85vw, 0.55rem) — the upper bound alone (8.8px)
+     was under the floor at every width tested. */
+  font-size: clamp(0.7rem, 0.85vw, 0.78rem);
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
@@ -221,20 +227,21 @@
 
 .intro__meter-tick {
   font-family: var(--font-body);
-  font-size: clamp(0.44rem, 0.8vw, 0.55rem);
+  /* 0.68rem is 10.88px — still under the 11px floor. 0.7rem clears it. */
+  font-size: clamp(0.7rem, 0.8vw, 0.75rem);
   color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.05em;
-  min-width: clamp(16px, 2vw, 22px);
+  min-width: clamp(18px, 2vw, 24px);
 }
 
 .intro__meter-tick--zero {
   color: #f0f0f0;
-  font-size: clamp(0.54rem, 1vw, 0.65rem);
+  font-size: clamp(0.7rem, 1vw, 0.78rem);
 }
 
 .intro__meter-marker {
   color: #f0f0f0;
-  font-size: clamp(0.44rem, 0.8vw, 0.55rem);
+  font-size: clamp(0.7rem, 0.8vw, 0.75rem);
 }
 
 /* ── BOTTOM BAR ── RAW+L  exp scale  1724  CF-A */
@@ -248,7 +255,7 @@
   padding: 0 clamp(8px, 1.5vw, 14px);
   gap: 0;
   font-family: var(--font-body);
-  font-size: clamp(0.56rem, 1.2vw, 0.7rem);
+  font-size: clamp(0.7rem, 1.2vw, 0.8rem);
   color: #d0d0d0;
   letter-spacing: 0.05em;
   font-variant-numeric: tabular-nums;
@@ -256,7 +263,7 @@
 
 .intro__bottombar-quality {
   margin-right: auto;
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   color: #c0c0c0;
 }
 
@@ -268,7 +275,7 @@
 }
 
 .intro__exp-label {
-  font-size: 0.58rem;
+  font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.35);
 }
 
@@ -314,7 +321,7 @@
 }
 
 .intro__card-label {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.38);
 }
 
@@ -352,7 +359,7 @@
   .intro__level {
     transform: translate(-50%, 22px);
   }
-  /* Meter fits fine — nothing extra needed */
+  
 }
 
 .intro__loading-track {
@@ -371,11 +378,11 @@
 
 .intro__loading-pct {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   letter-spacing: 0.18em;
   color: rgba(255, 255, 255, 0.45);
   font-variant-numeric: tabular-nums;
-  min-width: 36px;
+  min-width: 40px;
   text-align: right;
 }
 
@@ -400,23 +407,44 @@
   pointer-events: none;
 }
 
-/* Skip button */
+/* Skip button — the only exit from a screen every first-time visitor is
+   forced through. Was rgba(...,0.35): 1.76:1 contrast, roughly a third of
+   the WCAG AA floor for text this size, and the component's own original
+   comment conceded outright that "nobody is hunting for it." 0.85 opacity
+   measures 4.93:1 (see the contrast pass done for this fix). min-width/
+   min-height + flex centering guarantee a 44px hit area without visually
+   ballooning the small mono label — padding alone landed short. */
 .intro__skip {
   position: absolute;
   bottom: 24px;
   right: 28px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
-  padding: 4px 8px;
+  padding: 8px 16px;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.72rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(168, 144, 112, 0.35);
+  color: rgba(168, 144, 112, 0.85);
   cursor: pointer;
   transition: color 0.22s;
 }
-.intro__skip:hover { color: rgba(168, 144, 112, 0.8); }
+.intro__skip:hover,
+.intro__skip:focus-visible {
+  color: rgba(168, 144, 112, 1);
+}
+/* Was missing entirely — every other primary control on the site already
+   carries this exact treatment. Fell back to the browser's bare default
+   ring without it. */
+.intro__skip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 /* ===== NAVBAR — Transparent overlay ===== */
 
@@ -465,6 +493,21 @@
   box-shadow: none;
 }
 
+/* Every route except Home: an opaque bar instead of the photo-tuned fade
+   (see the comment in Navbar.jsx). Matches the page background exactly —
+   this should read as "no bar," just solid ground the logo and links sit
+   on, not a new piece of chrome competing with the content. The border
+   is the same divider treatment already used elsewhere on these pages
+   (.ap-divider, .gallery-filter), not a new material. */
+.navbar--solid {
+  background: var(--bg);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.navbar--solid::before {
+  content: none;
+}
+
 .navbar__logo {
   display: flex;
   align-items: center;
@@ -480,15 +523,6 @@
 
 .navbar__logo:hover {
   color: var(--text);
-}
-
-.navbar__logo-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .navbar__links {
@@ -552,7 +586,7 @@
   background: rgba(228, 221, 212, 0.85);
   border-radius: 2px;
   transform-origin: center;
-  transition: transform 0.28s ease, opacity 0.2s ease, width 0.25s ease;
+  transition: transform 0.28s ease, opacity 0.2s ease;
 }
 
 /* Animate to × when open */
@@ -561,7 +595,10 @@
 }
 .navbar__hamburger--open span:nth-child(2) {
   opacity: 0;
-  width: 0;
+  /* Was `width: 0` — same visual collapse (this span is horizontally
+     centered by the parent's flex alignment either way) but scaleX is
+     compositor-only where width triggers layout on every animation frame. */
+  transform: scaleX(0);
 }
 .navbar__hamburger--open span:nth-child(3) {
   transform: translateY(-6.5px) rotate(-45deg);
@@ -636,178 +673,6 @@
 .nav-drawer__close svg {
   width: 22px;
   height: 22px;
-}
-
-/* ===== LANDING PAGE ===== */
-.landing-page {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.landing-bg {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  background-color: var(--bg);
-}
-
-.landing-hero {
-  position: relative;
-  z-index: 10;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.landing-hero__tagline {
-  font-size: 0.8rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.landing-hero__name {
-  font-family: var(--font-heading);
-  font-size: clamp(3rem, 8vw, 7rem);
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  color: #fff;
-  line-height: 1;
-  text-shadow: 0 4px 40px rgba(0,0,0,0.8);
-}
-
-.landing-hero__sub {
-  font-size: 1rem;
-  color: rgba(232,232,240,0.7);
-  letter-spacing: 0.04em;
-  max-width: 380px;
-}
-
-.landing-hero__btn {
-  margin-top: 8px;
-  padding: 14px 36px;
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 2px;
-  color: var(--text);
-  font-size: 0.875rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px);
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.landing-hero__btn:hover {
-  border-color: rgba(255,255,255,0.6);
-  background: rgba(255,255,255,0.11);
-}
-
-/* ===== GLOBE ===== */
-
-/* ===== CITY LABELS ===== */
-.city-label-arc {
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(232, 232, 240, 0.50);
-  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-  transition: color 0.25s, opacity 0.25s;
-}
-
-.city-label-arc--active {
-  color: var(--accent-light);
-  text-shadow: 0 0 8px rgba(196, 176, 148, 0.35);
-}
-
-/* ===== FLOATING CARD — Ultra Minimal ===== */
-.floating-card {
-  position: relative;
-  width: 200px;
-  border-radius: 6px;
-  overflow: hidden;
-  background: rgba(8, 7, 5, 0.50);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.70);
-  cursor: default;
-  pointer-events: all;
-}
-
-.floating-card__hero {
-  width: 100%;
-  height: 130px;
-  background-size: cover;
-  background-position: center;
-  background-color: #18160e;
-  position: relative;
-}
-
-.floating-card__hero::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  background: linear-gradient(0deg, rgba(8,7,5,0.60) 0%, transparent 100%);
-}
-
-.floating-card__body {
-  padding: 12px 13px 13px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.floating-card__name {
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #f0ece4;
-  line-height: 1.2;
-}
-
-.floating-card__country {
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(200, 188, 160, 0.65);
-  margin-bottom: 2px;
-}
-
-.floating-card__btn {
-  display: block;
-  width: 100%;
-  margin-top: 10px;
-  padding: 9px 0;
-  font-size: 0.76rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border-radius: 4px;
-  background: var(--accent);
-  color: #111110;
-  border: none;
-  transition: opacity 0.2s, transform 0.15s;
-  text-align: center;
-}
-
-.floating-card__btn:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
 }
 
 /* ===== CITY PAGE ===== */
@@ -1153,59 +1018,6 @@
   max-width: 500px;
 }
 
-/* ===== ABOUT PAGE ===== */
-.about-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 1.4fr;
-  gap: 60px;
-  align-items: start;
-}
-
-.about-grid__photo-placeholder {
-  aspect-ratio: 3/4;
-  background: var(--bg-secondary);
-  border: 1px dashed var(--glass-border);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.about-text {
-  font-size: 1.05rem;
-  line-height: 1.8;
-  color: var(--text-muted);
-  margin-bottom: 20px;
-}
-
-.about-text strong {
-  color: var(--text);
-}
-
-.about-stats {
-  display: flex;
-  gap: 48px;
-  margin-top: 40px;
-  padding-top: 32px;
-  border-top: 1px solid var(--glass-border);
-}
-
-.about-stats__num {
-  display: block;
-  font-family: var(--font-heading);
-  font-size: 2.5rem;
-  color: var(--text);
-}
-
-.about-stats__label {
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
 /* ===== ABOUT + GEAR (merged page) ===== */
 
 .ap {
@@ -1260,26 +1072,44 @@
   border-bottom: 1px solid var(--glass-border);
 }
 
-/* No portrait slot — bio runs full width. Drop this modifier when a real
-   portrait is added back. */
-.ap-about--full {
-  grid-template-columns: 1fr;
-  max-width: 780px;
-}
-
-.ap-about__photo-inner {
+/* Anchor portrait + a quiet row of supporting candids underneath. Sized for
+   the 340px column the grid above already reserves. */
+.ap-about__portrait {
+  display: block;
   width: 100%;
   aspect-ratio: 3 / 4;
-  background: var(--bg-secondary);
-  border: 1px dashed var(--glass-border);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.ap-about__candids {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Deliberately smaller and unadorned — no border, no hover state, no
+   click-to-enlarge. These are texture beside the portrait, not content in
+   their own right; that distinction is what keeps this from turning into a
+   second gallery on a page whose job is a fast, calm introduction. */
+.ap-about__candids img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+/* The grid already top-aligns .ap-about__photo and .ap-about__body to the
+   same pixel (align-items: start on .ap-about) — but a hard image edge and a
+   line of text at line-height 1.85 don't read as aligned at that same pixel.
+   The glyphs of the first line sit ~6px below the box top because of the
+   leading above them; measured via Range.getBoundingClientRect(), not
+   eyeballed. This nudges the whole column up to match the portrait's visual
+   top rather than its box top. */
+.ap-about__body {
+  margin-top: -6px;
 }
 
 .ap-bio {
@@ -1343,9 +1173,27 @@
 }
 
 .ap-stats-exif__label {
-  font-size: 0.62rem;
+  /* Was 0.62rem (9.92px) — under the same 11px legibility floor already
+     fixed once this session on .exif-card__label. Matched to that fix's
+     resulting size rather than picking a new one. */
+  font-size: 0.7rem;
   letter-spacing: 0.13em;
   text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* One line clarifying that "Camera Bodies" counts the full archive
+   (including two bodies each represented by a single photo), not just the
+   active kit listed below — without this the two numbers read as a
+   self-contradiction on the one page built to prove range and consistency.
+   font-size and color were wrong on the first pass: 0.72rem is fine for a
+   short UI label but this is a 75-character sentence, and tiny-text's own
+   floor for body-length copy is 12px, not 11px. The opacity on top of
+   text-muted also dropped contrast to 3.38:1 — text-muted alone is already
+   5.12:1, plenty; the opacity was pure loss. */
+.ap-stats-exif__note {
+  margin-top: 8px;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
@@ -1361,12 +1209,21 @@
   user-select: none;
 }
 
-/* Contact button */
+/* Contact button + secondary Instagram link, side by side. The margin that
+   used to sit on .ap-contact-btn moved up here so the pair aligns as one
+   row instead of the button alone carrying the top gap. */
+.ap-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 28px;
+  margin-top: 36px;
+}
+
 .ap-contact-btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-top: 36px;
   padding: 13px 28px;
   border: 1px solid var(--accent);
   border-radius: 3px;
@@ -1392,6 +1249,45 @@
   transform: translateX(4px);
 }
 
+/* This is the page's one primary conversion action; every other primary
+   control on the site (gallery filter pills, lightbox controls, footer
+   social link) already gets this same outline on :focus-visible. This one
+   was the gap. */
+.ap-contact-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Quieter than the button on purpose — this is the secondary path (browse
+   more, less-curated work) next to the primary one (get in touch). */
+.ap-social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.ap-social-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ap-social-link:hover,
+.ap-social-link:focus-visible {
+  color: var(--accent);
+}
+
+/* Color-only feedback isn't enough on its own — the footer's own copy of
+   this exact Instagram link already carries the outline too. */
+.ap-social-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ── Section divider ── */
 .ap-divider {
   max-width: 1100px;
@@ -1412,7 +1308,8 @@
 }
 
 .ap-divider__label {
-  font-size: 0.68rem;
+  /* Was 0.68rem (10.88px) — under the 11px legibility floor. */
+  font-size: 0.72rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1452,7 +1349,8 @@
 .ap-gear__row:first-of-type { border-top: 1px solid var(--glass-border); }
 
 .ap-gear__cat {
-  font-size: 0.68rem;
+  /* Was 0.68rem (10.88px) — under the 11px legibility floor. */
+  font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1525,10 +1423,17 @@
 
 .ap-workflow__num {
   font-family: var(--font-heading);
-  font-size: 0.68rem;
+  /* Was 0.68rem (10.88px) — under the 11px legibility floor. */
+  font-size: 0.72rem;
   letter-spacing: 0.12em;
+  /* Was `opacity: 0.75` on the whole element, muting the border AND the
+     "01"-"04" text together — dropped the number's own contrast to 3.97:1.
+     The border's dimness (matching .ap-workflow__arrow's "gold
+     sequence-thread" language) now lives in its own alpha instead, so the
+     text — real content, not decoration — stays at full-strength accent
+     (6.2:1). */
   color: var(--accent);
-  border: 1px solid var(--accent);
+  border: 1px solid rgba(168, 144, 112, 0.75);
   border-radius: 50%;
   width: 34px;
   height: 34px;
@@ -1536,7 +1441,6 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  opacity: 0.75;
 }
 
 .ap-workflow__label {
@@ -1546,10 +1450,16 @@
   color: var(--text-muted);
 }
 
+/* Same accent + opacity as .ap-workflow__num, not a border token: this reads
+   as one gold sequence-thread connecting the step circles, not a separate
+   near-invisible divider. var(--glass-border) at 0.07 alpha (the previous
+   color) measured 1.12:1 against the background — a hairline value, not
+   something meant to carry visible meaning. */
 .ap-workflow__arrow {
   width: 48px;
   height: 8px;
-  color: var(--glass-border);
+  color: var(--accent);
+  opacity: 0.75;
   margin: 0 20px;
   flex-shrink: 0;
 }
@@ -1560,17 +1470,51 @@
     grid-template-columns: 280px 1fr;
     gap: 40px;
   }
+  /* Found while verifying the arrow-visibility fix above: at the desktop
+     size (48px arrow + 20px margins per side), four steps' circles, labels,
+     and arrows sum to just over the available width in the 769-900px range,
+     so "04 EXPORT" wrapped onto its own line with no arrow leading into it.
+     Tightened here — one breakpoint earlier than the label/circle sizing
+     needs to change — closes that gap. */
+  .ap-workflow__arrow { width: 32px; margin: 0 10px; }
 }
 
 @media (max-width: 768px) {
   .ap-hero  { padding: 48px 24px 40px; }
+  /* Body text and the stat numbers are fixed rem values with no responsive
+     scaling of their own — unlike the headings, which already clamp() down
+     on their own. Full desktop size reads oversized once the bio column
+     runs edge-to-edge on a phone (three paragraphs at 1.05rem gets long),
+     and the stat numbers dwarf the small uppercase labels under them at
+     that width. Sized down here, not by touching the shared rule, so
+     desktop is untouched. */
+  .ap-bio { font-size: 0.95rem; }
+  .ap-stat__num { font-size: 2.1rem; }
   .ap-about { grid-template-columns: 1fr; gap: 32px; padding: 40px 24px; }
-  .ap-about__photo-inner { max-width: 320px; }
+  /* Stacked single-column: without a cap, the portrait would run edge to
+     edge and its 3:4 crop would come out taller than the viewport. */
+  .ap-about__photo { max-width: 320px; }
   .ap-divider { padding: 40px 24px 0; }
   .ap-gear { padding: 28px 24px 0; }
   .ap-gear__row { grid-template-columns: 100px 1fr; gap: 16px; }
+  /* .ap-gear__item is a flex row (name + note side by side); the name has
+     flex-shrink:0, so on a narrow row the note gets whatever's left over —
+     as little as ~68px for a long item like the Sigma lens, which wraps it
+     into unreadable 3-4-character fragments rather than a clean line.
+     Previously hidden entirely below this breakpoint — but the notes are
+     the part of the Kit section that actually demonstrates range and
+     intent for a client skimming on a phone, not brand-flexing, so
+     removing them costs more than the wrapping problem did. Stacking
+     instead: flex-wrap plus flex-basis:100% on the note is the standard
+     "force this item onto its own line" trick — bullet and name still sit
+     on one line together, note drops to a clean full-width line below,
+     indented to align under the name past the bullet + its gap. */
+  .ap-gear__item { flex-wrap: wrap; row-gap: 4px; }
+  .ap-gear__item-note {
+    flex-basis: 100%;
+    padding-left: 24px;
+  }
   .ap-workflow { padding: 40px 24px 64px; }
-  .ap-workflow__arrow { width: 32px; margin: 0 10px; }
 }
 
 @media (max-width: 480px) {
@@ -1580,6 +1524,100 @@
   .ap-gear__cat { padding-top: 0; }
   .ap-workflow__steps { flex-direction: column; align-items: flex-start; gap: 20px; }
   .ap-workflow__arrow { display: none; }
+  .ap-actions { flex-direction: column; align-items: flex-start; gap: 18px; }
+  /* The strip's 3 items wrap onto their own lines at this width, so the ·
+     dividers between them have nothing left to divide — without this,
+     one dangles at the end of a line right before the wrap. */
+  .ap-stats-exif__sep { display: none; }
+}
+
+/* ===== CONTACT PAGE — split layout ===== */
+/* Text column left, photograph right. Mirrors the homepage's sticky index
+   plate — same device, so the site's two form-driven pages (Home, Contact)
+   share a visual grammar instead of Contact reading as a bare form. */
+.contact-page__layout {
+  display: grid;
+  /* Capped at 480px, not the 560px the form's own max-width could take: past
+     that the image column got too narrow to read as a deliberate portrait
+     crop between roughly 1024-1440px, where the layout is still two-column. */
+  grid-template-columns: minmax(320px, 480px) minmax(280px, 1fr);
+  /* Stretch (the grid default) so the image cell always matches the row's
+     tallest column instead of sizing from its own aspect-ratio. Explicitly
+     named because a prior "start" here is what made the photo top-align and
+     stop short of the form: at a ~370px-wide column, a 3:4 aspect-ratio box
+     comes out to ~490px regardless of how tall the form actually runs. */
+  align-items: stretch;
+  gap: 64px;
+}
+
+.contact-page__main {
+  display: flex;
+  flex-direction: column;
+}
+
+/* An alternative to the form for anyone who'd rather just email. Sits
+   between the sub and the form so it reads as an option, not an afterthought. */
+.contact-page__direct {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 20px;
+  margin-bottom: 40px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.contact-page__direct-email {
+  width: fit-content;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  color: var(--accent-light);
+}
+.contact-page__direct-email:hover,
+.contact-page__direct-email:focus-visible {
+  color: var(--accent);
+}
+
+.contact-page__direct-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.contact-page__visual {
+  position: sticky;
+  top: 120px;
+  /* No aspect-ratio here — height comes from the stretched grid row (i.e.
+     matches .contact-page__main) so the panel always runs the full height of
+     the form, not a fixed crop that happens to fall short of it. The floor
+     only guards the success state, where main collapses to a few lines. */
+  min-height: 480px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.contact-page__visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Biased up rather than dead-centre: the temple's roofline sits in the
+     upper half of the frame, and on short viewports a sticky panel this
+     tall can end up with its lower portion never fully scrolled into view. */
+  object-position: 50% 30%;
+  display: block;
+}
+
+@media (max-width: 1024px) {
+  .contact-page__layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .contact-page__visual {
+    position: static;
+    min-height: 0;
+    aspect-ratio: 3 / 2;
+    margin-top: 48px;
+  }
 }
 
 /* ===== CONTACT FORM ===== */
@@ -1631,6 +1669,16 @@
   border-color: var(--accent);
 }
 
+/* Field-level validation, styled to match .contact-form__error below —
+   replaces the browser's own native validation bubble (light, unstyled,
+   jarring on this near-black theme) now that the form carries noValidate. */
+.contact-form__field-error {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #e0857a;
+  margin: 0;
+}
+
 .contact-form__submit {
   align-self: flex-start;
   padding: 14px 40px;
@@ -1645,6 +1693,14 @@
 
 .contact-form__submit:hover {
   opacity: 0.85;
+}
+
+/* Was falling back to the browser's own default outline — every other
+   primary control on the site (including this same fix on the About
+   page's CTA) already gets this treatment. */
+.contact-form__submit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .contact-form__submit:disabled {
@@ -1697,116 +1753,23 @@
 
 .contact-success {
   text-align: center;
-  padding: 60px 0;
+  padding: 48px 0;
 }
 
 .contact-success__icon {
-  display: block;
-  font-size: 2.5rem;
-  color: var(--accent);
-  margin-bottom: 16px;
-}
-
-/* ===== GEAR PAGE ===== */
-.gear-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 24px;
-  margin-bottom: 60px;
-}
-
-.gear-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--glass-border);
-  border-radius: 6px;
-  padding: 24px;
-}
-
-.gear-card__category {
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  color: var(--text);
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--glass-border);
-}
-
-.gear-card__list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.gear-card__item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.gear-card__name {
-  font-size: 0.9rem;
-  color: var(--text);
-}
-
-.gear-card__note {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-
-.process-section__title {
-  font-family: var(--font-heading);
-  font-size: 1.6rem;
-  color: var(--text);
-  font-weight: 400;
-  margin-bottom: 24px;
-}
-
-.process-steps {
-  display: flex;
-  gap: 0;
-}
-
-.process-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  position: relative;
-}
-
-.process-step + .process-step::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 16px;
-  width: 100%;
-  height: 1px;
-  background: var(--glass-border);
-  transform: translateX(-50%);
-}
-
-.process-step__num {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  font-size: 0.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  z-index: 1;
-  background: var(--bg);
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent);
 }
-
-.process-step__label {
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+.contact-success__icon svg {
+  width: 24px;
+  height: 24px;
 }
 
 /* ===== ERROR PAGE ===== */
@@ -1831,510 +1794,6 @@
   letter-spacing: 0.08em;
 }
 
-/* ===== SCROLL SHOWCASE (Main Page) ===== */
-.showcase {
-  background: var(--bg);
-  min-height: 100vh;
-}
-
-/* Hero */
-.showcase__hero {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  padding-top: 80px;
-  background-image: url('/photos-web/hong-kong/_MG_3601.JPG');
-  background-size: cover;
-  background-position: center;
-}
-
-/* Dark overlay so text stays readable over the photo */
-.showcase__hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.showcase__hero-content {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  position: relative;
-  z-index: 1;
-}
-
-.showcase__tagline {
-  font-size: 0.95rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: #f0c96a;
-  font-family: var(--font-body);
-}
-
-.showcase__name {
-  font-family: var(--font-heading);
-  font-size: clamp(3.5rem, 9vw, 8rem);
-  font-weight: 400;
-  color: #ffffff;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.4);
-}
-
-.showcase__sub {
-  font-size: 1.15rem;
-  color: rgba(255, 255, 255, 0.82);
-  letter-spacing: 0.04em;
-  max-width: 480px;
-  line-height: 1.6;
-}
-
-.showcase__scroll-indicator {
-  position: absolute;
-  bottom: 44px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  z-index: 1;
-}
-
-.showcase__scroll-label {
-  font-size: 0.68rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  font-family: var(--font-body);
-}
-
-.showcase__scroll-line {
-  display: block;
-  width: 1px;
-  height: 48px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.55), transparent);
-  animation: scrollLineDrop 2s ease-in-out infinite;
-  transform-origin: top;
-}
-
-@keyframes scrollLineDrop {
-  0%   { transform: scaleY(0); opacity: 0; }
-  30%  { opacity: 1; }
-  100% { transform: scaleY(1); opacity: 0; }
-}
-
-.showcase__hero-meta {
-  position: absolute;
-  bottom: 40px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  z-index: 1;
-}
-
-.showcase__hero-divider {
-  display: inline-block;
-  width: 32px;
-  height: 1px;
-  background: rgba(200, 184, 160, 0.25);
-}
-
-/* Country section */
-.country-section {
-  border-top: 1px solid rgba(200, 184, 160, 0.06);
-}
-
-/* Country hero header */
-.country-hero {
-  height: 58vh;
-  min-height: 340px;
-  display: flex;
-  align-items: center;
-  padding: 0 80px;
-  position: relative;
-  overflow: hidden;
-}
-
-.country-hero__content {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  position: relative;
-  z-index: 2;
-}
-
-.country-hero__number {
-  font-size: 0.68rem;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-family: var(--font-body);
-}
-
-.country-hero__name {
-  font-family: var(--font-heading);
-  font-size: clamp(3.5rem, 7.5vw, 6.5rem);
-  font-weight: 400;
-  color: var(--text);
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.country-hero__meta {
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-/* Large decorative watermark number */
-.country-hero__watermark {
-  position: absolute;
-  right: 80px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-heading);
-  font-size: clamp(8rem, 18vw, 16rem);
-  font-weight: 400;
-  color: rgba(200, 184, 160, 0.04);
-  line-height: 1;
-  user-select: none;
-  pointer-events: none;
-  letter-spacing: -0.04em;
-}
-
-/* City strips */
-.city-strips {
-  padding: 0 80px 80px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.city-strip {
-  display: block;
-  position: relative;
-  height: 152px;
-  overflow: hidden;
-  text-decoration: none;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.city-strip:hover {
-  transform: translateX(6px);
-}
-
-.city-strip__bg {
-  position: absolute;
-  inset: 0;
-  background-color: #181614;
-  background-size: cover;
-  background-position: center;
-  transition: filter 0.45s ease, transform 0.45s ease;
-  filter: brightness(0.25);
-}
-
-.city-strip:hover .city-strip__bg {
-  filter: brightness(0.42);
-  transform: scale(1.025);
-}
-
-.city-strip__content {
-  position: relative;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 40px;
-  border-bottom: 1px solid rgba(200, 184, 160, 0.05);
-}
-
-.city-strip__left {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.city-strip__name {
-  font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 3vw, 2.5rem);
-  font-weight: 400;
-  color: rgba(228, 221, 212, 0.88);
-  line-height: 1;
-  letter-spacing: -0.01em;
-  transition: color 0.3s;
-}
-
-.city-strip:hover .city-strip__name {
-  color: var(--text);
-}
-
-.city-strip__meta {
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  transition: color 0.3s;
-}
-
-.city-strip:hover .city-strip__meta {
-  color: var(--accent);
-}
-
-.city-strip__arrow {
-  font-size: 1.3rem;
-  color: rgba(168, 144, 112, 0.28);
-  transition: color 0.3s, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  flex-shrink: 0;
-}
-
-.city-strip:hover .city-strip__arrow {
-  color: var(--accent);
-  transform: translateX(8px);
-}
-
-/* ===== CARD DECK — Scroll-locked stacked cards ===== */
-
-.deck-container {
-  position: relative;
-  /* Warm amber-brown fade — lighter rich tone at top, deep warm dark at bottom */
-  background: linear-gradient(to bottom, #c8bfb2 0%, #bcaf9c 30%, #b0a088 60%, #a89070 100%);
-}
-
-/* Sticky viewport — NO overflow hidden so cards can fly off the top */
-.deck-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Dark gradient overlay at top — opposite to background, keeps counter readable */
-.deck-sticky::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 200px;
-  background: linear-gradient(to bottom, rgba(20, 15, 10, 0.55) 0%, transparent 100%);
-  pointer-events: none;
-  z-index: 5;
-}
-
-/* ── Counter — top left ── */
-.deck-counter {
-  position: absolute;
-  top: 72px;
-  left: 52px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 10;
-}
-
-.deck-counter__current {
-  font-family: var(--font-heading);
-  font-size: 1.8rem;
-  font-weight: 400;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.deck-counter__sep {
-  display: block;
-  width: 28px;
-  height: 1px;
-  background: rgba(200, 184, 160, 0.35);
-}
-
-.deck-counter__total {
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  color: rgba(200, 184, 160, 0.55);
-  letter-spacing: 0.06em;
-}
-
-/* ── City label — bottom left ── */
-.deck-label {
-  position: absolute;
-  bottom: 40px;
-  left: 52px;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.deck-label__country {
-  display: block;
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.6));
-  margin-bottom: 6px;
-}
-
-.deck-label__city {
-  font-family: var(--font-heading);
-  font-size: clamp(1.5rem, 2.5vw, 2.2rem);
-  font-weight: 400;
-  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55));
-  letter-spacing: -0.01em;
-  line-height: 1;
-}
-
-/* ── Scroll hint ── */
-.deck-hint {
-  position: absolute;
-  bottom: 40px;
-  right: 52px;
-  font-size: 0.62rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(200, 184, 160, 0.45);
-  z-index: 10;
-  pointer-events: none;
-}
-
-/* ── The stack itself ── */
-.deck-stack {
-  position: relative;
-  /* Postcard proportions: 3:2 (6×4 inches) */
-  width: min(50vw, calc(68vh * (3 / 2)));
-  aspect-ratio: 3 / 2;
-  /* Fade in after 200ms — gives browser time to restore scroll and framer motion
-     time to apply correct card transforms, preventing wrong-card flash on refresh */
-  animation: deck-fadein 0.25s ease-out 0.2s both;
-}
-
-@keyframes deck-fadein {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* ── Individual card ── */
-.deck-card {
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  will-change: transform;
-  /* box-shadow lives here so it follows the transform */
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.55),
-    0 1px 4px rgba(0, 0, 0, 0.4);
-}
-
-.deck-card__inner {
-  display: block;
-  width: 100%;
-  height: 100%;
-  position: relative;
-  text-decoration: none;
-  color: inherit;
-  /* clip-path instead of overflow:hidden — GPU-composited, no corner flicker */
-  border-radius: 14px;
-  clip-path: inset(0 round 14px);
-}
-
-/* Full-bleed background photo */
-.deck-card__photo {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  background-color: var(--bg-secondary);
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.deck-card__inner:hover .deck-card__photo {
-  transform: scale(1.03);
-}
-
-/* Subtle fade only at the very bottom for text legibility */
-.deck-card__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.0)  0%,
-    rgba(0, 0, 0, 0.0)  60%,
-    rgba(0, 0, 0, 0.45) 100%
-  );
-}
-
-/* Top row */
-.deck-card__top {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.deck-card__country-tag {
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(228, 221, 212, 0.9);
-  background: rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 5px 13px;
-  border-radius: 20px;
-  border: 1px solid rgba(200, 184, 160, 0.22);
-}
-
-.deck-card__year {
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  color: #ffffff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-}
-
-/* Bottom content */
-.deck-card__bottom {
-  position: absolute;
-  bottom: 26px;
-  left: 26px;
-  right: 26px;
-}
-
-.deck-card__name {
-  font-family: var(--font-heading);
-  font-size: clamp(1.9rem, 3.2vw, 2.8rem);
-  font-weight: 400;
-  color: var(--text);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
-}
-
-.deck-card__count {
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  color: rgba(228, 221, 212, 0.38);
-  text-transform: uppercase;
-}
-
 /* ===== GALLERY PAGE ===== */
 
 .gallery-page {
@@ -2356,39 +1815,25 @@
   margin-bottom: 8px;
 }
 
+/* Subtitle + tally share a row so the tally reads as page-level metadata
+   ("Gallery — how many photos"), never competing with the filter pills
+   below for space. wrap so a long tally on a narrow screen drops to its
+   own line instead of forcing the subtitle to truncate. */
+.gallery-page__subrow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
 .gallery-page__sub {
   font-size: 0.9rem;
   color: var(--text-muted);
   letter-spacing: 0.06em;
 }
 
-/* ── Filter nav ── */
-.gallery-filter {
-  margin-bottom: 48px;
-}
-
-/* Each row scrolls independently on small screens */
-.gallery-filter__row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 4px;
-  width: max-content;
-  max-width: 100%;
-}
-.gallery-filter__row::-webkit-scrollbar { display: none; }
-
-/* Row 1 stretches full width so tally can sit at far right */
-.gallery-filter__row--main {
-  width: 100%;
-}
-
-/* Tally counter — floated to the right of Row 1 */
-.gallery-filter__tally {
-  margin-left: auto;
+.gallery-page__tally {
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   font-family: var(--font-mono);
@@ -2396,9 +1841,21 @@
      dropped this count to 2.97. The tally is data, so it keeps the accent. */
   color: var(--accent);
   white-space: nowrap;
-  pointer-events: none;
-  align-self: center;
-  padding-left: 16px;
+}
+
+/* ── Filter nav ──
+   Pills wrap rather than scroll: a filter list you can't see all of at
+   once isn't really a filter. Nothing here needs a scroll container or a
+   hidden-scrollbar hack any more. */
+.gallery-filter {
+  margin-bottom: 48px;
+}
+
+.gallery-filter__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
 }
 
 /* Sub-row (city row) — indent + accent border signal hierarchy */
@@ -2410,6 +1867,23 @@
 .gallery-filter__row--sub .gallery-filter__pill {
   font-size: 0.7rem;
   padding: 4px 13px;
+}
+/* Chunking, not truncation: China and Japan already sit at 6 cities in
+   one flat row — over the working ≤4-per-group guideline, flagged across
+   every critique run this project has had. Hiding cities behind a "show
+   more" would cost a prospective client an extra tap just to see the
+   full range PRODUCT.md wants them to skim fast; a fabricated category
+   (there's no real sub-region or theme these cities share) would be
+   worse than the flat list it's replacing. This is pure Gestalt
+   proximity instead — the same reason a phone number reads as 555-0100
+   rather than 5550100 — extra space every 4th pill breaks one row of 6
+   into a cluster of 4 and a cluster of 2 with nothing hidden and nothing
+   invented. Paired with the sort above so the first cluster is always
+   the country's most substantial collections, not whatever order
+   cities.js happens to list them in. Stays correct as more cities are
+   added: 9 cities becomes 4/4/1, not one growing unbroken row. */
+.gallery-filter__row--sub .gallery-filter__pill:nth-child(4n + 1):not(:first-child) {
+  margin-left: 16px;
 }
 
 .gallery-filter__divider {
@@ -2441,6 +1915,15 @@
   border-color: var(--glass-border);
 }
 
+/* Was falling back to the browser's raw default outline — every other
+   focusable control on this page (.gallery-item, .photo-lightbox__close/
+   prev/next) already uses this exact treatment; the primary control on
+   the page was the one place still off-brand. */
+.gallery-filter__pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .gallery-filter__pill--active {
   color: var(--accent-light);
   border-color: var(--accent);
@@ -2454,45 +1937,73 @@
   pointer-events: none;
 }
 
-/* ── Photo grid (CSS grid mosaic) ── */
-/* max-width caps the widest cell at ~794px (4 cols, landscape spans 2), which
-   is what the 800px thumbnail tier is sized for. Without a cap, cells grow
-   unbounded on ultrawide monitors and no thumbnail size would be correct. */
+/* Touch target size, keyed to input method rather than viewport width — a
+   touchscreen laptop or a tablet in landscape needs this as much as a
+   phone does, and a narrow desktop window with a mouse doesn't need it at
+   all. Measured before this: 28px tall main pills, smaller still on the
+   sub-row, well under comfortable touch size. Placed after the base pill
+   rules deliberately: equal specificity means source order decides, and a
+   copy of this sitting earlier in the file was silently losing every time. */
+@media (pointer: coarse) {
+  /* Tight enough that "All | China Japan South Korea" (4 items, a bounded
+     list — there won't ever be many countries) fits on one line at 375px.
+     Measured, not guessed: 409px of content against 335px available before
+     this pass. The pill padding + row gap alone closed most of it but still
+     overflowed by ~2px — the divider's own 8px side margins (separate from
+     the row's gap, since it's a flex item with margin of its own) were the
+     remainder. Vertical pill padding is untouched on purpose — that's what
+     sets the touch-target height, and shrinking it back down would undo
+     the target-size fix from before. */
+  .gallery-filter__row { gap: 10px 6px; }
+  .gallery-filter__pill { padding: 12px 10px; }
+  .gallery-filter__row--sub .gallery-filter__pill { padding: 10px 12px; }
+  .gallery-filter__divider { margin: 0 4px; }
+
+  /* Same gap, same fix: measured at 16px tall against the 44px contact
+     button beside it. Padding only, no border/background added — it
+     stays visually "quieter" than the primary action, just harder to
+     miss with a thumb. .ap-actions already has 28px of gap and centers
+     its children, so the extra invisible padding doesn't crowd the
+     button next to it. */
+  .ap-social-link { padding: 14px 0; margin: -14px 0; }
+}
+
+/* ── Photo grid — two genuinely different designs, not one responsive
+   scale of the same design ──
+   Below 900px (phone and tablet): a dense, uncaptioned square wall,
+   iPhone-Photos-style — many thumbnails at a glance, tap in for detail.
+   That's the base ruleset here, mobile-first. At and above 900px
+   (desktop): the original mosaic, restored below — landscape photos run
+   wider than portraits, true to each photo's own proportions, with the
+   city/country named on hover. Kept at 900px specifically because that's
+   already the sitewide "give this touch-first layout instead of the
+   desktop one" threshold (see Home.jsx's Frames section). */
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-flow: dense;
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
   max-width: 1600px;
   margin: 0 auto;
 }
+@media (min-width: 481px) and (max-width: 900px) {
+  .gallery-grid { grid-template-columns: repeat(4, 1fr); }
+}
 
-@media (max-width: 900px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px) { .gallery-grid { grid-template-columns: 1fr 1fr; } }
-
+/* A real <button> (was a div with a click handler — unreachable by
+   keyboard). display:block + full width/height + padding:0 undo the native
+   button box model so it still fills its grid cell exactly as the div did. */
 .gallery-item {
   position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
   overflow: hidden;
-  border-radius: 8px;
   cursor: zoom-in;
 }
-
-.gallery-item--landscape {
-  grid-column: span 2;
-  aspect-ratio: 3 / 2;
-}
-
-.gallery-item--portrait {
-  grid-column: span 1;
-  aspect-ratio: 3 / 4;
-}
-
-@media (max-width: 480px) {
-  .gallery-item--landscape,
-  .gallery-item--portrait {
-    grid-column: span 2;
-    aspect-ratio: 3 / 2;
-  }
+.gallery-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .gallery-item img {
@@ -2507,34 +2018,148 @@
   transform: scale(1.04);
 }
 
-.gallery-item__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
-  opacity: 0;
-  transition: opacity 0.3s;
+/* Rendered in the DOM at every width (see the JSX comment on the overlay)
+   but only ever shown at 900px+, where the mosaic below reveals it. */
+.gallery-item__overlay { display: none; }
+
+/* ── Desktop (900px+): the original mosaic, captions on hover ── */
+@media (min-width: 901px) {
+  .gallery-grid {
+    grid-template-columns: repeat(4, 1fr);
+    /* Without dense, the default sparse auto-flow leaves a cell empty
+       whenever a 2-wide landscape item doesn't fit the row's remaining
+       columns, instead of letting a later, narrower item backfill it —
+       that's the gap on the right of rows in the mosaic. Dropped when this
+       block was rewritten for the square mobile grid (which never needs
+       it, every cell there is the same size) and never restored when the
+       mosaic came back for desktop. */
+    grid-auto-flow: dense;
+    gap: 10px;
+  }
+  .gallery-item {
+    aspect-ratio: unset;
+    border-radius: 8px;
+  }
+  .gallery-item:focus-visible {
+    outline-offset: 2px;
+  }
+  .gallery-item--landscape {
+    grid-column: span 2;
+    aspect-ratio: 3 / 2;
+  }
+  .gallery-item--portrait {
+    grid-column: span 1;
+    aspect-ratio: 3 / 4;
+  }
+  .gallery-item__overlay {
+    display: flex;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 16px;
+  }
+  .gallery-item:hover .gallery-item__overlay,
+  .gallery-item:focus-visible .gallery-item__overlay {
+    opacity: 1;
+  }
+  /* Same problem the navbar links already solved: light text sitting over
+     an arbitrary photograph rather than a fixed surface. The overlay's
+     own gradient (0.6-alpha black, darkest right where this text sits)
+     carries most of the contrast, but measured against a genuinely
+     bright, sky-heavy frame it can still land close to the 4.5:1 floor —
+     the same navbar text-shadow value reused here, not a new one invented
+     for this element, keeps the whole site's answer to this problem in
+     one place. */
+  .gallery-item__city,
+  .gallery-item__country {
+    text-shadow: 0 1px 3px rgba(10, 9, 8, 0.55);
+  }
+  .gallery-item__city {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    /* Was a hardcoded #fff (flagged in the last audit as token drift) —
+       fixed while this block was already being rewritten. */
+    color: var(--text);
+  }
+  .gallery-item__country {
+    /* Was 0.68rem = 10.88px, under the 11px functional-text floor —
+       detector-confirmed on every one of the 129 tiles. 0.72rem matches
+       .photo-lightbox__caption, the same "city/country tag on a photo"
+       role this page's own lightbox already uses, rather than picking a
+       new arbitrary value for what's functionally the same role. */
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-top: 2px;
+  }
+}
+
+/* ── Grid dividers — city/country transitions in the "All"/country view ──
+   A full-span grid item (grid-column: 1 / -1) breaks the dense-packed flow
+   at a real content boundary, so scrolling the wall still carries "the
+   journey is the organizing idea" instead of losing it the moment a
+   visitor stops hovering a tile. Works unchanged across every breakpoint —
+   the column count differs, "span every column" doesn't. Two tiers:
+   country (major, only the true "All" view ever spans more than one) and
+   city (minor, whenever the current view spans more than one city). Never
+   rendered once a single city is selected — the active filter pill already
+   says where you are. Not aria-hidden: a keyboard/screen-reader visitor
+   tabbing through gets the same "where am I" cue a sighted visitor reads
+   at a glance, since every photo's own aria-label is just its alt text
+   with no place name in it. */
+.gallery-divider {
+  grid-column: 1 / -1;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 16px;
+  align-items: baseline;
+  gap: 14px;
+  padding: 28px 4px 14px;
+  border-top: 1px solid var(--glass-border);
+  margin-top: 4px;
 }
-
-.gallery-item:hover .gallery-item__overlay {
-  opacity: 1;
+.gallery-divider:first-child {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
 }
-
-.gallery-item__city {
+.gallery-divider--country {
+  padding-top: 44px;
+}
+.gallery-divider--country:first-child {
+  padding-top: 0;
+}
+.gallery-divider__country {
+  /* h2 now (was a span) for screen-reader heading navigation — reset the
+     browser default block margin so it behaves as a plain flex item like
+     the rest of this row, not a document heading with its own spacing. */
+  margin: 0;
   font-family: var(--font-heading);
-  font-size: 1.1rem;
-  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--text);
 }
-
-.gallery-item__country {
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
+.gallery-divider__city {
+  margin: 0;
+  /* h3's UA-stylesheet default is bold — this was a plain span before and
+     needs to stay the same visual weight it always had. */
+  font-weight: 400;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--text-muted);
+}
+.gallery-divider--country .gallery-divider__city {
   color: var(--accent-light);
-  margin-top: 2px;
+}
+@media (max-width: 480px) {
+  .gallery-divider { padding: 20px 2px 10px; gap: 10px; }
+  .gallery-divider--country { padding-top: 32px; }
+  .gallery-divider--country:first-child { padding-top: 0; }
+  .gallery-divider__country { font-size: 1.05rem; }
 }
 
 /* ── Empty state ── */
@@ -2553,14 +2178,6 @@
    RESPONSIVE — Tablet (≤ 1024px)
    ===================================================== */
 @media (max-width: 1024px) {
-  /* Card deck */
-  .deck-stack {
-    width: min(72vw, calc(68vh * (16 / 9)));
-  }
-
-  .deck-counter { left: 32px; }
-  .deck-label   { left: 32px; bottom: 32px; }
-  .deck-hint    { right: 32px; bottom: 32px; }
 
   /* Gallery */
   .gallery-page { padding: 100px 36px 60px; }
@@ -2582,44 +2199,6 @@
     right: 14px;
   }
 
-  /* Hero */
-  .showcase__hero { padding-top: 70px; }
-  .showcase__name { font-size: clamp(2.6rem, 11vw, 5rem); }
-  .showcase__sub  { font-size: 1rem; max-width: 320px; }
-  .showcase__tagline { font-size: 0.8rem; }
-
-  .showcase__hero-meta {
-    bottom: 28px;
-    font-size: 0.62rem;
-    gap: 12px;
-  }
-
-  .showcase__scroll-indicator { bottom: 56px; }
-
-  /* Card deck — full-width card on mobile */
-  .deck-stack {
-    width: 88vw;
-    aspect-ratio: 3 / 2;
-  }
-
-  .deck-counter {
-    top: 64px;
-    left: 20px;
-  }
-  .deck-counter__current { font-size: 1.4rem; }
-
-  .deck-label {
-    left: 20px;
-    bottom: 24px;
-  }
-  .deck-label__city { font-size: clamp(1.2rem, 5vw, 1.8rem); }
-
-  .deck-hint { right: 20px; bottom: 24px; }
-
-  .deck-card__name { font-size: clamp(1.4rem, 5.5vw, 2rem); }
-  .deck-card__top  { top: 14px; left: 14px; right: 14px; }
-  .deck-card__bottom { bottom: 18px; left: 18px; right: 18px; }
-
   /* Gallery */
   .gallery-page { padding: 88px 20px 48px; }
   .gallery-page__title { font-size: clamp(1.8rem, 8vw, 2.4rem); }
@@ -2633,13 +2212,6 @@
    ===================================================== */
 @media (max-width: 480px) {
   .navbar { padding: 12px 16px; }
-
-  .deck-stack {
-    width: 92vw;
-    aspect-ratio: 3 / 2;
-  }
-
-  .showcase__name { font-size: clamp(2.2rem, 12vw, 3.5rem); }
 }
 
 /* =====================================================
@@ -2657,224 +2229,7 @@
   }
 }
 
-/* =====================================================
-   REEL — Cinematic scroll landing (4 acts)
-   ===================================================== */
-
-/* Each act = 220vh of scroll, sticky inner = 100vh viewport.
- * The 120vh "scrub zone" (act height - pin height) is where the timeline plays.
- * IMPORTANT: no overflow on the outer act — that would break position:sticky. */
-
-/* ── Act 1: Viewfinder ─────────────────────────────────── */
-
-/* Centre: name + tagline stack */
-
-/* Scroll hint at bottom */
-
-/* ── Act 2: The Journey (map + counter) ──────────────── */
-
-/* Counter anchor — CSS handles centering, GSAP animates the inner element only */
-
-/* Globe in passive mode — strip chrome */
-
-/* Pin drop animation (used in passive mode) */
-
-/* ── Act 3: The Contact Sheet ─────────────────────────── */
-
-/* Sticky pin: the sheet and stage live on a fixed 100vh stage */
-
-/* ── The sheet ── */
-
-/* The sheet is CENTRED at rest — that's the "here is the whole body of work"
-   moment at the start and end of the act. GSAP slides it left only while a
-   select is enlarged, so the two sit side by side. Both offsets are computed
-   from real widths at runtime (see layoutShift in Act3Work.jsx) rather than
-   hard-coded here, so the pair stays balanced at any viewport width. */
-.sheet {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-/* grid-template-columns is set inline from COLUMNS in Act3Work.jsx — it scales
-   with the pool size so the sheet never outgrows the pin. */
-.sheet__grid {
-  display: grid;
-  gap: clamp(5px, 0.7vw, 11px);
-  width: clamp(300px, 26vw, 460px);
-  max-height: 72vh;
-  will-change: transform;
-}
-
-.sheet__cell {
-  position: relative;
-  margin: 0;
-  aspect-ratio: 3 / 2;
-  cursor: zoom-in;
-  background: #16140f;
-}
-.sheet__cell img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;     /* uniform frames — that's what a contact sheet is */
-  display: block;
-}
-
-/* Frame number, bottom-left on the frame itself */
-.sheet__num {
-  position: absolute;
-  left: 5px;
-  bottom: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.12em;
-  color: rgba(240, 228, 208, 0.72);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-  pointer-events: none;
-}
-
-/* Select marker — GSAP fades opacity in sync with the enlargement */
-.sheet__mark {
-  position: absolute;
-  inset: -3px;
-  border: 1px solid var(--accent);
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* ── The stage: enlarged selects ── */
-
-.sheet__stage {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-}
-
-/* Rests centred like the sheet; GSAP shifts it right while active. */
-.sheet__frame {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: clamp(420px, 50vw, 900px);
-  height: 72vh;
-  opacity: 0;
-  visibility: hidden;     /* GSAP autoAlpha owns this — prevents a pre-init flash */
-  pointer-events: auto;
-  cursor: zoom-in;
-  will-change: transform, opacity;
-}
-.sheet__frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;    /* portraits show whole — no forced 3:2 crop */
-  display: block;
-  filter: drop-shadow(0 30px 70px rgba(0, 0, 0, 0.7));
-}
-
-.sheet__frame-exif {
-  position: absolute;
-  left: 0;
-  bottom: -10px;
-  opacity: 0.9;
-}
-
-/* ── Outro link ── */
-
-.sheet__cta {
-  position: absolute;
-  left: 50%;
-  bottom: 54px;
-  transform: translateX(-50%);
-  z-index: 8;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 22px;
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent);
-  border: 1px solid rgba(200, 168, 120, 0.5);
-  border-radius: 3px;
-  opacity: 0;
-  visibility: hidden;
-  transition: background 0.22s, color 0.22s, border-color 0.22s;
-}
-.sheet__cta svg { width: 15px; height: 15px; transition: transform 0.22s; }
-.sheet__cta:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #111110;
-}
-.sheet__cta:hover svg { transform: translateX(4px); }
-
-/* ── Act 4: The Destination (CTA tiles) ───────────────── */
-
-.cta-tile {
-  position: relative;
-  display: block;
-  aspect-ratio: 3 / 4;
-  border-radius: 6px;
-  overflow: hidden;
-  isolation: isolate;
-  transition: transform 0.32s ease, box-shadow 0.32s ease;
-  will-change: transform;
-}
-.cta-tile:hover { transform: translateY(-6px); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); }
-.cta-tile__bg {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  transition: transform 0.6s ease;
-}
-.cta-tile:hover .cta-tile__bg { transform: scale(1.08); }
-.cta-tile__shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg,
-    rgba(0, 0, 0, 0.15) 0%,
-    rgba(0, 0, 0, 0.45) 55%,
-    rgba(0, 0, 0, 0.88) 100%);
-  transition: opacity 0.32s;
-}
-.cta-tile:hover .cta-tile__shade { opacity: 0.85; }
-.cta-tile__body {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  color: #f4ece1;
-}
-.cta-tile__label {
-  font-family: var(--font-heading);
-  font-size: clamp(1.4rem, 2.4vw, 2rem);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-}
-.cta-tile__sub {
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  color: rgba(228, 221, 212, 0.7);
-  margin-bottom: 8px;
-}
-.cta-tile__arrow {
-  width: 22px;
-  height: 22px;
-  align-self: flex-start;
-  transition: transform 0.32s ease;
-}
-.cta-tile:hover .cta-tile__arrow { transform: translateX(6px); }
-
-/* ── PhotoLightbox (shared by Act 3 and Gallery) ─────────── */
+/* ── PhotoLightbox (shared by the homepage Frames strip and Gallery) ── */
 
 .photo-lightbox {
   position: fixed;
@@ -2887,6 +2242,15 @@
   justify-content: center;
   padding: 60px 80px;
   cursor: zoom-out;
+}
+
+/* display:contents on desktop: the wrapper exists in the DOM (so mobile
+   below can turn it into a real scroll container) but takes itself out
+   of the box tree entirely here, so .photo-lightbox__img-wrap and
+   .photo-lightbox__exif lay out exactly as if they were still direct
+   flex children of .photo-lightbox — no desktop behavior changes. */
+.photo-lightbox__content {
+  display: contents;
 }
 
 .photo-lightbox__img-wrap {
@@ -2950,13 +2314,13 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 50%;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 1.05rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
+.photo-lightbox__close svg { width: 16px; height: 16px; }
 .photo-lightbox__close:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.35);
@@ -2975,16 +2339,25 @@
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 50%;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 1.8rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.2s ease, border-color 0.2s ease;
-  line-height: 1;
 }
+.photo-lightbox__prev svg,
+.photo-lightbox__next svg { width: 22px; height: 22px; }
 .photo-lightbox__prev { left: 24px; }
 .photo-lightbox__next { right: 24px; }
+/* Focus-visible matches the site's established treatment elsewhere (footer
+   socials, About's actions) instead of falling back to the browser default
+   the way these three buttons previously did. */
+.photo-lightbox__close:focus-visible,
+.photo-lightbox__prev:focus-visible,
+.photo-lightbox__next:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .photo-lightbox__prev:hover,
 .photo-lightbox__next:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -3013,27 +2386,148 @@
   text-transform: uppercase;
 }
 
-/* Mobile */
+/* Mobile — img and exif form one composed unit, not two disconnected
+   pieces ──
+   The desktop version pins .photo-lightbox__exif to a fixed screen
+   corner, which reads fine there because the photo fills most of the
+   viewport and the corner ends up sitting near it anyway. On mobile the
+   photo can't: a landscape photo is width-capped by a viewport this
+   narrow, and that caps its height too — that's the image's own aspect
+   ratio doing arithmetic, not a bug, and no max-height number changes it.
+   What WAS a bug: with the photo small and vertically centered by the
+   base rule's flex-centering while the EXIF card stayed independently
+   pinned to the bottom corner, a landscape photo left ~150px of dead,
+   unrelated black space between itself and its own caption. Taking exif
+   out of position:absolute and into normal flow right after the image —
+   same DOM order already — closes that gap and centers the pair as one
+   block instead of centering the photo alone against a corner-pinned
+   afterthought.
+
+   The scroll-safety-net and flex-column behavior live on
+   .photo-lightbox__content, not .photo-lightbox itself, on purpose:
+   .photo-lightbox has backdrop-filter, which makes it the containing
+   block for any position:fixed descendant, not just position:absolute
+   ones — so if IT were the scroll container, the counter/close/prev/next
+   buttons would scroll away with the content regardless of which
+   position value they used. Scrolling a separate inner wrapper instead
+   means those buttons, which stay outside it in the DOM, never move. */
 @media (max-width: 768px) {
-  .photo-lightbox { padding: 40px 12px; }
-  .photo-lightbox__img { max-width: 96vw; max-height: 70vh; }
+  .photo-lightbox { padding: 24px 12px; }
+  .photo-lightbox__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    max-height: 100%;
+    /* Safety net, not the normal case: budgeted below so a typical photo
+       + EXIF card never needs it. Guards only the edge case where a tall
+       portrait photo lands beside unusually long EXIF/caption text. */
+    overflow-y: auto;
+    /* Was vertically centered (the parent's align-items:center) — a
+       landscape photo is width-capped by the viewport (a 3:2 image can't
+       exceed ~240px tall at 96vw of a 375px screen; that's the image's
+       own aspect ratio, no CSS number changes it), so centering the whole
+       block in the full viewport height left it reading as a small photo
+       adrift in a void even after the earlier fix closed the dead space
+       *within* the block. Anchoring to the top instead means the photo is
+       the first thing seen, right below the counter, rather than a small
+       island floating dead-center — the same absolute pixels, but placed
+       like a considered composition instead of a centered afterthought.
+       44px clears the counter/close row (bottom edge at 24+44=68px vs.
+       their own ~54px). */
+    align-self: flex-start;
+    margin-top: 44px;
+  }
+  /* 62vh leaves ~240px of guaranteed room below for gap + EXIF card even
+     on the shortest supported viewport height, without needlessly
+     shrinking portrait photos below where their own width cap (96vw)
+     already lands them — measured: a 2:3 portrait at 96vw of 375px comes
+     to 480px tall, comfortably under 62vh (503px), so this is strictly a
+     landscape-photo change; portrait sizing is untouched. */
+  .photo-lightbox__img { max-width: 96vw; max-height: 62vh; }
   .photo-lightbox__corner { width: 18px; height: 18px; }
   .photo-lightbox__corner--tl { top: -9px;    left: -9px; }
   .photo-lightbox__corner--tr { top: -9px;    right: -9px; }
   .photo-lightbox__corner--bl { bottom: -9px; left: -9px; }
   .photo-lightbox__corner--br { bottom: -9px; right: -9px; }
+  /* A near-transparent 16%-opacity outline reads fine over a large
+     desktop photo — floating chrome outside the image most of the time.
+     On mobile the photo fills the frame edge to edge, so that same
+     outline sits directly over the photograph with nothing behind it —
+     not visible in practice, confirmed in the last critique. A solid
+     chip matching .photo-lightbox's own backdrop-filter material (not a
+     new one) gives it real presence against any photo, bright or dark. */
+  .photo-lightbox__prev,
+  .photo-lightbox__next,
+  .photo-lightbox__close {
+    background: rgba(10, 9, 8, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-color: rgba(255, 255, 255, 0.32);
+  }
   .photo-lightbox__prev,
   .photo-lightbox__next { width: 40px; height: 40px; font-size: 1.4rem; }
   .photo-lightbox__prev { left: 8px; }
   .photo-lightbox__next { right: 8px; }
   .photo-lightbox__exif {
-    bottom: 12px;
-    left: 12px;
-    right: 12px;
+    position: static;
+    width: 100%;
     max-width: none;
+    flex-shrink: 0;
   }
+  /* DOM order stays (card, caption, toggle) — same markup drives desktop
+     and mobile. Reordered visually here so the caption and the toggle
+     read first, with the card (now collapsed by default) appearing below
+     the toggle once opened, rather than leading with detail the tap
+     hasn't been made for yet. */
+  .photo-lightbox__exif .exif-card { order: 3; margin-top: 10px; }
+  .photo-lightbox__caption { order: 1; }
+  .photo-lightbox__exif-toggle { order: 2; }
   .photo-lightbox__counter { top: 16px; font-size: 0.74rem; }
-  .photo-lightbox__close { top: 12px; right: 12px; width: 34px; height: 34px; }
+  /* Was 34×34 — under comfortable touch size, smaller than prev/next
+     (40×40) right beside it, on the control that matters most when
+     someone wants out of a full-screen view. */
+  .photo-lightbox__close { top: 10px; right: 10px; width: 44px; height: 44px; }
+  .photo-lightbox__close svg { width: 18px; height: 18px; }
+
+  /* "Shooting info" toggle — same quiet, mono-caps treatment as the
+     caption beside it, distinguished by the accent color already used
+     for interactive text sitewide rather than a new material. Padding +
+     matching negative margin expand the tap area without growing the
+     visible control, same technique as .ap-social-link elsewhere in this
+     file — real vertical space isn't free here. */
+  .photo-lightbox__exif-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 10px 0;
+    margin-bottom: -10px;
+    background: none;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    cursor: pointer;
+  }
+  .photo-lightbox__exif-toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .photo-lightbox__exif-toggle-icon {
+    width: 10px;
+    height: 10px;
+    transition: transform 0.2s ease;
+  }
+  /* Right-chevron rotated: points down at rest ("more below"), up once
+     expanded ("collapse it") — the same glyph already drawn for Prev/
+     Next, no second icon to draw or import. */
+  .photo-lightbox__exif-toggle-icon { transform: rotate(90deg); }
+  .photo-lightbox__exif-toggle[aria-expanded="true"] .photo-lightbox__exif-toggle-icon {
+    transform: rotate(-90deg);
+  }
 }
 
 /* ── ExifCard (reusable) ──────────────────────────────── */
@@ -3066,11 +2560,17 @@
 .exif-card--compact .exif-card__row { font-size: 0.62rem; }
 .exif-card__label {
   flex-shrink: 0;
-  font-size: 0.55rem;
+  /* Was 0.55rem = 8.8px, under the 11px functional-text floor already
+     enforced elsewhere on the gallery page (.gallery-item__country) —
+     the smallest text on the site, inside the element PRODUCT.md calls
+     "part of the work's credibility." min-width bumped to match: at the
+     old size 28px fit CAM/LNS/EXP with room to spare; at this size it
+     doesn't quite. */
+  font-size: 0.7rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--accent);
-  min-width: 28px;
+  min-width: 34px;
 }
 .exif-card__val {
   letter-spacing: 0.04em;
@@ -3082,106 +2582,15 @@
   padding-top: 6px;
   border-top: 1px solid rgba(228, 221, 212, 0.06);
   color: var(--text-muted);
-  font-size: 0.62rem;
+  /* Was 0.62rem = 9.92px — same floor violation as the label above, same
+     component, same fix; unified to the main row's own size rather than
+     a third distinct value. */
+  font-size: 0.7rem;
   justify-content: space-between;
 }
 .exif-card--compact .exif-card__row--muted { font-size: 0.58rem; }
 .exif-card__loc { color: var(--accent); letter-spacing: 0.05em; }
 .exif-card__date { color: var(--text-muted); letter-spacing: 0.06em; }
-
-/* ── Reduced motion fallback ──────────────────────────── */
-
-@media (prefers-reduced-motion: reduce) {
-  /* Acts become full-viewport stills with scroll-snap */
-  
-  
-  /* All HUD elements at default opacity, no scroll-driven anims */
-  
-  
-  
-  
-  
-  
-
-  /* Act 3 collapses to a static sheet — the timeline never runs */
-  
-  
-  .sheet { position: relative; inset: auto; padding: 96px 24px 32px; }
-  .sheet__grid { margin: 0 auto; }
-  .sheet__cell { opacity: 1 !important; }
-  .sheet__stage { display: none; }
-  
-  .sheet__cta {
-    position: relative; left: auto; bottom: auto; transform: none;
-    margin: 0 auto 56px; opacity: 1 !important; visibility: visible !important;
-  }
-}
-
-/* ── Reel — Tablet (≤ 1024px) ─────────────────────────── */
-
-@media (max-width: 1024px) {
-  
-          /* 4 selects, slightly tighter on tablet */
-  
-  .sheet__grid { width: min(60vw, 520px); }
-  .sheet__frame { width: min(84vw, 900px); height: 70vh; }
-}
-
-/* ── Reel — Mobile (≤ 768px) ──────────────────────────── */
-
-@media (max-width: 768px) {
-  
-
-  /* Centre */
-  
-  
-  
-
-  /* Counter */
-  
-  
-  
-  
-
-  /* ── Act 3 on mobile: static tappable sheet, no pin, no scrubbing ── */
-  
-  
-  
-
-  /* Sheet flows in the page instead of centring in a pin */
-  .sheet {
-    position: relative;
-    inset: auto;
-    display: block;
-    padding: 0 20px 32px;
-  }
-  .sheet__grid {
-    width: 100%;
-    gap: 8px;
-  }
-  .sheet__cell { opacity: 1 !important; }   /* never dimmed without the timeline */
-
-  /* No enlargement stage on touch — the lightbox does that job */
-  .sheet__stage { display: none; }
-
-  .sheet__cta {
-    position: relative;
-    left: auto; bottom: auto;
-    transform: none;
-    display: inline-flex;
-    margin: 0 20px 56px;
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-
-  /* CTA tiles stack vertically */
-  
-  
-  .cta-tile { aspect-ratio: 16 / 7; }
-  
-}
-
-/* ── Reel — Small mobile (≤ 480px) ────────────────────── */
 
 /* =====================================================
    SCROLL PROGRESS BAR
@@ -3419,310 +2828,7 @@
   .footer__inner { padding: 0 24px; }
 }
 
-/* ===== FEATURED CAROUSEL ===== */
-
-.carousel {
-  padding: 72px 0 56px;
-  background: var(--bg);
-  overflow: hidden; /* clip peeking cards at section edges */
-}
-
-/* Header row: heading left, counter right — aligned to the card left edge */
-.carousel__header {
-  padding: 0 40px 28px;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.carousel__heading {
-  font-family: var(--font-heading);
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  color: var(--text);
-  margin: 0 0 6px;
-}
-
-.carousel__sub {
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.carousel__counter {
-  font-family: var(--font-heading);
-  font-size: 0.85rem;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.38);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.carousel__counter-current {
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 1.3rem;
-}
-
-.carousel__counter-sep {
-  display: block;
-  width: 20px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Track wrapper — relative so arrow buttons can be absolutely placed */
-.carousel__track-wrapper {
-  position: relative;
-}
-
-/* The horizontal scroll container */
-.carousel__track {
-  display: flex;
-  gap: 16px;
-  overflow-x: scroll;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x; /* ensure horizontal swipe works on mobile */
-  scrollbar-width: none;
-  /* Padding = (viewport - card) / 2 so each snapped card sits centred */
-  padding-inline: calc((100% - 44vw) / 2);
-  scroll-padding-inline: calc((100% - 44vw) / 2);
-}
-.carousel__track::-webkit-scrollbar { display: none; }
-
-/* Individual card — centred when snapped */
-.carousel__card {
-  flex-shrink: 0;
-  width: 44vw;
-  aspect-ratio: 3 / 2;
-  scroll-snap-align: center;
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-  cursor: grab;
-  will-change: opacity, transform;
-  transition: opacity 0.3s, transform 0.3s;
-}
-.carousel__card:active { cursor: grabbing; }
-
-.carousel__card-photo {
-  position: absolute;
-  inset: 0;
-}
-
-.carousel__card-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-/* Gradient so text stays readable */
-.carousel__card-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.68) 0%,
-    rgba(0, 0, 0, 0.12) 45%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
-/* City / country / year labels at bottom-left */
-.carousel__card-info {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 20px 22px;
-}
-
-.carousel__card-country {
-  display: block;
-  font-size: 0.62rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 6px;
-}
-
-.carousel__card-city {
-  font-family: var(--font-heading);
-  font-size: clamp(1.1rem, 2vw, 1.7rem);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.95);
-  margin: 0 0 4px;
-}
-
-.carousel__card-year {
-  font-size: 0.62rem;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.38);
-  text-transform: uppercase;
-}
-
-/* Controls group: sits in the header, right side */
-.carousel__controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-/* Arrow buttons — gradient strips anchored to card edges, no border/blur */
-.carousel__arrow {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  height: 100%;
-  transform: none;
-  z-index: 10;
-
-  width: 96px;
-  border: none;
-  border-radius: 0;
-  background: none; /* set per-side below */
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-
-  color: rgba(255, 255, 255, 0.88);
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  transition: opacity 0.25s ease, color 0.22s;
-}
-
-.carousel__arrow svg {
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-}
-
-/* Left arrow: gradient fades right-to-transparent from the card left edge */
-.carousel__arrow--left {
-  left: calc((100% - 44vw) / 2);
-  background: linear-gradient(to right, rgba(6, 6, 6, 0.58) 0%, transparent 100%);
-  justify-content: flex-start;
-  padding-left: 14px;
-}
-
-/* Right arrow: gradient fades left-to-transparent from the card right edge */
-.carousel__arrow--right {
-  right: calc((100% - 44vw) / 2);
-  background: linear-gradient(to left, rgba(6, 6, 6, 0.58) 0%, transparent 100%);
-  justify-content: flex-end;
-  padding-right: 14px;
-}
-
-.carousel__arrow:hover {
-  color: #fff;
-}
-
-.carousel__arrow:disabled {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Hide arrows while the track is scrolling */
-.carousel__track-wrapper--scrolling .carousel__arrow {
-  opacity: 0 !important;
-  pointer-events: none;
-  transition: opacity 0.08s ease;
-}
-
-/* Dot indicators */
-.carousel__dots {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
-  padding-top: 28px;
-}
-
-.carousel__dot {
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.22);
-  cursor: pointer;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              background 0.35s;
-  width: 6px;
-  border: none;
-  padding: 0;
-}
-
-.carousel__dot--active {
-  width: 22px;
-  background: rgba(255, 255, 255, 0.8);
-}
-
 /* Responsive — padding always = (100% - cardWidth) / 2 to keep card centred */
-@media (max-width: 900px) {
-  .carousel__card { width: 58vw; }
-  .carousel__track {
-    padding-inline: calc((100% - 58vw) / 2);
-    scroll-padding-inline: calc((100% - 58vw) / 2);
-  }
-  .carousel__arrow--left  { left:  calc((100% - 58vw) / 2); }
-  .carousel__arrow--right { right: calc((100% - 58vw) / 2); }
-}
-
-@media (max-width: 768px) {
-  .carousel__header { padding: 0 24px 20px; }
-  .carousel__card { width: 70vw; }
-  .carousel__track {
-    padding-inline: calc((100% - 70vw) / 2);
-    scroll-padding-inline: calc((100% - 70vw) / 2);
-  }
-  .carousel__arrow--left  { left:  calc((100% - 70vw) / 2); }
-  .carousel__arrow--right { right: calc((100% - 70vw) / 2); }
-  /* Slimmer gradient strip on mobile — swipe is primary, arrows are hint */
-  .carousel__arrow { width: 52px; }
-  .carousel__arrow svg { width: 15px; height: 15px; }
-}
-
-@media (max-width: 480px) {
-  .carousel { padding: 40px 0 36px; }
-  .carousel__header { padding: 0 16px 16px; }
-  .carousel__heading { font-size: 1.3rem; }
-  .carousel__card { width: 82vw; }
-  .carousel__track {
-    padding-inline: calc((100% - 82vw) / 2);
-    scroll-padding-inline: calc((100% - 82vw) / 2);
-  }
-  .carousel__arrow--left  { left:  calc((100% - 82vw) / 2); }
-  .carousel__arrow--right { right: calc((100% - 82vw) / 2); }
-  /* Even slimmer on small phones — swipe does the work */
-  .carousel__arrow { width: 40px; color: rgba(255, 255, 255, 0.40); }
-  .carousel__arrow svg { width: 13px; height: 13px; }
-}
-
-/* ===== GLOBE SECTION ===== */
-
-/* Loading placeholder — reserves space while lazy chunk loads */
-
-/* Globe canvas container */
-
-/* ── Custom gold map pin ── */
-
-/* ── Leaflet tooltip overrides ── */
-
-/* Permanent origin label — sits next to Singapore */
-
-/* ── Zoom control — dark theme to complement the light map ── */
-
-/* ── Country tab strip ── */
 
 /* ── Skip link ─────────────────────────────────────────────────────────────
    Off-screen until focused rather than display:none, which would take it out
@@ -3760,4 +2866,20 @@
 
 @media (prefers-reduced-motion: reduce) {
   .skip-link { transition: none; }
+}
+
+/* Standard visually-hidden pattern: present to assistive tech, removed from
+   the visual layout entirely (unlike .skip-link, which is meant to become
+   visible on focus). For headings and labels that exist purely to give
+   screen-reader landmark/heading navigation something to land on. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

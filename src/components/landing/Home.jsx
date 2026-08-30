@@ -1,9 +1,6 @@
 /**
  * Home - the homepage.
  *
- * Replaces the four-act cinematic Reel. Content, IA and routes are unchanged;
- * the acts and their scroll choreography are gone.
- *
  * Four sections, four layout families: full-bleed opening, sticky typographic
  * index with a photographic reveal, pinned horizontal pan of the favourites
  * pool, full-width closer.
@@ -17,11 +14,14 @@
  */
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { cities } from '../../data/cities';
 import { featured } from '../../data/featured';
 import { thumbSrc } from '../../utils/thumb';
+import { useMatchMedia } from '../../hooks/useMatchMedia';
+import PhotoLightbox from './PhotoLightbox';
 import './Home.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -45,7 +45,7 @@ const TOTAL_FRAMES = (() => {
 })();
 
 const COUNTRY_ORDER = ['Japan', 'China', 'South Korea'];
-const OPENING = WITH_HERO.find((c) => c.slug === 'kyoto') ?? WITH_HERO[0];
+const OPENING = WITH_HERO.find((c) => c.slug === 'hong-kong') ?? WITH_HERO[0];
 
 // Spell small numbers; the sentence reads better and avoids a metric-looking digit.
 const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
@@ -57,19 +57,36 @@ const spellCap = (n) => {
   return w.charAt(0).toUpperCase() + w.slice(1);
 };
 
-
-// Sandbox-only picture overrides. cities.js stays the single source of truth for
-// the live site, so a city whose hero does not suit this layout is corrected
-// here rather than there. Guangzhou's hero is the one portrait among twelve
+// Homepage-only picture overrides. cities.js stays the single source of truth,
+// so a city whose hero does not suit this layout is corrected here rather than
+// there. Guangzhou's hero is the one portrait among twelve
 // landscape heroes, and both the index plate and the frame grid are landscape.
 const PLATE_OVERRIDE = {
   guangzhou: '/photos-web/guangzhou/_MG_7643.JPG',
 };
 const plateSrc = (c) => PLATE_OVERRIDE[c.slug] ?? c.heroImage;
 
-// featured.js stores a city name, not a slug. Derive the link from cities.js
-// rather than adding a second hand-kept mapping.
-const SLUG_BY_NAME = Object.fromEntries(cities.map((c) => [c.name, c.slug]));
+// featured.js doesn't carry alt text of its own; cities.js already has the
+// real, specific alt for every photo (see the sitewide alt-text pass).
+// Looked up by src rather than hand-kept twice, same reasoning as every
+// other cities.js-derived lookup in this file.
+const ALT_BY_SRC = Object.fromEntries(
+  cities.flatMap((c) => (c.photos ?? []).map((p) => (
+    typeof p === 'string' ? [p, ''] : [p.src, p.alt ?? '']
+  ))),
+);
+
+// Frames used to link out to each photo's city gallery; clicking one now
+// opens it in place instead (PhotoLightbox), so a visitor mid-way through
+// the curated favourites strip isn't pulled off the homepage to see a
+// bigger version. Shaped once, at module scope, into what PhotoLightbox
+// expects — featured.js itself stays untouched.
+const FEATURED_PHOTOS = featured.map((f) => ({
+  src: f.photo,
+  alt: ALT_BY_SRC[f.photo] || `${f.city}, ${f.country}`,
+  city: f.city,
+  country: f.country,
+}));
 
 /* ── 1. Opening frame ──────────────────────────────────────────────────────
    Layout family: full-bleed photograph with the type anchored off-centre.
@@ -249,74 +266,159 @@ const STRIP_DROP = [0, 9, -7, 11, 0, -9];   // vh, breaks the shared baseline
 function Frames() {
   const wrap = useRef(null);
   const track = useRef(null);
+  const progressFill = useRef(null);
+  const narrow = useMatchMedia('(max-width: 900px)');
+  const reduce = useMatchMedia('(prefers-reduced-motion: reduce)');
+
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+  // PhotoLightbox manages focus inside itself but, per its own doc comment,
+  // leaves restoring focus on close to the caller — GalleryPage does this
+  // via navigate(-1) since it opens through the URL; this is plain local
+  // state, so the trigger button itself is remembered directly instead.
+  const lastFocusedRef = useRef(null);
+
+  const openLightbox = (i, e) => {
+    lastFocusedRef.current = e.currentTarget;
+    setLightboxIndex(i);
+  };
+  const closeLightbox = () => {
+    setLightboxIndex(null);
+    lastFocusedRef.current?.focus();
+  };
+  const goPrev = () => setLightboxIndex((i) => (i - 1 + FEATURED_PHOTOS.length) % FEATURED_PHOTOS.length);
+  const goNext = () => setLightboxIndex((i) => (i + 1) % FEATURED_PHOTOS.length);
 
   useEffect(() => {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const narrow = window.matchMedia('(max-width: 900px)').matches;
-    // Touch and reduced-motion get a real scrollable strip instead. Hijacking
-    // the scroll on a phone is hostile, and the CSS fallback already works.
-    if (reduce || narrow || !wrap.current || !track.current) return;
+    const trackEl = track.current;
+    if (!wrap.current || !trackEl) return;
+
+    // Touch and reduced-motion get a real scrollable strip instead of the
+    // pinned pan. Hijacking the scroll on a phone is hostile.
+    //
+    // The strip's native scrollbar is hidden (CSS) for a cleaner look, so the
+    // gold fill bar below the track is the only progress cue left — without
+    // it a reader has no way to tell there are nine photographs here, not
+    // three, or how far through them they are.
+    if (reduce || narrow) {
+      const fillEl = progressFill.current;
+      if (!fillEl) return;
+
+      const update = () => {
+        const max = trackEl.scrollWidth - trackEl.clientWidth;
+        fillEl.style.transform = `scaleX(${max > 0 ? trackEl.scrollLeft / max : 0})`;
+      };
+      update();
+
+      let ticking = false;
+      const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => { update(); ticking = false; });
+      };
+      trackEl.addEventListener('scroll', onScroll, { passive: true });
+
+      // Frame widths are only final once each image reports its natural
+      // ratio, and scrollWidth depends on those widths. Recompute after.
+      const imgs = [...trackEl.querySelectorAll('img')];
+      let alive = true;
+      Promise.all(
+        imgs.map((img) => (img.complete ? null : new Promise((res) => {
+          img.addEventListener('load', res, { once: true });
+          img.addEventListener('error', res, { once: true });
+        }))),
+      ).then(() => { if (alive) update(); });
+
+      return () => {
+        alive = false;
+        trackEl.removeEventListener('scroll', onScroll);
+      };
+    }
 
     let st = null;
-    const ctx = gsap.context(() => {
-      const distance = () => Math.max(0, track.current.scrollWidth - window.innerWidth);
-      const tween = gsap.to(track.current, {
-        x: () => -distance(),
-        ease: 'none',
-        scrollTrigger: {
-          trigger: wrap.current,
-          start: 'top top',              // pin the moment the section lands
-          end: () => `+=${distance()}`,  // scroll length equals the travel
-          pin: true,
-          scrub: 1,
-          invalidateOnRefresh: true,     // recompute on resize and font load
-        },
-      });
-      st = tween.scrollTrigger;
-    }, wrap);
-
-    // Keyboard focus has to drive the pan, not fight it.
-    //
-    // Tabbing to an off-screen frame makes the browser scroll it into view. It
-    // cannot move the track, which GSAP positions by transform, so it scrolls
-    // the section box instead: overflow:hidden blocks a scrollbar but not
-    // programmatic scrolling. The section ends up displaced by up to 2300px
-    // with no way for the reader to undo it, while GSAP still believes the pan
-    // is where it left it.
-    //
-    // So: undo the container scroll, and convert the focused frame's position
-    // along the track into the page scroll that brings it into view. The pan
-    // then lands on that frame as if the reader had scrolled there.
-    const onFocusIn = (e) => {
-      const frame = e.target.closest?.('.home-frame');
-      if (!frame || !st) return;
-      const undo = () => { if (wrap.current) wrap.current.scrollLeft = 0; };
-      undo();
-      requestAnimationFrame(undo);      // again after the browser's own attempt
-      const margin = window.innerWidth * 0.06;   // matches the track gutter
-      const target = st.start + Math.max(0, frame.offsetLeft - margin);
-      window.scrollTo({ top: Math.min(target, st.end), behavior: 'auto' });
-    };
-    const trackEl = track.current;
-    trackEl.addEventListener('focusin', onFocusIn);
-
-    // Frame widths are only known once each image reports its natural ratio,
-    // and those widths are what set the pan distance. Refresh after they land.
-    const imgs = [...track.current.querySelectorAll('img')];
+    let ctx = null;
     let alive = true;
-    Promise.all(
-      imgs.map((img) => (img.complete ? null : new Promise((res) => {
-        img.addEventListener('load', res, { once: true });
-        img.addEventListener('error', res, { once: true });
-      }))),
-    ).then(() => { if (alive) ScrollTrigger.refresh(); });
+    let removeFocusIn = () => {};
+
+    // Frame widths — and so the pin's whole scroll distance — are only
+    // correct once every image has actually loaded (no width/height
+    // attributes are set, so the browser has no aspect ratio to go on
+    // before then). The previous approach created the ScrollTrigger
+    // immediately with whatever (too-small) distance existed at that
+    // instant, then corrected it later via ScrollTrigger.refresh() once
+    // images loaded. On a fresh, uncached visit that correction could land
+    // while a reader was already mid-scroll into the pinned section — a
+    // refresh mid-scrub recalculates the current scroll progress against
+    // the new distance in one step, which reads as a visible rubberband
+    // jerk. (Reported: happens on first load, not on refresh — exactly the
+    // signature of the images being cache-instant the second time.)
+    // Deferring creation until images are ready removes the race instead
+    // of patching around it: the pin never exists with a wrong distance,
+    // so there's nothing to correct out from under an active scroll.
+    const setup = () => {
+      if (!alive) return;
+      ctx = gsap.context(() => {
+        const distance = () => Math.max(0, track.current.scrollWidth - window.innerWidth);
+        const tween = gsap.to(track.current, {
+          x: () => -distance(),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: wrap.current,
+            start: 'top top',              // pin the moment the section lands
+            end: () => `+=${distance()}`,  // scroll length equals the travel
+            pin: true,
+            scrub: 1,
+            invalidateOnRefresh: true,     // recompute on resize and font load
+          },
+        });
+        st = tween.scrollTrigger;
+      }, wrap);
+
+      // Keyboard focus has to drive the pan, not fight it.
+      //
+      // Tabbing to an off-screen frame makes the browser scroll it into view. It
+      // cannot move the track, which GSAP positions by transform, so it scrolls
+      // the section box instead: overflow:hidden blocks a scrollbar but not
+      // programmatic scrolling. The section ends up displaced by up to 2300px
+      // with no way for the reader to undo it, while GSAP still believes the pan
+      // is where it left it.
+      //
+      // So: undo the container scroll, and convert the focused frame's position
+      // along the track into the page scroll that brings it into view. The pan
+      // then lands on that frame as if the reader had scrolled there.
+      const onFocusIn = (e) => {
+        const frame = e.target.closest?.('.home-frame');
+        if (!frame || !st) return;
+        const undo = () => { if (wrap.current) wrap.current.scrollLeft = 0; };
+        undo();
+        requestAnimationFrame(undo);      // again after the browser's own attempt
+        const margin = window.innerWidth * 0.06;   // matches the track gutter
+        const target = st.start + Math.max(0, frame.offsetLeft - margin);
+        window.scrollTo({ top: Math.min(target, st.end), behavior: 'auto' });
+      };
+      trackEl.addEventListener('focusin', onFocusIn);
+      removeFocusIn = () => trackEl.removeEventListener('focusin', onFocusIn);
+    };
+
+    const imgs = [...trackEl.querySelectorAll('img')];
+    if (imgs.every((img) => img.complete)) {
+      setup();
+    } else {
+      Promise.all(
+        imgs.map((img) => (img.complete ? null : new Promise((res) => {
+          img.addEventListener('load', res, { once: true });
+          img.addEventListener('error', res, { once: true });
+        }))),
+      ).then(setup);
+    }
 
     return () => {
       alive = false;
-      trackEl.removeEventListener('focusin', onFocusIn);
-      ctx.revert();
+      removeFocusIn();
+      ctx?.revert();
     };
-  }, []);
+    // Re-run (cleanup then re-setup) whenever the breakpoint or motion
+    // preference actually changes, not just once at mount.
+  }, [narrow, reduce]);
 
   return (
     <section className="home-frames" ref={wrap}>
@@ -328,22 +430,48 @@ function Frames() {
 
       <div className="home-frames__track" ref={track}>
         {featured.map((f, i) => (
-          <Link
+          <button
+            type="button"
             className={`home-frame home-frame--${STRIP_SIZE[i % STRIP_SIZE.length]}`}
             style={{ '--drop': `${STRIP_DROP[i % STRIP_DROP.length]}vh` }}
-            to={`/city/${SLUG_BY_NAME[f.city] ?? ''}`}
+            onClick={(e) => openLightbox(i, e)}
+            aria-label={FEATURED_PHOTOS[i].alt}
             key={f.photo}
           >
             <span className="home-frame__plate">
-              {/* alt is empty by design: the visible caption below names the
-                  photograph, and it is inside the same link, so repeating it
-                  here would make screen readers say the city twice. */}
-              <img src={thumbSrc(f.photo)} alt="" loading="lazy" decoding="async" />
+              {/* alt is empty by design: the aria-label above already names
+                  the photograph, and it is inside the same button, so
+                  repeating it here would make screen readers say it twice. */}
+              {/* Not lazy: the pinned pan's scroll distance depends on every
+                  frame's real width, which depends on these having loaded
+                  (see the effect above) — lazy-loading them left that
+                  correction racing a reader's actual scroll on a first,
+                  uncached visit. Eager gives it a two-section head start. */}
+              <img src={thumbSrc(f.photo)} alt="" decoding="async" />
             </span>
             <span className="home-frame__cap">{f.city}</span>
-          </Link>
+          </button>
         ))}
       </div>
+
+      {/* Touch/reduced-motion only (CSS-hidden on desktop): the swipeable
+          strip's native scrollbar is hidden for a cleaner look, so this is
+          the only cue that there are more photographs than fit on screen. */}
+      <div className="home-frames__progress" aria-hidden="true">
+        <div className="home-frames__progress-fill" ref={progressFill} />
+      </div>
+
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <PhotoLightbox
+            photos={FEATURED_PHOTOS}
+            index={lightboxIndex}
+            onClose={closeLightbox}
+            onPrev={goPrev}
+            onNext={goNext}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }
