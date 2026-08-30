@@ -13,7 +13,7 @@ import { photoMeta } from '../data/photo-meta';
 
 /** Returns the most-frequently-occurring value in an array. */
 function mostCommon(arr) {
-  if (!arr.length) return '—';
+  if (!arr.length) return '-';
   const freq = {};
   arr.forEach((v) => { freq[v] = (freq[v] || 0) + 1; });
   return Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];

@@ -1,5 +1,4 @@
-/* Home - the homepage. Promoted from the sandbox after review; the four-act
-   Reel it replaced is gone.
+/* Home - the homepage.
 
    Kept out of App.css deliberately: this is the project's first
    component-scoped stylesheet, and the audit flagged the 4,200-line global
@@ -272,9 +271,18 @@
   will-change: transform;
 }
 
+/* Was an <a> to the city gallery; now a <button> that opens the lightbox in
+   place instead. index.css's sitewide `button` reset already strips the
+   border/background/cursor/font-family a button carries by default that an
+   anchor never did — these close the rest of the gap (padding, alignment,
+   inherited color) so it matches the old anchor's look exactly. */
 .home-frame {
   flex: 0 0 auto;
   display: block;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
   text-decoration: none;
   transform: translateY(var(--drop, 0));
 }
@@ -313,6 +321,11 @@
   transition: color 0.2s ease;
 }
 .home-frame:hover .home-frame__cap { color: var(--home-gold); }
+
+/* Progress fill for the mobile swipeable strip. Hidden here; the touch
+   media query below turns it on, replacing the strip's hidden native
+   scrollbar as the "there's more, here's where you are" cue. */
+.home-frames__progress { display: none; }
 
 /* ── 4. Closer ── */
 .home-closer {
@@ -376,15 +389,55 @@
     width: auto;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: 6vw;      /* snap respects the leading gutter */
     transform: none !important;
     padding-bottom: 8px;
     -webkit-overflow-scrolling: touch;
+    /* The strip's own progress fill (below) replaces the native scrollbar,
+       so the bar itself is hidden rather than showing both. */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+  .home-frames__track::-webkit-scrollbar { display: none; }
   .home-frame { scroll-snap-align: start; transform: none; }
+  /* Sized from width, not height, on mobile: the desktop rule below fixes a
+     HEIGHT and lets width follow the image, which is exactly backwards for a
+     phone. At 32vh tall, a 3:2 landscape came out ~1.5x that wide, wider than
+     the screen itself, so a single photograph needed its own horizontal
+     scroll just to be seen in full. Fixing the width instead guarantees a
+     frame never exceeds the viewport, whatever its aspect ratio, and 78vw
+     leaves a deliberate peek of the next one as a "swipe for more" cue. The
+     max-height is a guard against a future portrait entering the pool, not a
+     constraint on today's all-3:2 photographs. */
   .home-frame--lg .home-frame__plate,
   .home-frame--md .home-frame__plate,
-  .home-frame--sm .home-frame__plate { height: 32vh; }
+  .home-frame--sm .home-frame__plate {
+    width: 78vw;
+    height: auto;
+    max-height: 62vh;
+  }
+  .home-frame__plate img { width: 100%; height: auto; }
   .home-open__type { padding: 0 6vw 10vh; }
+
+  .home-frames__progress {
+    display: block;
+    position: relative;
+    height: 2px;
+    margin: 14px 6vw 0;
+    background: var(--home-rule);
+    overflow: hidden;
+    border-radius: 2px;
+  }
+  .home-frames__progress-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--home-gold);
+    border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+    /* Set imperatively from scroll position, not transitioned: a transition
+       here would lag a fast swipe instead of tracking the finger. */
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

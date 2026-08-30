@@ -48,8 +48,9 @@ A new city needs an entry in `src/data/cities.js` first — name, country, lat/l
 ## Things that have bitten us
 
 - **`cities.js` is the single source of truth.** Never hand-maintain a second list of
-  cities or slugs elsewhere; derive from it. A hardcoded country map silently dropped
-  Kamakura from Japan's map zoom, and would have dropped Hangzhou too.
+  cities or slugs elsewhere; derive from it. A hardcoded country list once silently
+  dropped Kamakura from Japan, and would have dropped Hangzhou too. The homepage derives
+  its name-to-slug lookup from `cities` for exactly this reason.
 - **`public/photos/` holds print-resolution originals and is gitignored.** A local
   `npm run build` copies them into `dist/` (~1.3 GB). Deploy from GitHub, not by uploading
   a local `dist/`, or the entire sellable archive ships for free.

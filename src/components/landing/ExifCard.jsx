@@ -17,7 +17,7 @@ export default function ExifCard({ photo, compact = false, className = '' }) {
     <div className={`exif-card${compact ? ' exif-card--compact' : ''} ${className}`}>
       <div className="exif-card__row">
         <span className="exif-card__label">CAM</span>
-        <span className="exif-card__val">{camera ?? '—'}</span>
+        <span className="exif-card__val">{camera ?? '-'}</span>
       </div>
       {lens && (
         <div className="exif-card__row">
@@ -28,7 +28,7 @@ export default function ExifCard({ photo, compact = false, className = '' }) {
       <div className="exif-card__row exif-card__row--mono">
         <span className="exif-card__label">EXP</span>
         <span className="exif-card__val">
-          {trio || '—'}{focal ? ` · ${focal}` : ''}
+          {trio || '-'}{focal ? ` · ${focal}` : ''}
         </span>
       </div>
       {(location || date) && (

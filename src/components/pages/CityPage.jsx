@@ -79,7 +79,7 @@ export default function CityPage() {
           <div className="city-page__empty">
             <p>Photos coming soon for {city.name}.</p>
             <p className="city-page__empty-sub">
-              This city is part of the collection — images will be added shortly.
+              This city is part of the collection. Images will be added shortly.
             </p>
           </div>
         )}

@@ -5,10 +5,31 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { photoMeta } from '../data/photo-meta';
 
 const BRACKETS     = ['tl', 'tr', 'bl', 'br'];
 const BRACKET_DELAYS = { tl: 0, tr: 0.06, bl: 0.10, br: 0.15 };
 const AF_DOTS      = Array.from({ length: 15 }, (_, i) => i); // 5 × 3 grid
+
+// Must match .intro__bg's background-image in App.css — no way to share one
+// constant between a CSS rule and this component, so keep them in sync by
+// hand if the hero photo ever changes.
+const INTRO_PHOTO = '/photos-web/hong-kong/_MG_3601.JPG';
+
+// The topbar used to show invented values (1/500, F1.8, ISO 400) — numbers
+// attached to no photograph, in the exact visual language ExifCard uses
+// sitewide for genuine EXIF. Reading photoMeta directly (not the async
+// useExif hook, which resolves after a dynamic import + file parse) because
+// this needs a value synchronously, before the HUD's own 400ms reveal.
+// Falls back to the original placeholder values only if this specific
+// photo's entry is ever removed from photo-meta.js.
+const introExif      = photoMeta[INTRO_PHOTO] ?? {};
+const INTRO_SHUTTER  = introExif.shutter ?? '1/500';
+// This HUD's own convention is "F1.8" (bare, capital F) — matches how it
+// already shows shutter speed as bare "1/500", not "1/500s". Reformatted
+// from photo-meta.js's sitewide "f/6.3" convention, not a second data source.
+const INTRO_APERTURE = introExif.aperture ? `F${introExif.aperture.replace(/^f\//, '')}` : 'F1.8';
+const INTRO_ISO      = introExif.iso ? introExif.iso.replace(/^ISO\s*/, '') : '400';
 
 export default function IntroScreen({ onDone }) {
   const [phase, setPhase] = useState('enter');
@@ -63,7 +84,33 @@ export default function IntroScreen({ onDone }) {
     schedule(() => setPhase('shutter'), 3300);
     schedule(() => setPhase('flash'),   3450);
     schedule(() => setPhase('exit'),    3550);
-    schedule(() => onDone(),            4150);
+
+    // The phase timing above is art-directed choreography, not a real
+    // progress measurement — the previous version handed off to the
+    // homepage at exactly 4150ms regardless of whether its own hero photo
+    // (the same file this screen shows as .intro__bg) had actually
+    // finished loading. On a slow connection the "100% / LOCK ON" moment
+    // could fire while the real image was still loading — a fake
+    // completion signal in exactly the case a real one would matter.
+    // Waiting on whichever finishes later costs nothing on any normal
+    // connection (this photo is well under 4.15s to load) and only
+    // protects the slow one. A hard cap keeps a genuinely broken image
+    // request from stalling the handoff indefinitely.
+    let done = false;
+    let timerDone = false;
+    let imgDone = false;
+    const finish = () => {
+      if (done || !timerDone || !imgDone) return;
+      done = true;
+      onDone();
+    };
+    schedule(() => { timerDone = true; finish(); }, 4150);
+
+    const heroImg = new Image();
+    heroImg.onload = heroImg.onerror = () => { imgDone = true; finish(); };
+    heroImg.src = INTRO_PHOTO;
+    schedule(() => { imgDone = true; finish(); }, 8000); // hard cap
+
     return clearAll;
   }, [reduced]);
 
@@ -141,9 +188,9 @@ export default function IntroScreen({ onDone }) {
         >
           <div className="intro__topbar-mode">M</div>
           <div className="intro__topbar-vals">
-            <span>1/500</span>
-            <span className="intro__topbar-aperture">F1.8</span>
-            <span>ISO&thinsp;400</span>
+            <span>{INTRO_SHUTTER}</span>
+            <span className="intro__topbar-aperture">{INTRO_APERTURE}</span>
+            <span>ISO&thinsp;{INTRO_ISO}</span>
           </div>
           <div className="intro__topbar-icons">
             <span className="intro__topbar-wb">AWB</span>
