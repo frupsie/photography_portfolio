@@ -100,8 +100,8 @@ export default function AboutPage() {
       className="ap"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, y: -16 }}
-      transition={{ duration: 0.4 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: reduceMotion ? 0 : 0.5 }}
     >
       {/* ── HERO BAND ── */}
       <section className="ap-hero" aria-labelledby="ap-hero-heading">

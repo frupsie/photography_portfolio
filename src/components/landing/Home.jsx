@@ -17,7 +17,7 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { cities } from '../../data/cities';
+import { cities, countriesByYear } from '../../data/cities';
 import { featured } from '../../data/featured';
 import { thumbSrc } from '../../utils/thumb';
 import { useMatchMedia } from '../../hooks/useMatchMedia';
@@ -44,7 +44,6 @@ const TOTAL_FRAMES = (() => {
   return seen.size;
 })();
 
-const COUNTRY_ORDER = ['Japan', 'China', 'South Korea'];
 const OPENING = WITH_HERO.find((c) => c.slug === 'hong-kong') ?? WITH_HERO[0];
 
 // Spell small numbers; the sentence reads better and avoids a metric-looking digit.
@@ -182,7 +181,7 @@ function Index() {
       <div className="home-index__list">
         <h2 className="home-index__title">Where the work comes from</h2>
 
-        {COUNTRY_ORDER.filter((c) => BY_COUNTRY[c]).map((country) => (
+        {countriesByYear.map((country) => (
           <div className="home-index__group" key={country}>
             <h3 className="home-index__country">{country}</h3>
             <ul>
@@ -493,6 +492,14 @@ function Closer() {
 export default function Home() {
   // div, not main: App.jsx owns the single <main> landmark for every route,
   // so declaring one here would nest two landmarks.
+  //
+  // Also, deliberately, no motion.div page-transition wrapper — every other
+  // route shares one identical fade (see the shared reduceMotion-gated
+  // opacity transition on About/Contact/Gallery/City/NotFound's own root).
+  // Home already has its own, more elaborate entrance (Opening's GSAP
+  // image-scale and headline reveal) the instant it mounts; wrapping that
+  // in a second, generic fade would either double up on top of it or fight
+  // it, not add anything a visitor would read as intentional.
   return (
     <div className="home">
       <Opening />

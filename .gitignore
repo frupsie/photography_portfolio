@@ -43,6 +43,7 @@ public/photos/**/*.PNG
 # settings.json and launch.json stay tracked: they're small, project-level,
 # and useful to anyone who clones this.
 .claude/skills/
+.claude/agents/
 .claude/settings.local.json
 
 # Impeccable live-server runtime artifact

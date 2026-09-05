@@ -1,13 +1,16 @@
-import { useMemo, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cities } from '../../data/cities';
+import { cities, countriesByYear } from '../../data/cities';
 import { thumbSrc } from '../../utils/thumb';
 import PhotoLightbox from '../landing/PhotoLightbox';
+import { useMatchMedia } from '../../hooks/useMatchMedia';
 
 // ── Derived data ──────────────────────────────────────────────────────────────
 
-const countries = [...new Set(cities.map(c => c.country))];
+// Chronological (by earliest visit), not raw array order — matches Home's
+// index, which previously hand-maintained its own, different order.
+const countries = countriesByYear;
 
 // Build a flat photo list from every city.
 // Deduped by `src`: a hero is often also the first entry in photos[].
@@ -60,6 +63,10 @@ export default function GalleryPage() {
   // of just closing the photo.
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  // Up to 129 grid tiles staggering in with a scale animation is exactly
+  // the pattern prefers-reduced-motion exists to suppress — this page
+  // never checked it at all.
+  const reduceMotion = useMatchMedia('(prefers-reduced-motion: reduce)');
 
   const cityParam = searchParams.get('city');
   // Derive the country from the city's own data rather than trusting a
@@ -117,6 +124,26 @@ export default function GalleryPage() {
   // popping — closing via browser back() on the second would leave the
   // site entirely, taking the visitor to whatever page linked here.
   const openedInternally = useRef(false);
+
+  // Drives the border on the sticky filter bar (see .gallery-filter in
+  // App.css). A zero-height sentinel sits just above the filter row; once
+  // it scrolls out of view under the fixed navbar, the filter itself must
+  // be pinned rather than in its normal document position, so this is a
+  // cheap, scroll-listener-free way to know "stuck" without measuring
+  // position on every scroll event.
+  const filterSentinel = useRef(null);
+  const [filterStuck, setFilterStuck] = useState(false);
+
+  useEffect(() => {
+    const el = filterSentinel.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFilterStuck(!entry.isIntersecting),
+      { rootMargin: '-66px 0px 0px 0px' }, // matches the navbar height the filter docks under
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const openLightbox = (e, i) => {
     lightboxTrigger.current = e.currentTarget;
@@ -194,7 +221,7 @@ export default function GalleryPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: reduceMotion ? 0 : 0.5 }}
     >
       <div className="gallery-page__header">
         <h1 className="gallery-page__title">Gallery</h1>
@@ -229,11 +256,17 @@ export default function GalleryPage() {
         </div>
       </div>
 
+      {/* Zero-height marker the sticky filter's own "stuck" state is
+          derived from — see the IntersectionObserver above. */}
+      <div ref={filterSentinel} aria-hidden="true" />
+
       {/* ── Filter nav ──
           Pills wrap instead of scrolling — every option is visible without
           a sideways swipe, which is the whole point of a filter list; one
-          you can't see all of isn't really a filter, it's a maze. */}
-      <div className="gallery-filter">
+          you can't see all of isn't really a filter, it's a maze. Sticky
+          under the navbar so it's never more than a glance away, even 129
+          unfiltered photos deep. */}
+      <div className={`gallery-filter${filterStuck ? ' gallery-filter--stuck' : ''}`}>
 
         {/* Row 1 — All + Countries */}
         <div className="gallery-filter__row gallery-filter__row--main">
@@ -343,7 +376,11 @@ export default function GalleryPage() {
                   // mosaic-with-captions design. Below it, a dense uncaptioned
                   // square wall — the modifier class is simply unused there.
                   className={`gallery-item gallery-item--${photo.orientation ?? 'landscape'}`}
-                  initial={{ opacity: 0, scale: 0.96 }}
+                  // Up to 129 tiles staggering in with a scale animation is
+                  // exactly the pattern reduced motion exists to suppress —
+                  // initial:false skips the mount animation entirely rather
+                  // than just speeding it up, same as elsewhere on the site.
+                  initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
                   // A per-item stagger up to 0.25s reads nicely on one
                   // filter click (a single cascading reveal) but was also
@@ -359,7 +396,7 @@ export default function GalleryPage() {
                   // regardless of how many there are — while entering
                   // tiles keep the cascade.
                   exit={{ opacity: 0, transition: { duration: 0.12 } }}
-                  transition={{ duration: 0.25, delay: Math.min(i * 0.03, 0.25) }}
+                  transition={reduceMotion ? { duration: 0 } : { duration: 0.25, delay: Math.min(i * 0.03, 0.25) }}
                   onClick={(e) => openLightbox(e, i)}
                   aria-label={photo.alt || `${photo.city}, ${photo.country}`}
                 >
@@ -385,6 +422,23 @@ export default function GalleryPage() {
               return nodes;
             })}
           </AnimatePresence>
+        </div>
+      )}
+
+      {/* Closing beat — Home has one ("The archive grows after every
+          trip."), Gallery and City pages didn't: they ran straight from
+          the last photo into the footer. Gallery is the page a skimming
+          visitor is statistically most likely to end their visit on, so
+          it's the one page most in need of this, not least. Same
+          sentiment as Home's closer, reworded rather than duplicated, and
+          worded to hold regardless of filter state — "everything" means
+          whatever's currently shown, all 129 or one city's handful alike. */}
+      {!isEmpty && (
+        <div className="gallery-closer">
+          <p className="gallery-closer__lead">
+            That&rsquo;s everything — for now. The archive grows after every trip.
+          </p>
+          <Link className="gallery-closer__cta" to="/contact">Get in touch</Link>
         </div>
       )}
 

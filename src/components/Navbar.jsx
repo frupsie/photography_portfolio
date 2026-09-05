@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,6 +13,9 @@ export default function Navbar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const hamburgerRef = useRef(null);
+  const drawerRef = useRef(null);
+  const wasOpenRef = useRef(false);
 
   // Close menu on route change
   useEffect(() => { setMenuOpen(false); }, [pathname]);
@@ -21,6 +24,44 @@ export default function Navbar() {
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  // Focus trap + initial focus + Escape — same pattern as PhotoLightbox's:
+  // a drawer covering the whole page is exactly the case that earns
+  // protected focus. Previously a keyboard user opening it landed on
+  // <body>, so Tab walked straight into the page behind it (visually
+  // covered by the drawer) instead of the drawer's own links.
+  useEffect(() => {
+    if (!menuOpen) return;
+    drawerRef.current?.querySelector('.nav-drawer__close')?.focus();
+
+    const handleKey = (e) => {
+      if (e.key === 'Escape') { setMenuOpen(false); return; }
+      if (e.key !== 'Tab') return;
+      const root = drawerRef.current;
+      if (!root) return;
+      const focusable = [...root.querySelectorAll('a, button')];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [menuOpen]);
+
+  // Return focus to the hamburger once the drawer actually closes (not on
+  // open) — covers Escape, backdrop click, the close button, and a link
+  // navigating away, all of which just flip menuOpen to false.
+  useEffect(() => {
+    if (wasOpenRef.current && !menuOpen) hamburgerRef.current?.focus();
+    wasOpenRef.current = menuOpen;
   }, [menuOpen]);
 
   const handleHome = (e) => {
@@ -45,7 +86,7 @@ export default function Navbar() {
           that read as a glitch, not a page-specific choice. navbar--solid
           swaps it for an opaque bar matching the page background, which
           doesn't apply to Home so the hero look is untouched. */}
-      <nav className={`navbar${pathname === '/' ? '' : ' navbar--solid'}`}>
+      <nav className={`navbar${pathname === '/' ? '' : ' navbar--solid'}`} aria-label="Primary">
         <a href="/" className="navbar__logo" onClick={handleHome}>
           Jayden Ng
         </a>
@@ -90,6 +131,7 @@ export default function Navbar() {
 
         {/* Hamburger button — mobile only */}
         <button
+          ref={hamburgerRef}
           className={`navbar__hamburger${menuOpen ? ' navbar__hamburger--open' : ''}`}
           onClick={() => setMenuOpen(o => !o)}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
@@ -105,7 +147,11 @@ export default function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
+            ref={drawerRef}
             className="nav-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}

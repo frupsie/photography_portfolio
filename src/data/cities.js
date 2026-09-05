@@ -279,3 +279,23 @@ export const cities = [
     ],
   },
 ];
+
+// Countries in chronological order — by the year of the earliest visit,
+// not array position or a hand-picked sequence. Home's index used to
+// hardcode its own order (['Japan', 'China', 'South Korea']) and Gallery
+// separately took whatever order countries happened to first appear in
+// above (China, Japan, South Korea) — two different orders, neither of
+// them actually chronological (China's earliest city is Hong Kong 2023,
+// so China leads; South Korea's Seoul is 2024; Japan is entirely 2025).
+// One derivation, reused everywhere, matches this file's own "single
+// source of truth" rule — the same rule a hardcoded country list already
+// broke once before (see CLAUDE.md).
+const countryFirstYear = {};
+cities.forEach((c) => {
+  const year = Number(c.year);
+  if (!(c.country in countryFirstYear) || year < countryFirstYear[c.country]) {
+    countryFirstYear[c.country] = year;
+  }
+});
+export const countriesByYear = [...new Set(cities.map((c) => c.country))]
+  .sort((a, b) => countryFirstYear[a] - countryFirstYear[b]);

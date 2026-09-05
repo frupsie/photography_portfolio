@@ -35,6 +35,7 @@ export default function IntroScreen({ onDone }) {
   const [phase, setPhase] = useState('enter');
   const [pct, setPct]     = useState(0);
   const timers = useRef([]);
+  const rootRef = useRef(null);
 
   // Reduced motion: skip the whole sequence rather than soften it.
   //
@@ -52,6 +53,29 @@ export default function IntroScreen({ onDone }) {
   useEffect(() => {
     if (reduced) onDone();
   }, [reduced, onDone]);
+
+  // Focus containment: a full-viewport overlay is exactly the case that
+  // earns protected focus (same reasoning as PhotoLightbox's and the nav
+  // drawer's traps), and this one previously had neither — a keyboard
+  // user's Tab could escape straight into the homepage sitting behind it,
+  // which they can't currently see. Skip is the only focusable element
+  // here, so "trapping" Tab just means it always lands back on itself.
+  useEffect(() => {
+    if (reduced) return;
+    rootRef.current?.querySelector('.intro__skip')?.focus();
+
+    const handleTab = (e) => {
+      if (e.key !== 'Tab') return;
+      const root = rootRef.current;
+      if (!root) return;
+      const focusable = [...root.querySelectorAll('button')];
+      if (!focusable.length) return;
+      e.preventDefault();
+      focusable[0].focus();
+    };
+    window.addEventListener('keydown', handleTab);
+    return () => window.removeEventListener('keydown', handleTab);
+  }, [reduced]);
 
   const schedule = (fn, delay) => {
     const id = setTimeout(fn, delay);
@@ -133,7 +157,11 @@ export default function IntroScreen({ onDone }) {
 
   return (
     <motion.div
+      ref={rootRef}
       className="intro"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Loading"
       animate={{ opacity: isExit ? 0 : 1 }}
       transition={{ duration: 0.55, ease: 'easeInOut' }}
     >

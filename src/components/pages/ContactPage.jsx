@@ -172,9 +172,9 @@ export default function ContactPage() {
   return (
     <motion.div
       className="content-page"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.5 }}
     >
       <div className="content-page__inner">
@@ -296,6 +296,7 @@ export default function ContactPage() {
             <img
               src="/photos-web/nikko/IMG_1474.JPG"
               alt="A vermilion temple hall with black tiled roofs and gold fittings, framed by cedar and pine, Nikko"
+              decoding="async"
             />
           </div>
         </div>

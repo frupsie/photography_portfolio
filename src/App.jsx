@@ -1,19 +1,26 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
-import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useScroll } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import BackToTopButton from './components/BackToTopButton';
 import LandingPage from './components/LandingPage';
-import CityPage from './components/pages/CityPage';
-import AboutPage from './components/pages/AboutPage';
-import ContactPage from './components/pages/ContactPage';
-import GalleryPage from './components/pages/GalleryPage';
-import NotFound from './components/pages/NotFound';
 import IntroScreen from './components/IntroScreen';
 import { useLenis, getLenis } from './hooks/useLenis';
 import { cities } from './data/cities';
+
+// LandingPage (and the intro overlay below) stay eager: "/" is where most
+// first-time visitors land, so that code was always going to be needed
+// immediately. Every other route was shipping in the same bundle regardless
+// of whether a visitor ever went there — a visitor landing directly on
+// /contact downloaded Gallery's full photo-list machinery and Home's GSAP
+// pinned-scroll logic for nothing. Split per-route instead.
+const CityPage    = lazy(() => import('./components/pages/CityPage'));
+const AboutPage   = lazy(() => import('./components/pages/AboutPage'));
+const ContactPage = lazy(() => import('./components/pages/ContactPage'));
+const GalleryPage = lazy(() => import('./components/pages/GalleryPage'));
+const NotFound    = lazy(() => import('./components/pages/NotFound'));
 
 const INTRO_KEY = 'jayden_intro_seen';
 const SITE_NAME = 'Jayden Ng';
@@ -77,12 +84,15 @@ function ScrollToTop() {
 }
 
 function ScrollProgressBar() {
+  // scrollYProgress is already a 0-1 motion value, which is exactly what
+  // scaleY wants — no useTransform needed. Was driving `height` on every
+  // scroll tick (a layout property); scaleY is compositor-only. The CSS's
+  // own transform-origin: top was already set up for this, unused before.
   const { scrollYProgress } = useScroll();
-  const height = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
 
   return (
     <div className="scroll-bar__track">
-      <motion.div className="scroll-bar__fill" style={{ height }} />
+      <motion.div className="scroll-bar__fill" style={{ scaleY: scrollYProgress }} />
     </div>
   );
 }
@@ -129,17 +139,24 @@ export default function App() {
           the six pages without one. */}
       <main id="main" tabIndex={-1}>
       <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/city/:slug" element={<CityPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          {/* Retired routes — redirects kept for any existing external links */}
-          <Route path="/gear" element={<Navigate to="/about" replace />} />
-          <Route path="/featured" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        {/* fallback=null rather than a spinner: on any reasonable connection
+            a lazy route chunk resolves near-instantly, and <main>'s own
+            solid background already prevents a blank-white flash while it
+            does — an honest brief gap, not chrome pretending to be doing
+            something. */}
+        <Suspense fallback={null}>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/city/:slug" element={<CityPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            {/* Retired routes — redirects kept for any existing external links */}
+            <Route path="/gear" element={<Navigate to="/about" replace />} />
+            <Route path="/featured" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </AnimatePresence>
       </main>
       <Footer />
