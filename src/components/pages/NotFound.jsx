@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useMatchMedia } from '../../hooks/useMatchMedia';
 
 /**
  * NotFound — catch-all route.
@@ -9,13 +10,16 @@ import { motion } from 'framer-motion';
  * elsewhere (EXIF cards, the viewfinder intro) rather than a generic "404".
  */
 export default function NotFound() {
+  // Was the one page-transition left ungated.
+  const reduceMotion = useMatchMedia('(prefers-reduced-motion: reduce)');
+
   return (
     <motion.div
       className="content-page"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: reduceMotion ? 0 : 0.5 }}
     >
       <div className="content-page__inner content-page__inner--narrow">
         <span className="content-page__label">Error 404</span>

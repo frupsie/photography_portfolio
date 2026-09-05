@@ -4,6 +4,7 @@
  * Used by:
  *   - the homepage "Frames" horizontal pan
  *   - Gallery page
+ *   - City pages
  *
  * Props:
  *   photos: [{ src, alt?, city?, country? }]
@@ -20,6 +21,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ExifCard from './ExifCard';
 import { useMatchMedia } from '../../hooks/useMatchMedia';
+
+const REDUCE_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+// Prev/Next lost their solid chip on mobile (see App.css) because a narrow
+// phone leaves no gutter beside a 96vw photo to put them in — swipe is the
+// primary way to browse there now. This is the one-time nudge that tells a
+// first-time visitor swipe exists at all, before they've had a reason to
+// try it. Marked seen in localStorage the moment it's shown, not when it's
+// dismissed, so it never comes back even if this exact viewing was cut
+// short by navigating on to another photo.
+const SWIPE_HINT_SEEN_KEY = 'photo-lightbox-swipe-hint-seen';
+const SWIPE_HINT_DURATION_MS = 2500;
 
 // Drawn to match the site's existing hand-rolled icon convention (Navbar's
 // close, AboutPage's arrow): viewBox 24, strokeWidth 1.5, round caps/joins.
@@ -64,6 +77,18 @@ const imageVariants = {
   exit: (direction) => ({ x: direction > 0 ? -60 : 60, opacity: 0, scale: 0.97 }),
 };
 
+// Reduced motion: a plain crossfade, no directional slide or zoom — still
+// real feedback that the photo changed, without the translation/scale
+// prefers-reduced-motion exists to avoid. Dragging itself stays on: it's
+// motion the visitor directly drives in real time, not an autoplaying
+// transition, the same reasoning that keeps hover/tap micro-interactions
+// on elsewhere on the site.
+const imageVariantsReduced = {
+  enter: { opacity: 0 },
+  center: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
 export default function PhotoLightbox({ photos, index, onClose, onPrev, onNext }) {
   const photo = photos[index];
   // A filtered city with exactly one photo (Macau, at last count) still
@@ -75,17 +100,9 @@ export default function PhotoLightbox({ photos, index, onClose, onPrev, onNext }
   // implies "normally there's something here," which isn't true — there
   // is nothing to navigate to, full stop.
   const hasMultiple = photos.length > 1;
-  // The photo is the thing a visitor came for; the EXIF card is real,
-  // credible detail but still secondary — "the photographs lead, chrome
-  // that competes with a photograph is wrong by default." On a phone the
-  // two compete for the same scarce vertical space (the photo itself is
-  // width-capped by the viewport, so it can't grow to make room), so on
-  // mobile only, EXIF starts collapsed behind a tap — same as how a
-  // camera's own rear LCD shows the shot first and overlays shooting
-  // info on demand, not as a permanent fixture. Desktop has room for
-  // both at once and is untouched.
   const isMobile = useMatchMedia('(max-width: 768px)');
-  const [exifOpen, setExifOpen] = useState(false);
+  const reduceMotion = useMatchMedia(REDUCE_MOTION_QUERY);
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
   const rootRef = useRef(null);
   const closeRef = useRef(null);
   // Not state: read once per navigation, inside a handler, never needs
@@ -93,8 +110,42 @@ export default function PhotoLightbox({ photos, index, onClose, onPrev, onNext }
   // already does that.
   const directionRef = useRef(0);
 
-  const goPrev = useCallback(() => { directionRef.current = -1; onPrev(); }, [onPrev]);
-  const goNext = useCallback(() => { directionRef.current = 1; onNext(); }, [onNext]);
+  // Nothing to swipe to with one photo, and desktop never lost its
+  // buttons in the first place — the hint only earns its one-time
+  // appearance where swipe is genuinely the primary way to browse.
+  useEffect(() => {
+    if (!isMobile || !hasMultiple) return;
+    try {
+      if (localStorage.getItem(SWIPE_HINT_SEEN_KEY)) return;
+      localStorage.setItem(SWIPE_HINT_SEEN_KEY, '1');
+    } catch {
+      // Private browsing / storage blocked: no way to remember it was
+      // shown, so skip it rather than risk showing it on every visit.
+      return;
+    }
+    setShowSwipeHint(true);
+    // Deliberately no [isMobile, hasMultiple] dependents beyond mount —
+    // re-checking mid-session (e.g. a resize past the breakpoint) could
+    // re-show a hint already spent on this visitor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!showSwipeHint) return;
+    const timer = setTimeout(() => setShowSwipeHint(false), SWIPE_HINT_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [showSwipeHint]);
+
+  const goPrev = useCallback(() => {
+    directionRef.current = -1;
+    setShowSwipeHint(false);
+    onPrev();
+  }, [onPrev]);
+  const goNext = useCallback(() => {
+    directionRef.current = 1;
+    setShowSwipeHint(false);
+    onNext();
+  }, [onNext]);
 
   const handleDragEnd = useCallback((e, info) => {
     const { offset, velocity } = info;
@@ -138,13 +189,6 @@ export default function PhotoLightbox({ photos, index, onClose, onPrev, onNext }
     return () => window.removeEventListener('keydown', handleKey);
   }, [handleKey]);
 
-  // Each photo gets its own fresh "photo first" moment on mobile — leaving
-  // EXIF expanded from the last one would mean only the very first photo
-  // in a session ever gets the collapsed treatment.
-  useEffect(() => {
-    setExifOpen(false);
-  }, [photo?.src]);
-
   // Move focus into the dialog the moment it mounts. Escape and Tab above
   // both assume focus already lives in here — without this, a keyboard
   // user who somehow triggered the lightbox would find both dead on arrival.
@@ -184,35 +228,51 @@ export default function PhotoLightbox({ photos, index, onClose, onPrev, onNext }
         <CloseIcon />
       </button>
 
-      {/* Prev / Next — only when there's somewhere to go */}
-      {hasMultiple && (
-        <>
-          <button
-            className="photo-lightbox__prev"
-            onClick={(e) => { e.stopPropagation(); goPrev(); }}
-            aria-label="Previous photo"
-          >
-            <ChevronIcon direction="left" />
-          </button>
-          <button
-            className="photo-lightbox__next"
-            onClick={(e) => { e.stopPropagation(); goNext(); }}
-            aria-label="Next photo"
-          >
-            <ChevronIcon direction="right" />
-          </button>
-        </>
-      )}
-
       {/* Groups the image and its EXIF card so mobile can scroll the pair
-          together (see .photo-lightbox__content) without the counter/
-          close/prev/next controls above scrolling along with them —
-          those stay children of .photo-lightbox itself, outside this
-          wrapper, so they're never part of what scrolls. Desktop doesn't
-          use the scroll behavior at all; the wrapper is inert there. */}
+          together (see .photo-lightbox__content) without the counter/close
+          controls above scrolling along with them — those stay children of
+          .photo-lightbox itself, outside this wrapper, so they're never
+          part of what scrolls. Prev/Next travel WITH this wrapper on
+          purpose (see below) — if it ever scrolls, the buttons should move
+          with the photo they're anchored to, not stay fixed on screen.
+          Desktop doesn't use the scroll behavior at all; the wrapper is
+          inert there. */}
       <div className="photo-lightbox__content">
-        {/* Image with EVF corner brackets */}
+        {/* Image with EVF corner brackets. Prev/Next live here — not as
+            .photo-lightbox siblings — specifically so position:50%/top
+            below resolves against THIS box, not the full screen. img-wrap
+            has no explicit size; it shrink-wraps to whatever the image
+            actually renders at (max-width/max-height cap it, nothing
+            stretches it), so its box IS the photo's box. Positioning
+            against the screen instead (the previous approach) put the
+            arrows at literal viewport-center, which only matched the
+            photo's own center by coincidence — confirmed live off by
+            60-70px for both a landscape and a portrait photo, since
+            neither orientation's rendered height happens to fill the
+            centered safe area App.css defines. This fixes both
+            orientations at once with no orientation-specific CSS, because
+            it never needs to know which one it's looking at. */}
         <div className="photo-lightbox__img-wrap" onClick={(e) => e.stopPropagation()}>
+          {/* hasMultiple: see its declaration above for why this is a
+              visibility gate, not a disabled state. */}
+          {hasMultiple && (
+            <>
+              <button
+                className="photo-lightbox__prev"
+                onClick={(e) => { e.stopPropagation(); goPrev(); }}
+                aria-label="Previous photo"
+              >
+                <ChevronIcon direction="left" />
+              </button>
+              <button
+                className="photo-lightbox__next"
+                onClick={(e) => { e.stopPropagation(); goNext(); }}
+                aria-label="Next photo"
+              >
+                <ChevronIcon direction="right" />
+              </button>
+            </>
+          )}
           <AnimatePresence mode="wait" custom={directionRef.current}>
             <motion.img
               key={photo.src}
@@ -220,11 +280,11 @@ export default function PhotoLightbox({ photos, index, onClose, onPrev, onNext }
               alt={photo.alt ?? photo.city ?? ''}
               className="photo-lightbox__img"
               custom={directionRef.current}
-              variants={imageVariants}
+              variants={reduceMotion ? imageVariantsReduced : imageVariants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              transition={reduceMotion ? { duration: 0.15 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               // 1:1 finger tracking with elastic resistance, not a fixed
               // travel distance — dragConstraints pinned to 0 plus
               // dragElastic is Framer's own pattern for "drag freely, then
@@ -239,6 +299,11 @@ export default function PhotoLightbox({ photos, index, onClose, onPrev, onNext }
               drag={hasMultiple ? 'x' : false}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.7}
+              // Dismisses the swipe hint the moment a drag actually starts —
+              // even one that doesn't clear the swap threshold below is
+              // still the visitor discovering the gesture, which is the
+              // hint's entire job.
+              onDragStart={() => setShowSwipeHint(false)}
               onDragEnd={handleDragEnd}
               draggable={false}
             />
@@ -247,33 +312,52 @@ export default function PhotoLightbox({ photos, index, onClose, onPrev, onNext }
           <span className="photo-lightbox__corner photo-lightbox__corner--tr" />
           <span className="photo-lightbox__corner photo-lightbox__corner--bl" />
           <span className="photo-lightbox__corner photo-lightbox__corner--br" />
+          {/* One-time nudge (see SWIPE_HINT_SEEN_KEY above) toward the
+              gesture that replaced the old always-visible button chip.
+              pointer-events:none (App.css) so it's never what actually
+              catches that first swipe. */}
+          <AnimatePresence>
+            {showSwipeHint && (
+              <motion.div
+                className="photo-lightbox__swipe-hint"
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduceMotion ? 0 : 0.3 }}
+              >
+                <motion.span
+                  className="photo-lightbox__swipe-hint-icon"
+                  animate={reduceMotion ? undefined : { x: [0, -4, 0] }}
+                  transition={reduceMotion ? undefined : { duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <ChevronIcon direction="left" />
+                </motion.span>
+                Swipe to browse
+                <motion.span
+                  className="photo-lightbox__swipe-hint-icon"
+                  animate={reduceMotion ? undefined : { x: [0, 4, 0] }}
+                  transition={reduceMotion ? undefined : { duration: 1.3, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <ChevronIcon direction="right" />
+                </motion.span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* EXIF pinned bottom-left on desktop; flows directly under the
-            image on mobile (see the mobile block in App.css). DOM order
-            stays (card, caption, toggle) at every width — mobile reorders
-            them visually via CSS `order` so the caption and the toggle
-            lead and the card follows once opened, without a second JSX
-            branch to keep in sync with this one. `!isMobile ||` keeps
-            desktop's actual render — the card is always in the tree, the
-            toggle never is — byte-identical to before this change. */}
+            image on mobile (see the mobile block in App.css). Always
+            rendered at every width — a collapsed-behind-a-tap version on
+            mobile meant the block's height (and so its vertical center)
+            changed every time it was toggled, visibly shifting the photo
+            itself; always-visible keeps the whole block's height, and the
+            photo's position, stable from the moment the lightbox opens. */}
         <div className="photo-lightbox__exif" onClick={(e) => e.stopPropagation()}>
-          {(!isMobile || exifOpen) && <ExifCard photo={photo.src} compact={false} />}
+          <ExifCard photo={photo.src} compact={false} />
           {(photo.city || photo.country) && (
             <p className="photo-lightbox__caption">
               {photo.city}{photo.country ? ` · ${photo.country}` : ''}
             </p>
-          )}
-          {isMobile && (
-            <button
-              type="button"
-              className="photo-lightbox__exif-toggle"
-              onClick={() => setExifOpen((open) => !open)}
-              aria-expanded={exifOpen}
-            >
-              {exifOpen ? 'Hide shooting info' : 'Shooting info'}
-              <ChevronIcon direction="right" className="photo-lightbox__exif-toggle-icon" />
-            </button>
           )}
         </div>
       </div>

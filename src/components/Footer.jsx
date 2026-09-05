@@ -49,7 +49,7 @@ export default function Footer() {
 
           {/* Right — Nav + socials */}
           <div className="footer__right">
-            <nav className="footer__nav">
+            <nav className="footer__nav" aria-label="Footer">
               {links.map(({ to, label }) => (
                 <Link key={to} to={to} className="footer__link">{label}</Link>
               ))}

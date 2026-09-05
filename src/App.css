@@ -515,7 +515,7 @@
   font-family: var(--font-heading);
   font-size: 1.05rem;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--text);
   text-shadow: 0 1px 3px rgba(10, 9, 8, 0.55);
   letter-spacing: 0.06em;
   transition: color 0.25s;
@@ -564,14 +564,15 @@
 }
 
 /* ── Hamburger button (hidden on desktop) ── */
+/* Was 40x40 — under the 44px touch-target floor. */
 .navbar__hamburger {
   display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: none;
   border: none;
   cursor: pointer;
@@ -608,7 +609,9 @@
 .nav-drawer {
   position: fixed;
   inset: 0;
-  z-index: 1050;
+  /* Was 1050 — same issue as .photo-lightbox: lower than .back-to-top
+     (2100), so the button could sit on top of this modal too. */
+  z-index: 2200;
   background: rgba(8, 7, 6, 0.97);
   display: flex;
   align-items: center;
@@ -682,13 +685,16 @@
   padding-top: 0;
 }
 
+/* background-color is the placeholder shown while the hero image loads (or
+   if it fails) — was an off-palette navy (#0d1a33) here, inconsistent with
+   the portrait variant's near-black and the site's own warm dark palette. */
 .city-page__hero {
   position: relative;
   height: 65vh;
   min-height: 400px;
   background-size: cover;
   background-position: center;
-  background-color: #0d1a33;
+  background-color: var(--bg-secondary);
   display: flex;
   align-items: flex-end;
 }
@@ -697,7 +703,7 @@
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
-  background-color: #080808;
+  background-color: var(--bg-secondary);
 }
 
 .city-page__hero-overlay {
@@ -713,15 +719,21 @@
   width: 100%;
 }
 
+/* Was a bare text line (66x19px) with zero padding — the hit area was
+   exactly the glyph box, on the only in-page way back to the site from a
+   city gallery besides the fixed navbar. Padding + matching negative
+   margin grows the clickable area to the 44px floor without moving the
+   visible text or the gap to the heading below it. */
 .city-page__back {
   display: inline-flex;
   align-items: center;
+  padding: 13px 10px;
+  margin: -13px -10px 3px;
   font-size: 0.88rem;
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 16px;
   transition: color 0.2s;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
 }
@@ -730,11 +742,16 @@
   color: var(--accent);
 }
 
+.city-page__back:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .city-page__title {
   font-family: var(--font-heading);
   font-size: clamp(2.5rem, 5vw, 5rem);
   font-weight: 600;
-  color: #fff;
+  color: var(--text);
   line-height: 1;
   letter-spacing: -0.02em;
 }
@@ -772,12 +789,51 @@
 
 /* ── Photo count label ── */
 .city-page__count {
-  font-size: 0.68rem;
+  /* Was 0.68rem (10.88px) — under the 11px legibility floor, the same
+     defect class fixed elsewhere this session. */
+  font-size: 0.72rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-muted);
   opacity: 0.5;
   margin-bottom: 28px;
+}
+
+/* ── Closing beat ── same reasoning and treatment as Gallery's own. */
+.city-page__closer {
+  max-width: 640px;
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.city-page__closer-lead {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+}
+
+.city-page__closer-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 13px 28px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  transition: background 0.22s, color 0.22s;
+}
+
+.city-page__closer-cta:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.city-page__closer-cta:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ===== EDITORIAL PHOTO GRID ===== */
@@ -796,9 +852,13 @@
 }
 
 /* ── Individual item ── */
+/* Was a <div onClick>; now a <button> so city-page photos are keyboard-
+   operable (they weren't at all). padding:0 closes the gap a default
+   button would otherwise leave around the full-bleed img. */
 .editorial-item {
   position: relative;
   overflow: hidden;
+  padding: 0;
   border-radius: 3px;
   cursor: zoom-in;
   background: var(--bg-secondary);
@@ -869,110 +929,6 @@
   }
   .editorial-item--landscape { grid-column: span 1; aspect-ratio: 3 / 2; }
   .editorial-item--portrait  { grid-column: span 1; aspect-ratio: 2 / 3; }
-}
-
-/* ===== LIGHTBOX ===== */
-.lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  background: rgba(5, 4, 3, 0.97);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Portrait and landscape images constrained differently */
-.lightbox__img--landscape {
-  max-width: min(90vw, calc(88vh * 1.5));
-  max-height: 88vh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 2px;
-}
-
-.lightbox__img--portrait {
-  max-height: min(88vh, calc(86vw * 1.5));
-  max-width: 86vw;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 2px;
-}
-
-.lightbox__close {
-  position: absolute;
-  top: 22px;
-  right: 28px;
-  font-size: 1.2rem;
-  color: rgba(228, 221, 212, 0.35);
-  transition: color 0.2s;
-  z-index: 1;
-  padding: 8px;
-}
-
-.lightbox__close:hover {
-  color: rgba(228, 221, 212, 0.9);
-}
-
-.lightbox__prev,
-.lightbox__next {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 2.4rem;
-  color: rgba(228, 221, 212, 0.28);
-  padding: 24px 20px;
-  transition: color 0.2s;
-  z-index: 1;
-}
-
-.lightbox__prev { left: 0; }
-.lightbox__next { right: 0; }
-
-.lightbox__prev:hover,
-.lightbox__next:hover {
-  color: rgba(228, 221, 212, 0.85);
-}
-
-.lightbox__caption {
-  position: absolute;
-  bottom: 36px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(228, 221, 212, 0.28);
-  white-space: nowrap;
-}
-
-/* Counter — top left */
-.lightbox__counter {
-  position: absolute;
-  top: 26px;
-  left: 28px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  color: rgba(228, 221, 212, 0.28);
-}
-
-.lightbox__counter-current {
-  font-size: 1.1rem;
-  color: rgba(228, 221, 212, 0.7);
-  font-family: var(--font-heading);
-}
-
-.lightbox__counter-sep {
-  display: inline-block;
-  width: 20px;
-  height: 1px;
-  background: rgba(228, 221, 212, 0.2);
 }
 
 /* ===== CONTENT PAGES (About, Contact, Gear) ===== */
@@ -1242,7 +1198,7 @@
 
 .ap-contact-btn:hover {
   background: var(--accent);
-  color: #111110;
+  color: var(--bg);
 }
 
 .ap-contact-btn:hover svg {
@@ -1566,8 +1522,17 @@
   border-top: 1px solid var(--glass-border);
 }
 
+/* Was a bare text line (175x19px), zero padding. Padding grows the hit
+   area to the 44px floor; only horizontal is compensated with a matching
+   negative margin (keeps the text's left edge aligned with the subtitle
+   above it) — the parent stacks with flex `gap`, where a negative
+   top/bottom margin here would eat directly into that gap and overlap
+   the line below, so vertical spacing is left to grow slightly instead. */
 .contact-page__direct-email {
+  display: inline-flex;
   width: fit-content;
+  padding: 13px 12px;
+  margin: 0 -12px;
   font-family: var(--font-mono);
   font-size: 1.05rem;
   color: var(--accent-light);
@@ -1683,7 +1648,7 @@
   align-self: flex-start;
   padding: 14px 40px;
   background: var(--accent);
-  color: #111110;
+  color: var(--bg);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1727,9 +1692,12 @@
   gap: 14px;
   margin-top: 32px;
 }
+/* min-height: was ~40px tall (padding + line-height), under the 44px
+   touch-target floor. */
 .notfound__link {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   padding: 12px 28px;
   font-size: 0.78rem;
   letter-spacing: 0.14em;
@@ -1742,14 +1710,19 @@
 .notfound__link:hover {
   background: var(--accent);
   border-color: var(--accent);
-  color: #111110;
+  color: var(--bg);
 }
 .notfound__link--primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #111110;
+  color: var(--bg);
 }
 .notfound__link--primary:hover { opacity: 0.85; }
+
+.notfound__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 .contact-success {
   text-align: center;
@@ -1846,9 +1819,30 @@
 /* ── Filter nav ──
    Pills wrap rather than scroll: a filter list you can't see all of at
    once isn't really a filter. Nothing here needs a scroll container or a
-   hidden-scrollbar hack any more. */
+   hidden-scrollbar hack any more.
+
+   Sticky: at 129 photos unfiltered, a visitor who didn't filter before
+   scrolling used to lose these controls the moment they scrolled past
+   them — the only way back to "just Kyoto" was scrolling all the way
+   back up. Pinned under the navbar (66px), the fix is always one glance
+   up away instead. Background matches the page exactly (--bg) so it's
+   visually seamless at rest; the border only appears once something is
+   actually scrolling underneath it (.gallery-filter--stuck, toggled by
+   an IntersectionObserver sentinel in GalleryPage.jsx) rather than
+   showing permanently — chrome that appears when it's earning its keep,
+   not before. */
 .gallery-filter {
-  margin-bottom: 48px;
+  position: sticky;
+  top: 66px;
+  z-index: 10;
+  background: var(--bg);
+  padding: 16px 0;
+  margin: -16px 0 32px;
+  transition: border-color 0.2s;
+  border-bottom: 1px solid transparent;
+}
+.gallery-filter--stuck {
+  border-bottom-color: var(--glass-border);
 }
 
 .gallery-filter__row {
@@ -1896,6 +1890,12 @@
 
 .gallery-filter__pill {
   position: relative;
+  /* inline-flex + centering: the pointer:coarse rule below adds a
+     min-height for the 44px touch-target floor, and a plain button
+     doesn't center its text against extra min-height on its own. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 6px 16px;
   border-radius: 20px;
   font-size: 0.75rem;
@@ -1955,9 +1955,27 @@
      sets the touch-target height, and shrinking it back down would undo
      the target-size fix from before. */
   .gallery-filter__row { gap: 10px 6px; }
-  .gallery-filter__pill { padding: 12px 10px; }
-  .gallery-filter__row--sub .gallery-filter__pill { padding: 10px 12px; }
+  /* min-height rather than more padding: padding + this font-size was
+     landing at ~40px, still short of the 44px floor despite the padding
+     already being deliberately preserved here (see comment above) — a
+     fixed floor is more robust than tuning padding against line-height
+     again and getting the same near-miss. */
+  .gallery-filter__pill { padding: 12px 10px; min-height: 44px; }
+  .gallery-filter__row--sub .gallery-filter__pill { padding: 10px 12px; min-height: 44px; }
   .gallery-filter__divider { margin: 0 4px; }
+
+  /* Once the filter bar is pinned (see .gallery-filter--stuck, driven from
+     GalleryPage.jsx), a many-city country's wrapped sub-row plus the 44px
+     pills above it was permanently eating ~31% of a 375px-tall viewport
+     (measured: navbar 66px + a two-line sub-row 185px = 251px of 812px)
+     while scrolling through the actual photos. The sub-row is still fully
+     visible the moment the bar isn't stuck — scrolling to the top always
+     shows it — so nothing is permanently hidden, only while pinned and
+     already filtered to a specific country, where re-browsing the full
+     city list is the less common need than seeing more of the grid. */
+  .gallery-filter--stuck .gallery-filter__row--sub {
+    display: none;
+  }
 
   /* Same gap, same fix: measured at 16px tall against the 44px contact
      button beside it. Padding only, no border/background added — it
@@ -2174,6 +2192,52 @@
   color: var(--text);
 }
 
+/* ── Closing beat ──
+   Home has one ("The archive grows after every trip."); this page and
+   City pages previously ran straight into the footer with no
+   acknowledgment. Left-aligned, matching both the rest of this page's own
+   rhythm and how Home's own closer is set (no center-alignment there
+   either) — a shared sentiment, not a shared visual treatment, since this
+   page's scale and tokens are its own, not Home's. */
+.gallery-closer {
+  max-width: 640px;
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.gallery-closer__lead {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+}
+
+/* Same bordered-outline-fills-on-hover treatment as .ap-contact-btn — the
+   most established "primary CTA" language already on the site, reused
+   rather than inventing a fourth hover style for a brand-new element. */
+.gallery-closer__cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 13px 28px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  transition: background 0.22s, color 0.22s;
+}
+
+.gallery-closer__cta:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.gallery-closer__cta:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* =====================================================
    RESPONSIVE — Tablet (≤ 1024px)
    ===================================================== */
@@ -2234,7 +2298,15 @@
 .photo-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  /* Was 1000 — the same as .navbar, and *lower* than .back-to-top (2100),
+     whose own comment claimed to sit "below modals" but never actually
+     was: back-to-top stayed clickable (confirmed live via
+     elementFromPoint) the entire time a lightbox was open, on top of it,
+     breaking aria-modal's own contract. 2200 makes "above every other
+     fixed element on the page" explicit instead of relying on DOM order
+     (lightbox happened to mount after the navbar, which is what made it
+     visually win the previous z-index tie). */
+  z-index: 2200;
   background: rgba(10, 9, 8, 0.96);
   backdrop-filter: blur(6px);
   display: flex;
@@ -2289,6 +2361,15 @@
 /* Counter top-center */
 .photo-lightbox__counter {
   position: absolute;
+  /* Same tie-break as close/prev/next below: without an explicit
+     z-index, this and .photo-lightbox__img-wrap (also positioned, via
+     position:relative) are equal-z-index siblings that stack by DOM
+     order — img-wrap comes later in the markup, so it silently painted
+     on top and, once the image is vertically centered, sat visibly over
+     these controls (confirmed live: elementFromPoint at the Next
+     button's own screen position resolved to .photo-lightbox__img, not
+     the button). */
+  z-index: 1;
   top: 24px;
   left: 50%;
   transform: translateX(-50%);
@@ -2306,6 +2387,7 @@
 /* Close button top-right */
 .photo-lightbox__close {
   position: absolute;
+  z-index: 1;
   top: 18px;
   right: 22px;
   width: 40px;
@@ -2331,6 +2413,7 @@
 .photo-lightbox__prev,
 .photo-lightbox__next {
   position: absolute;
+  z-index: 1;
   top: 50%;
   transform: translateY(-50%);
   width: 56px;
@@ -2412,31 +2495,42 @@
    position value they used. Scrolling a separate inner wrapper instead
    means those buttons, which stay outside it in the DOM, never move. */
 @media (max-width: 768px) {
-  .photo-lightbox { padding: 24px 12px; }
+  /* 64px top clearance (vs. 24px on the other three sides) reserves room
+     for the counter/close row (close button's bottom edge sits at
+     10+44=54px) so the centered content below can never scroll up under
+     it — see .photo-lightbox__content's align-items:center, which now
+     measures "centered" against this padding box, not the raw viewport. */
+  .photo-lightbox { padding: 64px 12px 24px; }
   .photo-lightbox__content {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
     max-height: 100%;
-    /* Safety net, not the normal case: budgeted below so a typical photo
-       + EXIF card never needs it. Guards only the edge case where a tall
-       portrait photo lands beside unusually long EXIF/caption text. */
+    /* Content this short relative to a phone's height (a width-capped
+       landscape photo plus caption/toggle) never fills the screen no
+       matter where it's anchored — a prior pass anchored it to the top
+       instead of centering, reasoning that centering read as "a small
+       photo adrift in a void." Verified live that top-anchoring didn't
+       remove the dead space, it just relocated all of it to the bottom
+       (confirmed via screenshot with both collapsed and expanded EXIF) —
+       worse, since it now reads as an unbalanced layout rather than a
+       deliberate composition. Centering distributes the same unavoidable
+       gap evenly above and below instead.
+       overflow-y:auto plus the 64px top clearance above are what keep
+       this safe if EXIF is expanded on a portrait photo and the block
+       grows tall: max-height:100% caps it at the available space (so it
+       can't grow past the viewport and get clipped), and it fills that
+       space from the reserved 64px line down rather than centering into
+       negative territory under the close button. */
     overflow-y: auto;
-    /* Was vertically centered (the parent's align-items:center) — a
-       landscape photo is width-capped by the viewport (a 3:2 image can't
-       exceed ~240px tall at 96vw of a 375px screen; that's the image's
-       own aspect ratio, no CSS number changes it), so centering the whole
-       block in the full viewport height left it reading as a small photo
-       adrift in a void even after the earlier fix closed the dead space
-       *within* the block. Anchoring to the top instead means the photo is
-       the first thing seen, right below the counter, rather than a small
-       island floating dead-center — the same absolute pixels, but placed
-       like a considered composition instead of a centered afterthought.
-       44px clears the counter/close row (bottom edge at 24+44=68px vs.
-       their own ~54px). */
-    align-self: flex-start;
-    margin-top: 44px;
+    /* Explicit, not left to default: the spec silently turns a lone
+       overflow-y:auto into overflow-x:auto too (an axis left at its
+       'visible' initial value gets forced to 'auto' the moment its pair
+       isn't 'visible'), which would clip Prev/Next now that they sit
+       partly outside this box by design (see their negative left/right,
+       below) to sit flush with the photo's edge. */
+    overflow-x: visible;
   }
   /* 62vh leaves ~240px of guaranteed room below for gap + EXIF card even
      on the shortest supported viewport height, without needlessly
@@ -2444,6 +2538,14 @@
      already lands them — measured: a 2:3 portrait at 96vw of 375px comes
      to 480px tall, comfortably under 62vh (503px), so this is strictly a
      landscape-photo change; portrait sizing is untouched. */
+  /* img-wrap's own max-width must match its image's — it was still
+     capped at the desktop rule's 90vw while the image inside it was
+     freed to 96vw, so the image visually overflowed its own wrapper by
+     ~11px a side (the wrap doesn't clip). Harmless while the wrap was
+     just a positioning box for the corner brackets, but Prev/Next now
+     use its edges as "the photo's edges" (see PhotoLightbox.jsx) — this
+     is what makes that actually true instead of true only vertically. */
+  .photo-lightbox__img-wrap { max-width: 96vw; }
   .photo-lightbox__img { max-width: 96vw; max-height: 62vh; }
   .photo-lightbox__corner { width: 18px; height: 18px; }
   .photo-lightbox__corner--tl { top: -9px;    left: -9px; }
@@ -2452,82 +2554,101 @@
   .photo-lightbox__corner--br { bottom: -9px; right: -9px; }
   /* A near-transparent 16%-opacity outline reads fine over a large
      desktop photo — floating chrome outside the image most of the time.
-     On mobile the photo fills the frame edge to edge, so that same
-     outline sits directly over the photograph with nothing behind it —
-     not visible in practice, confirmed in the last critique. A solid
-     chip matching .photo-lightbox's own backdrop-filter material (not a
-     new one) gives it real presence against any photo, bright or dark. */
-  .photo-lightbox__prev,
-  .photo-lightbox__next,
+     Close stays that way on mobile too — it sits in the dead space above
+     the photo, never over it, so a solid chip matching .photo-lightbox's
+     own backdrop-filter material (not a new one) is free to give it real
+     presence against the page behind it. */
   .photo-lightbox__close {
     background: rgba(10, 9, 8, 0.55);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     border-color: rgba(255, 255, 255, 0.32);
   }
+  /* Prev/Next are the one control that can't move off the photo — a
+     narrow phone leaves no gutter beside a 96vw image to put them in.
+     Swipe (already wired up via drag="x") is the primary way to browse;
+     these are the accessible fallback for anyone who can't or doesn't
+     swipe, kept at reach but stripped to a bare glyph — no circle, no
+     chip — so there's nothing solid left sitting on the photograph. The
+     44×44 box is the tap target, unchanged; only the visible mark inside
+     it shrinks. The drop-shadow (not a background) is what keeps a thin
+     line visible against a bright sky or snow without reintroducing a
+     backing shape. */
   .photo-lightbox__prev,
-  .photo-lightbox__next { width: 40px; height: 40px; font-size: 1.4rem; }
-  .photo-lightbox__prev { left: 8px; }
-  .photo-lightbox__next { right: 8px; }
+  .photo-lightbox__next {
+    border: none;
+    background: none;
+  }
+  .photo-lightbox__prev svg,
+  .photo-lightbox__next svg {
+    width: 16px;
+    height: 16px;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.85));
+  }
+  /* Was 40×40 — under the 44px touch-target floor, and inconsistent with
+     .photo-lightbox__close right beside it, which was already fixed to
+     44×44 for the same reason. Still the full tap target above — only
+     the glyph inside got smaller. */
+  .photo-lightbox__prev,
+  .photo-lightbox__next { width: 44px; height: 44px; font-size: 1.4rem; }
+  /* Negative, not just small-positive: sits the glyph right at the photo's
+     own edge rather than noticeably inset onto it — the 44px tap target
+     still fits on-screen (the photo runs to within ~7px of the viewport
+     edge on this width, so -6px lands the target's outer edge about 1px
+     off the true screen edge, not past it). Needs .photo-lightbox__content
+     below to declare overflow-x explicitly, or this gets clipped. */
+  .photo-lightbox__prev { left: -6px; }
+  .photo-lightbox__next { right: -6px; }
   .photo-lightbox__exif {
     position: static;
     width: 100%;
     max-width: none;
     flex-shrink: 0;
   }
-  /* DOM order stays (card, caption, toggle) — same markup drives desktop
-     and mobile. Reordered visually here so the caption and the toggle
-     read first, with the card (now collapsed by default) appearing below
-     the toggle once opened, rather than leading with detail the tap
-     hasn't been made for yet. */
-  .photo-lightbox__exif .exif-card { order: 3; margin-top: 10px; }
+  /* DOM order stays (card, caption) — same markup drives desktop and
+     mobile. Reordered visually here so the city/country caption reads
+     first, with the technical detail card below it. */
+  .photo-lightbox__exif .exif-card { order: 2; margin-top: 10px; }
   .photo-lightbox__caption { order: 1; }
-  .photo-lightbox__exif-toggle { order: 2; }
   .photo-lightbox__counter { top: 16px; font-size: 0.74rem; }
   /* Was 34×34 — under comfortable touch size, smaller than prev/next
-     (40×40) right beside it, on the control that matters most when
+     right beside it (now matched at 44×44), on the control that matters most when
      someone wants out of a full-screen view. */
   .photo-lightbox__close { top: 10px; right: 10px; width: 44px; height: 44px; }
   .photo-lightbox__close svg { width: 18px; height: 18px; }
 
-  /* "Shooting info" toggle — same quiet, mono-caps treatment as the
-     caption beside it, distinguished by the accent color already used
-     for interactive text sitewide rather than a new material. Padding +
-     matching negative margin expand the tap area without growing the
-     visible control, same technique as .ap-social-link elsewhere in this
-     file — real vertical space isn't free here. */
-  .photo-lightbox__exif-toggle {
-    display: inline-flex;
+  /* One-time swipe-discovery nudge (PhotoLightbox.jsx). pointer-events:none
+     is load-bearing — this sits centered over the photo for its brief
+     ~2.5s life, and must never be what actually catches the first swipe
+     it's teaching. Same chip material as .photo-lightbox__close (the one
+     mobile control that kept it) rather than a new one. */
+  .photo-lightbox__swipe-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    padding: 10px 0;
-    margin-bottom: -10px;
-    background: none;
-    border: none;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(10, 9, 8, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--accent-light);
-    cursor: pointer;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    pointer-events: none;
   }
-  .photo-lightbox__exif-toggle:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+  .photo-lightbox__swipe-hint-icon {
+    display: flex;
+    color: var(--accent, rgb(200, 168, 120));
   }
-  .photo-lightbox__exif-toggle-icon {
-    width: 10px;
-    height: 10px;
-    transition: transform 0.2s ease;
-  }
-  /* Right-chevron rotated: points down at rest ("more below"), up once
-     expanded ("collapse it") — the same glyph already drawn for Prev/
-     Next, no second icon to draw or import. */
-  .photo-lightbox__exif-toggle-icon { transform: rotate(90deg); }
-  .photo-lightbox__exif-toggle[aria-expanded="true"] .photo-lightbox__exif-toggle-icon {
-    transform: rotate(-90deg);
-  }
+  .photo-lightbox__swipe-hint-icon svg { width: 12px; height: 12px; }
 }
 
 /* ── ExifCard (reusable) ──────────────────────────────── */
@@ -2574,7 +2695,7 @@
 }
 .exif-card__val {
   letter-spacing: 0.04em;
-  color: #e4ddd4;
+  color: var(--text);
 }
 .exif-card__row--mono .exif-card__val { color: #f4ece1; font-weight: 500; }
 .exif-card__row--muted {
@@ -2609,6 +2730,10 @@
 
 .scroll-bar__fill {
   width: 100%;
+  /* Always full height; scaleY (set in App.jsx, animated off
+     scrollYProgress) does the actual fill visually, compositor-only
+     rather than animating height on every scroll tick. */
+  height: 100%;
   background: rgba(255, 255, 255, 0.88);
   box-shadow: -1px 0 8px rgba(255, 255, 255, 0.35);
   border-radius: 0 0 3px 3px;
@@ -2657,13 +2782,12 @@
   display: block;
 }
 
-/* Mobile: tighter to the edge, slightly smaller */
+/* Mobile: tighter to the edge. Was also 4px smaller here (40x40) — under
+   the touch-target floor; kept the same 44x44 as desktop instead. */
 @media (max-width: 640px) {
   .back-to-top {
     bottom: 18px;
     right: 18px;
-    width: 40px;
-    height: 40px;
   }
 }
 
@@ -2736,6 +2860,11 @@
   color: var(--accent-light);
 }
 
+.footer__logo:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .footer__tagline {
   font-size: 0.68rem;
   letter-spacing: 0.2em;
@@ -2798,6 +2927,11 @@
 
 .footer__link:hover {
   color: rgba(228, 221, 212, 0.9);
+}
+
+.footer__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ── Bottom divider + copyright ── */
@@ -2863,6 +2997,19 @@
 /* The landmark takes focus programmatically after the skip; it should not
    draw a ring for that. */
 #main:focus { outline: none; }
+
+/* Every page component already sets its own min-height: 100vh once
+   mounted, so this is a no-op once a route has loaded. It exists for the
+   gap in between: a lazy route's Suspense fallback is `null` (see
+   App.jsx), so on a slow connection <main> can briefly render nothing at
+   all — without a reserved height it collapses to 0, and the Footer
+   (still in normal flow right after it) jumps up to sit directly under
+   the navbar. Reserving the same full-viewport space <main> always ends
+   up with anyway keeps that gap looking like "still loading," not
+   "something broke." */
+#main {
+  min-height: 100vh;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .skip-link { transition: none; }
