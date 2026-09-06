@@ -230,7 +230,8 @@ function Index() {
           />
         ))}
           {/* Empty state: a city can be in the log before its photographs are
-              imported (Hangzhou today). Without this the plate goes blank
+              imported (Hangzhou sat here empty from its cities.js entry
+              until its first import). Without this the plate goes blank
               under a caption naming the city, which reads as a broken image. */}
           {activeCity && !activeCity.heroImage && (
             <span className="home-index__plate-empty">
@@ -482,7 +483,7 @@ function Closer() {
   return (
     <section className="home-closer">
       <p className="home-closer__lead">
-        The archive grows after every trip. Hangzhou is next.
+        The archive grows after every trip. Guangzhou is next.
       </p>
       <Link className="home-cta home-cta--lg" to="/contact">Get in touch</Link>
     </section>
