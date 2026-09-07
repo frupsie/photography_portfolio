@@ -1827,8 +1827,10 @@
    Sticky: at 129 photos unfiltered, a visitor who didn't filter before
    scrolling used to lose these controls the moment they scrolled past
    them — the only way back to "just Kyoto" was scrolling all the way
-   back up. Pinned under the navbar (66px), the fix is always one glance
-   up away instead. Background matches the page exactly (--bg) so it's
+   back up. Pinned flush under the navbar (its real height, published as
+   --nav-h by Navbar.jsx — the navbar is sized by its own contents and is
+   not a fixed height), the fix is always one glance up away instead.
+   Background matches the page exactly (--bg) so it's
    visually seamless at rest; the border only appears once something is
    actually scrolling underneath it (.gallery-filter--stuck, toggled by
    an IntersectionObserver sentinel in GalleryPage.jsx) rather than
@@ -1836,7 +1838,9 @@
    not before. */
 .gallery-filter {
   position: sticky;
-  top: 66px;
+  /* --nav-h is the navbar's real measured height (Navbar.jsx); the 66px
+     fallback only applies for the frame before that first measurement. */
+  top: var(--nav-h, 66px);
   z-index: 10;
   background: var(--bg);
   padding: 16px 0;

@@ -13,12 +13,35 @@ export default function Navbar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const navRef = useRef(null);
   const hamburgerRef = useRef(null);
   const drawerRef = useRef(null);
   const wasOpenRef = useRef(false);
 
   // Close menu on route change
   useEffect(() => { setMenuOpen(false); }, [pathname]);
+
+  // The gallery's sticky filter bar docks flush under this navbar, whose
+  // height is not fixed — it follows the logo's font metrics on desktop
+  // and the 44px hamburger on touch layouts (~62px vs ~73px), and gains a
+  // 1px border on every route except Home. Publish the real measured
+  // height as --nav-h so .gallery-filter's `top` and its scroll sentinel
+  // (GalleryPage.jsx) meet the navbar's actual bottom edge, instead of a
+  // hardcoded 66px that left a seam of scrolling photos on desktop and
+  // clipped the filter pills on mobile.
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        '--nav-h', `${el.getBoundingClientRect().height}px`,
+      );
+    };
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el, { box: 'border-box' });
+    return () => ro.disconnect();
+  }, []);
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -86,7 +109,7 @@ export default function Navbar() {
           that read as a glitch, not a page-specific choice. navbar--solid
           swaps it for an opaque bar matching the page background, which
           doesn't apply to Home so the hero look is untouched. */}
-      <nav className={`navbar${pathname === '/' ? '' : ' navbar--solid'}`} aria-label="Primary">
+      <nav ref={navRef} className={`navbar${pathname === '/' ? '' : ' navbar--solid'}`} aria-label="Primary">
         <a href="/" className="navbar__logo" onClick={handleHome}>
           Jayden Ng
         </a>

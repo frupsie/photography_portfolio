@@ -137,9 +137,16 @@ export default function GalleryPage() {
   useEffect(() => {
     const el = filterSentinel.current;
     if (!el) return;
+    // Same offset the sticky filter uses for `top` (App.css): the navbar's
+    // real measured height, published as --nav-h by Navbar.jsx. Keeps
+    // "stuck" flipping exactly as the filter reaches the navbar's bottom
+    // edge, at any breakpoint, instead of a hardcoded 66px.
+    const navH = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--nav-h'),
+    ) || 66;
     const observer = new IntersectionObserver(
       ([entry]) => setFilterStuck(!entry.isIntersecting),
-      { rootMargin: '-66px 0px 0px 0px' }, // matches the navbar height the filter docks under
+      { rootMargin: `-${navH}px 0px 0px 0px` },
     );
     observer.observe(el);
     return () => observer.disconnect();
