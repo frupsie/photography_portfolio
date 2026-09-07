@@ -322,9 +322,12 @@
 }
 .home-frame:hover .home-frame__cap { color: var(--home-gold); }
 
-/* Progress fill for the mobile swipeable strip. Hidden here; the touch
-   media query below turns it on, replacing the strip's hidden native
-   scrollbar as the "there's more, here's where you are" cue. */
+/* Mobile swipeable-strip affordances: a one-time swipe nudge and a
+   persistent progress fill, together replacing the strip's hidden native
+   scrollbar. The wrapper is display:contents here so the desktop
+   pinned-pan layout is untouched; the touch media query below turns the
+   whole cluster on. */
+.home-frames__foot { display: contents; }
 .home-frames__progress { display: none; }
 
 /* ── 4. Closer ── */
@@ -419,11 +422,39 @@
   .home-frame__plate img { width: 100%; height: auto; }
   .home-open__type { padding: 0 6vw 10vh; }
 
+  /* Nudge + fill share one gutter-padded column, sitting just below the
+     strip. display:contents on desktop (above), flex here. */
+  .home-frames__foot {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 14px;
+    padding: 0 6vw;
+  }
+  /* Quiet type in the same idiom as .home-frame__cap; the arrow is the one
+     gold mark, nudging toward the pan direction. */
+  .home-frames__swipe {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--home-quiet);
+  }
+  .home-frames__swipe-arrow {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 11px;
+    color: var(--home-gold);
+    animation: home-swipe-nudge 1.5s ease-in-out infinite;
+  }
   .home-frames__progress {
     display: block;
     position: relative;
     height: 2px;
-    margin: 14px 6vw 0;
+    margin: 0;
     background: var(--home-rule);
     overflow: hidden;
     border-radius: 2px;
@@ -440,6 +471,13 @@
   }
 }
 
+/* Small travel toward the pan direction, then back — enough to read as
+   "keep going this way" without becoming a loop the eye fixes on. */
+@keyframes home-swipe-nudge {
+  0%, 100% { transform: translateX(0); }
+  55%      { transform: translateX(5px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Same escape hatch as touch: a scrollable strip the reader drives. */
   .home-frames__track {
@@ -454,4 +492,7 @@
   .home-index__plate-img,
   .home-cta { transition: none; }
   .home-open__img { transform: none !important; }
+  /* The hint still appears (it's information, not decoration); it just
+     stops beckoning. */
+  .home-frames__swipe-arrow { animation: none; }
 }

@@ -1645,7 +1645,10 @@
 }
 
 .contact-form__submit {
-  align-self: flex-start;
+  /* Full width, flush with the fields above it — the form is a single
+     column and a short button floating at its left edge read as unfinished
+     next to three full-width inputs. */
+  align-self: stretch;
   padding: 14px 40px;
   background: var(--accent);
   color: var(--bg);
@@ -2506,9 +2509,15 @@
     flex-direction: column;
     align-items: center;
     gap: 20px;
+    /* Pinned to the scroll container's own box, never sized by its
+       content: without this the un-wrapping EXIF card (see
+       .exif-card__val below) stretched this box wider than the phone and
+       the whole lightbox scrolled sideways. */
+    width: 100%;
+    max-width: 100%;
     max-height: 100%;
     /* Content this short relative to a phone's height (a width-capped
-       landscape photo plus caption/toggle) never fills the screen no
+       landscape photo plus its EXIF card) never fills the screen no
        matter where it's anchored — a prior pass anchored it to the top
        instead of centering, reasoning that centering read as "a small
        photo adrift in a void." Verified live that top-anchoring didn't
@@ -2518,35 +2527,38 @@
        deliberate composition. Centering distributes the same unavoidable
        gap evenly above and below instead.
        overflow-y:auto plus the 64px top clearance above are what keep
-       this safe if EXIF is expanded on a portrait photo and the block
-       grows tall: max-height:100% caps it at the available space (so it
-       can't grow past the viewport and get clipped), and it fills that
-       space from the reserved 64px line down rather than centering into
-       negative territory under the close button. */
+       this safe if the EXIF card grows tall on a portrait photo:
+       max-height:100% caps it at the available space (so it can't grow
+       past the viewport and get clipped), and it fills that space from
+       the reserved 64px line down rather than centering into negative
+       territory under the close button. */
     overflow-y: auto;
-    /* Explicit, not left to default: the spec silently turns a lone
-       overflow-y:auto into overflow-x:auto too (an axis left at its
-       'visible' initial value gets forced to 'auto' the moment its pair
-       isn't 'visible'), which would clip Prev/Next now that they sit
-       partly outside this box by design (see their negative left/right,
-       below) to sit flush with the photo's edge. */
-    overflow-x: visible;
+    /* Hidden, not visible: this box is now width-capped (above), so
+       anything that would still poke past its edge — a dragged photo
+       mid-swipe, sub-pixel rounding — is clipped rather than turned into
+       the horizontal scrollbar that used to sit under the EXIF card. The
+       -6px Prev/Next and -9px AF brackets stay visible because
+       .photo-lightbox__img-wrap is inset from this box's edge
+       (calc(100% - 22px)), so their overhang falls inside it, not past. */
+    overflow-x: hidden;
   }
   /* 62vh leaves ~240px of guaranteed room below for gap + EXIF card even
      on the shortest supported viewport height, without needlessly
-     shrinking portrait photos below where their own width cap (96vw)
-     already lands them — measured: a 2:3 portrait at 96vw of 375px comes
-     to 480px tall, comfortably under 62vh (503px), so this is strictly a
-     landscape-photo change; portrait sizing is untouched. */
-  /* img-wrap's own max-width must match its image's — it was still
-     capped at the desktop rule's 90vw while the image inside it was
-     freed to 96vw, so the image visually overflowed its own wrapper by
-     ~11px a side (the wrap doesn't clip). Harmless while the wrap was
-     just a positioning box for the corner brackets, but Prev/Next now
-     use its edges as "the photo's edges" (see PhotoLightbox.jsx) — this
-     is what makes that actually true instead of true only vertically. */
-  .photo-lightbox__img-wrap { max-width: 96vw; }
-  .photo-lightbox__img { max-width: 96vw; max-height: 62vh; }
+     shrinking portrait photos below where their own width cap already
+     lands them — a 2:3 portrait at full content width on a 375px screen
+     comes to ~490px tall, comfortably under 62vh (503px), so this is
+     strictly a landscape-photo change; portrait sizing is untouched. */
+  /* Both the image and its wrapper size off the scroll container's own
+     width (100% — see .photo-lightbox__content above), never the raw
+     viewport: a viewport-relative cap (96vw) sat wider than that box's
+     padding edge and, once the box stopped being sized by its content,
+     tipped the whole lightbox into horizontal scroll. The wrapper stops
+     22px short of the container edge (11px a side) so the -9px AF corner
+     brackets and the -6px Prev/Next overhang still land inside the box
+     that clips it. Prev/Next use these edges as "the photo's edges" (see
+     PhotoLightbox.jsx), so image and wrapper must share one cap. */
+  .photo-lightbox__img-wrap { max-width: calc(100% - 22px); }
+  .photo-lightbox__img { max-width: 100%; max-height: 62vh; }
   .photo-lightbox__corner { width: 18px; height: 18px; }
   .photo-lightbox__corner--tl { top: -9px;    left: -9px; }
   .photo-lightbox__corner--tr { top: -9px;    right: -9px; }
@@ -2610,6 +2622,13 @@
      first, with the technical detail card below it. */
   .photo-lightbox__exif .exif-card { order: 2; margin-top: 10px; }
   .photo-lightbox__caption { order: 1; }
+  /* Let a long value (a full lens or camera string like "iPhone 16 Pro
+     Max back triple camera 2.22mm f/2.2") wrap under its label instead
+     of forcing the row — and the whole lightbox — wider than the phone.
+     min-width:0 overrides the flex default that pins a flex item to its
+     content width; overflow-wrap catches any single unbreakable token.
+     Scoped to the lightbox — the shared ExifCard elsewhere is untouched. */
+  .photo-lightbox__exif .exif-card__val { min-width: 0; overflow-wrap: break-word; }
   .photo-lightbox__counter { top: 16px; font-size: 0.74rem; }
   /* Was 34×34 — under comfortable touch size, smaller than prev/next
      right beside it (now matched at 44×44), on the control that matters most when
