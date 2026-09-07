@@ -1645,7 +1645,10 @@
 }
 
 .contact-form__submit {
-  align-self: flex-start;
+  /* Full width, flush with the fields above it — the form is a single
+     column and a short button floating at its left edge read as unfinished
+     next to three full-width inputs. */
+  align-self: stretch;
   padding: 14px 40px;
   background: var(--accent);
   color: var(--bg);
