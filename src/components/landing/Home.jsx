@@ -14,7 +14,7 @@
  */
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { cities, countriesByYear } from '../../data/cities';
@@ -25,6 +25,16 @@ import PhotoLightbox from './PhotoLightbox';
 import './Home.css';
 
 gsap.registerPlugin(ScrollTrigger);
+
+// One-time "this strip scrolls sideways" nudge for the touch layout of the
+// Frames section (<=900px). There the strip hides its native scrollbar
+// (Home.css), and the peek of the next frame plus the thin gold progress
+// fill are easy to miss on a first visit. Marked seen the moment it shows
+// — same reasoning as PhotoLightbox's swipe hint — so a cut-short first
+// visit doesn't bring it back. Desktop drives the strip by vertical
+// scroll, so it neither needs nor gets this.
+const FRAMES_SWIPE_HINT_SEEN_KEY = 'home-frames-swipe-hint-seen';
+const FRAMES_SWIPE_HINT_MS = 3200;
 
 // Everything below is derived from cities.js. Nothing here is hand-maintained.
 // See CLAUDE.md: a second hand-kept list silently dropped a city once already.
@@ -288,6 +298,35 @@ function Frames() {
   const goPrev = () => setLightboxIndex((i) => (i - 1 + FEATURED_PHOTOS.length) % FEATURED_PHOTOS.length);
   const goNext = () => setLightboxIndex((i) => (i + 1) % FEATURED_PHOTOS.length);
 
+  // Swipe nudge, touch layout only (see FRAMES_SWIPE_HINT_SEEN_KEY).
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
+
+  useEffect(() => {
+    if (!narrow) return;
+    try {
+      if (localStorage.getItem(FRAMES_SWIPE_HINT_SEEN_KEY)) return;
+      localStorage.setItem(FRAMES_SWIPE_HINT_SEEN_KEY, '1');
+    } catch {
+      // Private browsing / storage blocked: no way to remember it was
+      // shown, so skip it rather than risk showing it every visit.
+      return;
+    }
+
+    // Appears a beat after the section settles, then clears on the first
+    // scroll of the strip or a timeout, whichever comes first.
+    const show = setTimeout(() => setShowSwipeHint(true), 600);
+    const hide = setTimeout(() => setShowSwipeHint(false), 600 + FRAMES_SWIPE_HINT_MS);
+    const el = track.current;
+    const dismiss = () => setShowSwipeHint(false);
+    el?.addEventListener('scroll', dismiss, { once: true, passive: true });
+
+    return () => {
+      clearTimeout(show);
+      clearTimeout(hide);
+      el?.removeEventListener('scroll', dismiss);
+    };
+  }, [narrow]);
+
   useEffect(() => {
     const trackEl = track.current;
     if (!wrap.current || !trackEl) return;
@@ -454,11 +493,38 @@ function Frames() {
         ))}
       </div>
 
-      {/* Touch/reduced-motion only (CSS-hidden on desktop): the swipeable
-          strip's native scrollbar is hidden for a cleaner look, so this is
-          the only cue that there are more photographs than fit on screen. */}
-      <div className="home-frames__progress" aria-hidden="true">
-        <div className="home-frames__progress-fill" ref={progressFill} />
+      {/* Touch layout only (<=900px — matches the useMatchMedia breakpoint
+          and the Home.css media query). display:contents on desktop, so
+          the pinned-pan layout is untouched. */}
+      <div className="home-frames__foot">
+        {/* One-time nudge that the strip scrolls sideways. aria-hidden: a
+            screen-reader user tabs the frames directly and isn't swiping. */}
+        <AnimatePresence>
+          {narrow && showSwipeHint && (
+            <motion.p
+              className="home-frames__swipe"
+              aria-hidden="true"
+              initial={reduce ? false : { opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduce ? 0 : 0.35, ease: [0.16, 1, 0.3, 1] }}
+            >
+              Swipe to browse
+              <svg className="home-frames__swipe-arrow" viewBox="0 0 28 12" fill="none"
+                   stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                   strokeLinejoin="round" aria-hidden="true">
+                <path d="M2 6h22M19 2l5 4-5 4" />
+              </svg>
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        {/* The swipeable strip's native scrollbar is hidden for a cleaner
+            look, so this fill is the persistent "there's more, here's where
+            you are" cue. */}
+        <div className="home-frames__progress" aria-hidden="true">
+          <div className="home-frames__progress-fill" ref={progressFill} />
+        </div>
       </div>
 
       <AnimatePresence>
