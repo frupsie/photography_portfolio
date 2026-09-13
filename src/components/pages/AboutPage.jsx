@@ -283,6 +283,15 @@ export default function AboutPage() {
             </motion.div>
           ))}
         </div>
+        {/* Same reasoning as the Camera Bodies footnote above: a photo's own
+            EXIF is real archive history and can show a lens no longer in
+            active use (a Canon RF zoom turns up on an older shot) — without
+            this line that reads as a contradiction against the current kit
+            listed here, the same gap the Camera Bodies note already closed
+            for bodies but left open for lenses. */}
+        <p className="ap-gear__note">
+          Individual photos&rsquo; EXIF may show a lens since retired from active use.
+        </p>
       </section>
 
       {/* ── WORKFLOW ── */}

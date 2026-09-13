@@ -31,8 +31,7 @@ gsap.registerPlugin(ScrollTrigger);
 // (Home.css), and the peek of the next frame plus the thin gold progress
 // fill are easy to miss on a first visit. Marked seen the moment it shows
 // — same reasoning as PhotoLightbox's swipe hint — so a cut-short first
-// visit doesn't bring it back. Desktop drives the strip by vertical
-// scroll, so it neither needs nor gets this.
+// visit doesn't bring it back.
 const FRAMES_SWIPE_HINT_SEEN_KEY = 'home-frames-swipe-hint-seen';
 const FRAMES_SWIPE_HINT_MS = 3200;
 
@@ -67,11 +66,27 @@ const spellCap = (n) => {
 };
 
 // Homepage-only picture overrides. cities.js stays the single source of truth,
-// so a city whose hero does not suit this layout is corrected here rather than
-// there. Guangzhou's hero is the one portrait among twelve
-// landscape heroes, and both the index plate and the frame grid are landscape.
+// so a city whose hero does not suit this layout — or whose hero the owner
+// simply wants swapped for this one spot — is corrected here rather than
+// there. Guangzhou's hero is the one portrait among twelve landscape heroes,
+// and both the index plate and the frame grid are landscape. Hangzhou's is a
+// deliberate pick: the owner wanted this golden-hour Leifeng Pagoda shot for
+// the homepage specifically, while cities.js's own hero (the West Lake
+// pavilion) stays as-is for the city page and gallery.
+//
+// Kamakura's is a derived crop, not a raw capture: the real hero (IMG_0908)
+// is 4:3, and this plate box is a fixed 3:2 (see .home-index__plate). Under
+// object-fit:contain that left it letterboxed and visibly smaller than every
+// 3:2 neighbor, with a utility pole dominating the near-left third of the
+// frame regardless. IMG_0908-home.JPG is a one-off 3:2 crop of the same
+// photo (generated from the full-res original, not upscaled from the web
+// tier) that trims the pole and the flat sky above it so the street scene
+// fills the plate exactly like the others. Not part of cities.js's curated
+// photos array — homepage-plate use only.
 const PLATE_OVERRIDE = {
   guangzhou: '/photos-web/guangzhou/_MG_7643.JPG',
+  hangzhou: '/photos-web/hangzhou/_MG_8783.JPG',
+  kamakura: '/photos-web/kamakura/IMG_0908-home.JPG',
 };
 const plateSrc = (c) => PLATE_OVERRIDE[c.slug] ?? c.heroImage;
 
@@ -300,27 +315,65 @@ function Frames() {
 
   // Swipe nudge, touch layout only (see FRAMES_SWIPE_HINT_SEEN_KEY).
   const [showSwipeHint, setShowSwipeHint] = useState(false);
+  // Desktop's pinned layout drives the same progress fill from its own
+  // scrollTrigger onUpdate below — deliberately NOT React state, since
+  // that fires on every scrub tick and re-rendering on each one would
+  // fight the pin animation for the same 60fps budget. It writes
+  // straight to progressFill's transform instead, exactly like the
+  // mobile/reduced-motion path above already does from its own scroll
+  // listener.
 
   useEffect(() => {
     if (!narrow) return;
+    let alreadySeen;
     try {
-      if (localStorage.getItem(FRAMES_SWIPE_HINT_SEEN_KEY)) return;
-      localStorage.setItem(FRAMES_SWIPE_HINT_SEEN_KEY, '1');
+      alreadySeen = localStorage.getItem(FRAMES_SWIPE_HINT_SEEN_KEY);
     } catch {
       // Private browsing / storage blocked: no way to remember it was
       // shown, so skip it rather than risk showing it every visit.
       return;
     }
+    if (alreadySeen) return;
 
-    // Appears a beat after the section settles, then clears on the first
-    // scroll of the strip or a timeout, whichever comes first.
-    const show = setTimeout(() => setShowSwipeHint(true), 600);
-    const hide = setTimeout(() => setShowSwipeHint(false), 600 + FRAMES_SWIPE_HINT_MS);
+    const sectionEl = wrap.current;
     const el = track.current;
+    if (!sectionEl) return;
+
+    let show, hide;
     const dismiss = () => setShowSwipeHint(false);
-    el?.addEventListener('scroll', dismiss, { once: true, passive: true });
+
+    // Home mounts Frames immediately on page load, as a sibling of the
+    // intro overlay, not gated behind it — a mount-relative timer here
+    // would start counting down before the intro is even skipped, let
+    // alone before a visitor has scrolled anywhere near this section.
+    // Confirmed live: it never once appeared. An IntersectionObserver
+    // instead starts the "a beat after the section settles" countdown
+    // when the section actually settles into view, which is what that
+    // phrase was describing in the first place.
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      io.disconnect();
+
+      // The "seen" flag is written only once the hint actually shows
+      // (inside this timeout), not at decide-time above — StrictMode's
+      // dev-only double mount (setup, cleanup, setup again) would
+      // otherwise write the flag from the first, thrown-away pass and
+      // the real instance's setTimeout would never fire to show
+      // anything, since cleanup cancels it before it can. Deferring the
+      // write until the timer actually fires makes a second setup behave
+      // exactly like the first, which is the behavior StrictMode's
+      // double-invoke is checking for.
+      show = setTimeout(() => {
+        setShowSwipeHint(true);
+        try { localStorage.setItem(FRAMES_SWIPE_HINT_SEEN_KEY, '1'); } catch { /* ignore */ }
+      }, 600);
+      hide = setTimeout(() => setShowSwipeHint(false), 600 + FRAMES_SWIPE_HINT_MS);
+      el?.addEventListener('scroll', dismiss, { once: true, passive: true });
+    }, { threshold: 0.4 });
+    io.observe(sectionEl);
 
     return () => {
+      io.disconnect();
       clearTimeout(show);
       clearTimeout(hide);
       el?.removeEventListener('scroll', dismiss);
@@ -407,6 +460,14 @@ function Frames() {
             pin: true,
             scrub: 1,
             invalidateOnRefresh: true,     // recompute on resize and font load
+            // Direct DOM write, not React state — this fires on every
+            // scrub tick, and re-rendering on each one would compete with
+            // the pin animation for the same frame budget. Same fill
+            // element the mobile/reduced path drives from its own scroll
+            // listener above; only the trigger differs.
+            onUpdate: (self) => {
+              if (progressFill.current) progressFill.current.style.transform = `scaleX(${self.progress})`;
+            },
           },
         });
         st = tween.scrollTrigger;
@@ -493,12 +554,16 @@ function Frames() {
         ))}
       </div>
 
-      {/* Touch layout only (<=900px — matches the useMatchMedia breakpoint
-          and the Home.css media query). display:contents on desktop, so
-          the pinned-pan layout is untouched. */}
+      {/* Below 900px this holds real box content (Home.css); above it,
+          display:contents takes the wrapper itself out of the layout so
+          the pinned-pan section is untouched, while its progress child —
+          positioned absolutely against .home-frames — still renders as a
+          status bar pinned to the bottom of the viewport-filling section
+          for the whole scroll-hijack. */}
       <div className="home-frames__foot">
-        {/* One-time nudge that the strip scrolls sideways. aria-hidden: a
-            screen-reader user tabs the frames directly and isn't swiping. */}
+        {/* One-time nudge that the strip scrolls sideways (touch layout).
+            aria-hidden: a screen-reader user tabs the frames directly and
+            isn't swiping. */}
         <AnimatePresence>
           {narrow && showSwipeHint && (
             <motion.p
@@ -519,9 +584,12 @@ function Frames() {
           )}
         </AnimatePresence>
 
-        {/* The swipeable strip's native scrollbar is hidden for a cleaner
-            look, so this fill is the persistent "there's more, here's where
-            you are" cue. */}
+        {/* The swipeable/pinned strip's native scrollbar is hidden (or
+            replaced by a pin) for a cleaner look either way, so this fill
+            is the persistent "there's more, here's where you are" cue on
+            both layouts — driven by a scroll listener on touch/reduced
+            motion, by the pin's own scrub progress on desktop (see the
+            scrollTrigger's onUpdate above). */}
         <div className="home-frames__progress" aria-hidden="true">
           <div className="home-frames__progress-fill" ref={progressFill} />
         </div>
@@ -548,6 +616,15 @@ function Frames() {
 function Closer() {
   return (
     <section className="home-closer">
+      {/* Names the owner's actual next trip — a real calendar fact he
+          maintains by hand, not a claim about which city still lacks
+          photos on the site (Guangzhou already has 17 live here; this is
+          a planned return visit). Worth being explicit about that
+          distinction in code, since an earlier pass mistook this for the
+          same kind of stale-data risk cities.js itself is prone to and
+          made it evergreen — reverted at the owner's direction: he wants
+          visitors to know what to look out for next, which only a named
+          city actually tells them. */}
       <p className="home-closer__lead">
         The archive grows after every trip. Guangzhou is next.
       </p>

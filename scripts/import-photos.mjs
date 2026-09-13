@@ -36,6 +36,7 @@ import path from 'node:path';
 import exifr from 'exifr';
 import sharp from 'sharp';
 import { makeThumb, toWebpName } from './generate-thumbs.mjs';
+import { resolveTakenAt } from './lib/taken-at.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.resolve(__dirname, '..');
@@ -197,6 +198,16 @@ async function processPhoto(item, cityMap) {
     src: publicPath,
     alt: `${city.name}, ${city.country}`,
     orientation,
+    // Sortable capture date for the Gallery's "Latest" sort — see
+    // resolveTakenAt for the fallback chain. Kept separate from
+    // metaEntry.date below: that one is a pre-formatted display string,
+    // this one is always a real ISO 8601 value so a plain string compare
+    // sorts newest-first with no parsing at render time.
+    takenAt: resolveTakenAt({
+      exifDate: exif.DateTimeOriginal,
+      metaDate: null, // fresh import — no prior photo-meta.js entry to fall back to
+      cityYear: city.year,
+    }),
   };
   const metaEntry = {
     camera:   fmtCamera(exif.Make, exif.Model),
@@ -215,6 +226,14 @@ async function processPhoto(item, cityMap) {
     photoEntry, metaEntry, gpsWarning, isBackfill,
     // Hero promotion only happens on fresh imports for cities without a real hero
     promoteToHero: !isBackfill && (!city.heroImage || /placeholder|hero-web\.jpg/i.test(city.heroImage)),
+    // Every fresh import lands with photoEntry.alt as the generic
+    // "City, Country" fallback above — there's no other source for a real
+    // description at import time. A backfill re-runs EXIF/date only and
+    // never touches an existing alt, so it's exempt. This is what the
+    // end-of-run summary warns about: Hangzhou's 68 photos all shipped
+    // with this exact fallback and nothing ever flagged it, so the next
+    // city landed the same gap silently too.
+    usesGenericAlt: !isBackfill,
   };
 }
 
@@ -249,7 +268,7 @@ async function rewriteCities(results) {
     const lines = entries.map((r) => {
       const o = r.photoEntry;
       // Match the existing single-line style used elsewhere in cities.js
-      return `      { src: '${o.src}', alt: '${o.alt.replace(/'/g, "\\'")}', orientation: '${o.orientation}' },`;
+      return `      { src: '${o.src}', alt: '${o.alt.replace(/'/g, "\\'")}', orientation: '${o.orientation}', takenAt: '${o.takenAt}' },`;
     }).join('\n');
 
     src = src.replace(cityBlockRe, (m, head, body, tail) => {
@@ -420,6 +439,21 @@ async function main() {
     console.log(`  · ${slug}: +${rs.length}  [${rs.map((r) => r.filename).join(', ')}]${hero}`);
   }
   console.log(c.dim(`\nUpdated: ${path.relative(ROOT, META_FILE)}, ${path.relative(ROOT, CITIES_FILE)}`));
+
+  // Nothing here can write a real description — this is a nudge, not a
+  // block, so the import still completes either way. Without this, a
+  // whole city (Hangzhou: 68 photos, 34.5% of the site at the time this
+  // was added) can go live with every single photo announcing only
+  // "City, Country" to a screen reader, and nothing during the import
+  // itself ever says so.
+  const genericAlt = results.filter((r) => r.usesGenericAlt);
+  if (genericAlt.length > 0) {
+    const bySlugAlt = genericAlt.reduce((m, r) => { (m[r.slug] ??= 0); m[r.slug]++; return m; }, {});
+    console.log(c.yellow(`\n! ${genericAlt.length} photo(s) still carry the generic "City, Country" alt text:`));
+    for (const [slug, n] of Object.entries(bySlugAlt)) {
+      console.log(c.yellow(`  · ${slug}: ${n} photo(s) — write real, specific alt text before this ships.`));
+    }
+  }
   console.log(c.dim(`Archived inbox files to: ${path.relative(ROOT, PROCESSED)}/<timestamp>/`));
   if (DRY) console.log(c.yellow('\n(Dry run — no files were changed.)'));
 }

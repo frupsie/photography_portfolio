@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "import-photos": "node scripts/import-photos.mjs",
     "generate-thumbs": "node scripts/generate-thumbs.mjs",
-    "generate-og": "node scripts/generate-og.mjs"
+    "generate-og": "node scripts/generate-og.mjs",
+    "backfill-photo-dates": "node scripts/backfill-photo-dates.mjs"
   },
   "dependencies": {
     "exifr": "^7.1.3",

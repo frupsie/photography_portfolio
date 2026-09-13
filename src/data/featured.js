@@ -16,7 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const featured = [
-  { photo: '/photos-web/hong-kong/_MG_3601.JPG',  city: 'Hong Kong', country: 'China',       year: '2023' },
+  { photo: '/photos-web/hangzhou/_MG_8680.JPG',    city: 'Hangzhou',  country: 'China',       year: '2026' },
   { photo: '/photos-web/seoul/_MG_3836.JPG',       city: 'Seoul',     country: 'South Korea', year: '2024' },
   { photo: '/photos-web/hainan/IMG_9696.JPG',      city: 'Hainan',    country: 'China',       year: '2025' },
   { photo: '/photos-web/kyoto/IMG_0486.JPG',       city: 'Kyoto',     country: 'Japan',       year: '2025' },

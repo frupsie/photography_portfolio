@@ -1035,7 +1035,7 @@
   width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
-  border-radius: 3px;
+  border-radius: 16px;
 }
 
 .ap-about__candids {
@@ -1054,7 +1054,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: cover;
-  border-radius: 3px;
+  border-radius: 12px;
 }
 
 /* The grid already top-aligns .ap-about__photo and .ap-about__body to the
@@ -1073,6 +1073,9 @@
   line-height: 1.85;
   color: var(--text-muted);
   margin: 0 0 20px;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
 }
 
 .ap-bio strong { color: var(--text); font-weight: 500; }
@@ -1303,6 +1306,16 @@
 }
 
 .ap-gear__row:first-of-type { border-top: 1px solid var(--glass-border); }
+
+/* Same treatment as .ap-stats-exif__note above — text-muted alone already
+   clears contrast, no opacity needed on top. More top margin than that one
+   (16px vs 8px): this follows a multi-row bordered grid, not a single
+   inline stat, and reads as a stray fragment without the extra separation. */
+.ap-gear__note {
+  margin-top: 16px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
 
 .ap-gear__cat {
   /* Was 0.68rem (10.88px) — under the 11px legibility floor. */
@@ -1944,6 +1957,64 @@
   pointer-events: none;
 }
 
+/* Sort toggle — a filled segmented control, deliberately not another
+   outline pill: it answers a different question ("in what order") than
+   the pills beside it ("which photos"), and reads faster as a toggle
+   switch than as a third tier of filter. Mono, like the tally in the page
+   header above — both are "about how you're viewing the data" rather
+   than content, the same pairing already used there. margin-left:auto
+   pushes it to the row's far edge without disturbing the pills' own
+   left-packed flow or wrap behavior. */
+.gallery-sort {
+  display: inline-flex;
+  margin-left: auto;
+  padding: 3px;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  background: var(--bg-secondary);
+}
+
+.gallery-sort__option {
+  padding: 5px 14px;
+  border-radius: 17px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  /* Was 0.68rem (10.88px) — under this project's established 11px
+     legibility floor for functional text (same fix already applied to
+     .ap-gear__cat and .city-page__count). Detector-caught, not something
+     manual review flagged. The mobile override below (0.58rem) is a
+     separate, deliberate, explicitly-requested smaller size for that
+     layout specifically and is untouched by this. */
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+
+.gallery-sort__option:hover {
+  color: var(--text);
+}
+
+.gallery-sort__option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Filled, not outlined — see the comment on .gallery-sort above for why
+   the active state deliberately doesn't match .gallery-filter__pill--active.
+   Contrast: --bg text on --accent fill measures ~6.2:1, the same pairing
+   already vetted for .gallery-page__tally on this exact page. */
+.gallery-sort__option--active {
+  background: var(--accent);
+  color: var(--bg);
+}
+.gallery-sort__option--active:hover {
+  color: var(--bg);
+}
+
 /* Touch target size, keyed to input method rather than viewport width — a
    touchscreen laptop or a tablet in landscape needs this as much as a
    phone does, and a narrow desktop window with a mouse doesn't need it at
@@ -1966,10 +2037,20 @@
      landing at ~40px, still short of the 44px floor despite the padding
      already being deliberately preserved here (see comment above) — a
      fixed floor is more robust than tuning padding against line-height
-     again and getting the same near-miss. */
-  .gallery-filter__pill { padding: 12px 10px; min-height: 44px; }
-  .gallery-filter__row--sub .gallery-filter__pill { padding: 10px 12px; min-height: 44px; }
+     again and getting the same near-miss. min-height is what actually
+     guarantees the 44px tap target, not the padding number — so padding
+     and font-size below are free to shrink for a thinner, smaller-reading
+     pill without the touch target shrinking with them. */
+  .gallery-filter__pill { padding: 12px 8px; min-height: 44px; font-size: 0.7rem; }
+  .gallery-filter__row--sub .gallery-filter__pill { padding: 10px 10px; min-height: 44px; font-size: 0.66rem; }
   .gallery-filter__divider { margin: 0 4px; }
+  /* Deliberately below the 44px floor the pills beside it hold to — a
+     sort order toggle is lower-stakes than the filter pills (nothing
+     here is destructive, and mis-tapping just re-taps), and this was a
+     direct, repeated request to shrink the pill itself, not just the
+     type inside it. */
+  .gallery-sort__option { padding: 4px 8px; min-height: 28px; font-size: 0.58rem; }
+  .gallery-sort { padding: 2px; }
 
   /* Once the filter bar is pinned (see .gallery-filter--stuck, driven from
      GalleryPage.jsx), a many-city country's wrapped sub-row plus the 44px
@@ -2273,6 +2354,14 @@
   /* Gallery */
   .gallery-page { padding: 88px 20px 48px; }
   .gallery-page__title { font-size: clamp(1.8rem, 8vw, 2.4rem); }
+  /* Below this width the sort toggle didn't fit beside the country pills
+     and wraps onto its own line naturally — but margin-left:auto (its
+     desktop right-alignment) then had nothing to push against on a line
+     it had entirely to itself, landing it flush right with a conspicuous
+     empty gap to its left. Resetting margin-left is enough to left-align
+     it there, matching the pills' own rhythm; it stays sized to its two
+     buttons rather than stretching to fill the line. */
+  .gallery-sort { margin-left: 0; margin-top: 10px; }
 
   /* Other pages */
   .city-page { padding: 80px 20px 48px; }
@@ -2967,7 +3056,12 @@
 
 .footer__copy {
   font-size: 0.65rem;
-  letter-spacing: 0.1em;
+  /* Was 0.1em — flagged as wide tracking on body text, and on copy this
+     small (10.4px) it compounded the legibility cost instead of just
+     being a stylistic flourish. 0.08em matches the tracking already used
+     for small mono/caps labels elsewhere (.gallery-page__tally,
+     .gallery-sort__option). */
+  letter-spacing: 0.08em;
   /* Was rgba(200,184,160,0.2), which resolved to 1.49:1. Alpha made the
      contrast depend on whatever sat behind it; a token does not. */
   color: var(--text-muted);

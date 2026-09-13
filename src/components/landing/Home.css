@@ -322,13 +322,51 @@
 }
 .home-frame:hover .home-frame__cap { color: var(--home-gold); }
 
-/* Mobile swipeable-strip affordances: a one-time swipe nudge and a
-   persistent progress fill, together replacing the strip's hidden native
-   scrollbar. The wrapper is display:contents here so the desktop
-   pinned-pan layout is untouched; the touch media query below turns the
-   whole cluster on. */
+/* Swipeable-strip (touch) and pinned-pan (desktop) affordances: a one-time
+   nudge explaining the gesture, and a persistent progress fill standing in
+   for the strip's hidden native scrollbar / the pin's consumed scrollbar.
+   The wrapper is display:contents on desktop-width so the pinned-pan
+   section's own layout is untouched — its children are still positioned
+   independently there (see the min-width query below). The <=900px query
+   further down turns the whole cluster into real in-flow box content for
+   touch instead. */
 .home-frames__foot { display: contents; }
 .home-frames__progress { display: none; }
+/* Fill styling is shared between both layouts — only the container's
+   display/position (mobile: in-flow block; desktop: pinned to the
+   section's bottom edge) differs between the two media queries below. */
+.home-frames__progress-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--home-gold);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  /* Set imperatively from scroll/scrub position, not transitioned: a
+     transition here would lag a fast swipe or scroll instead of tracking
+     it. */
+}
+
+/* Desktop: the progress bar becomes a status bar pinned to the bottom
+   edge of the section itself — .home-frames has position:relative and
+   is what GSAP pins, so an absolutely-positioned child here stays
+   anchored on screen for the section's whole pinned duration. Driven by
+   the pin's own scrub progress (scrollTrigger's onUpdate in Home.jsx),
+   not a scroll listener — there's no scrollable element to listen on
+   here, the pin owns the scroll. */
+@media (min-width: 901px) {
+  .home-frames__progress {
+    display: block;
+    position: absolute;
+    left: 6vw;
+    right: 6vw;
+    bottom: 6vh;
+    height: 2px;
+    background: var(--home-rule);
+    overflow: hidden;
+    border-radius: 2px;
+  }
+}
 
 /* ── 4. Closer ── */
 .home-closer {
@@ -341,7 +379,13 @@
   font-family: var(--home-display);
   font-weight: 600;
   font-size: clamp(2rem, 5.5vw, 4.4rem);
-  line-height: 1.02;
+  /* Was 1.02 — confirmed live this wraps to 2 lines at typical widths
+     (16ch max-width against up to 4.4rem text), and at 1.02 the lines
+     sat close enough to touch, with barely more gap than the font-size
+     itself. 1.1 keeps the tight, confident display-type character (still
+     well under a body-text line-height) while giving a wrapped headline
+     real breathing room between lines. */
+  line-height: 1.1;
   letter-spacing: -0.03em;
   max-width: 16ch;
   margin: 0 0 6vh;
@@ -459,16 +503,8 @@
     overflow: hidden;
     border-radius: 2px;
   }
-  .home-frames__progress-fill {
-    position: absolute;
-    inset: 0;
-    background: var(--home-gold);
-    border-radius: 2px;
-    transform: scaleX(0);
-    transform-origin: left;
-    /* Set imperatively from scroll position, not transitioned: a transition
-       here would lag a fast swipe instead of tracking the finger. */
-  }
+  /* .home-frames__progress-fill's own styling is shared with desktop —
+     see the base rule above. */
 }
 
 /* Small travel toward the pan direction, then back — enough to read as

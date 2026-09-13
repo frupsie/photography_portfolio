@@ -12,38 +12,63 @@ import { useMatchMedia } from '../../hooks/useMatchMedia';
 // index, which previously hand-maintained its own, different order.
 const countries = countriesByYear;
 
+// Same chronological order, applied to the cities themselves — not just
+// the filter pills above. Without this, buildPhotoList below walked
+// `cities` in raw array order (China, Japan, South Korea, by whichever
+// order they were first added to cities.js), so the "Location" grid's own
+// country dividers read China -> Japan -> South Korea while the pills
+// directly above them already read China -> South Korea -> Japan. Same
+// three countries, two different orders, on the same page. Cities within
+// a country keep their existing relative order — only country-level
+// grouping was ever mismatched.
+const CITIES_BY_COUNTRY_YEAR = countriesByYear.flatMap(
+  (country) => cities.filter((c) => c.country === country),
+);
+
 // Build a flat photo list from every city.
 // Deduped by `src`: a hero is often also the first entry in photos[].
+// Absolute floor for a photo with no takenAt at all — every photo written
+// by import-photos.mjs or the backfill script has one (see
+// scripts/lib/taken-at.mjs's own fallback chain), so this only guards
+// against genuinely hand-edited cities.js entries that skipped both.
+// Oldest possible value: sorts to the very end of "Latest" rather than
+// throwing or landing implausibly at the top.
+const NO_DATE = '1970-01-01T00:00:00.000Z';
+
 function buildPhotoList() {
   const list = [];
   const seen = new Set();
-  const push = (src, orientation, city, alt) => {
+  const push = (src, orientation, city, alt, takenAt) => {
     if (!src || seen.has(src)) return;
     seen.add(src);
     // alt carried through from cities.js. It was being dropped here, so every
     // grid image announced only its city name even where a real description
     // existed; CityPage was already using photo.alt correctly.
     // year rides along too, for the scroll dividers below — real capture
-    // data, not a decorative label.
-    list.push({ src, city: city.name, country: city.country, slug: city.slug, year: city.year, orientation, alt });
+    // data, not a decorative label. takenAt is the per-photo counterpart
+    // used by the "Latest" sort — year alone is too coarse to order by.
+    list.push({ src, city: city.name, country: city.country, slug: city.slug, year: city.year, orientation, alt, takenAt: takenAt ?? NO_DATE });
   };
 
-  cities.forEach(city => {
+  CITIES_BY_COUNTRY_YEAR.forEach(city => {
     if (city.heroImage && !city.heroImage.includes('placeholder')) {
       // The hero file usually appears in city.photos too, where it carries a
       // real description. Because the hero is pushed first and `seen` dedupes
-      // by src, pushing it without that alt made the described version
-      // unreachable and left the grid announcing "City, Country".
+      // by src, pushing it without that alt (or takenAt) made the described,
+      // dated version unreachable and left the grid announcing "City,
+      // Country" with no sortable date behind it.
       const heroEntry = city.photos?.find(
         (ph) => (typeof ph === 'string' ? ph : ph.src) === city.heroImage,
       );
-      push(city.heroImage, 'landscape', city, typeof heroEntry === 'object' ? heroEntry?.alt : undefined);
+      const heroObj = typeof heroEntry === 'object' ? heroEntry : undefined;
+      push(city.heroImage, 'landscape', city, heroObj?.alt, heroObj?.takenAt);
     }
     city.photos.forEach(photo => {
       const src         = typeof photo === 'string' ? photo : photo.src;
       const orientation = typeof photo === 'string' ? 'landscape' : (photo.orientation ?? 'landscape');
       const alt         = typeof photo === 'string' ? undefined : photo.alt;
-      push(src, orientation, city, alt);
+      const takenAt      = typeof photo === 'string' ? undefined : photo.takenAt;
+      push(src, orientation, city, alt, takenAt);
     });
   });
   return list;
@@ -77,27 +102,55 @@ export default function GalleryPage() {
   const cityMeta   = cityParam ? cities.find(c => c.name === cityParam) : null;
   const selCity    = cityParam || null;
   const selCountry = cityMeta ? cityMeta.country : (searchParams.get('country') || null);
+  // Orthogonal to filtering, not a third filter level — any value other
+  // than 'latest' reads as the default. 'location' is never written to the
+  // URL for that state; its absence already means it.
+  const sortLatest = searchParams.get('sort') === 'latest';
 
   // ── Navigation helpers ──────────────────────────────────────────────────────
   // Plain pushes (not `replace`) on purpose: each filter change is a real
   // step in browser history, so back steps out one selection at a time
   // instead of leaving the page entirely — the exact behavior missing
   // before.
+  //
+  // Each helper carries `sort` forward explicitly. setSearchParams replaces
+  // the whole query string, not just the keys it's given — without this, the
+  // first filter click after choosing "Latest" would silently reset the sort
+  // back to "Location" along with it, even though the two are meant to be
+  // independent choices.
 
-  const clearAll      = () => setSearchParams({});
-  const selectCountry = (c) => setSearchParams({ country: c });
+  const clearAll      = () => setSearchParams(sortLatest ? { sort: 'latest' } : {});
+  const selectCountry = (c) => setSearchParams(sortLatest ? { country: c, sort: 'latest' } : { country: c });
   const selectCity    = (name) => {
     const meta = cities.find(c => c.name === name);
-    setSearchParams(meta ? { country: meta.country, city: name } : { city: name });
+    const base = meta ? { country: meta.country, city: name } : { city: name };
+    setSearchParams(sortLatest ? { ...base, sort: 'latest' } : base);
+  };
+  // Changing sort order reshuffles which photo sits at any given grid
+  // position, so an open lightbox (?photo=<index>) is no longer pointing at
+  // what it was — same reasoning as why a filter change closes it too.
+  const selectSort = (latest) => {
+    const next = new URLSearchParams(searchParams);
+    if (latest) next.set('sort', 'latest'); else next.delete('sort');
+    next.delete('photo');
+    setSearchParams(next);
   };
 
   // ── Derived state ───────────────────────────────────────────────────────────
 
   const filtered = useMemo(() => {
-    if (selCity)    return ALL_PHOTOS.filter(p => p.city === selCity);
-    if (selCountry) return ALL_PHOTOS.filter(p => p.country === selCountry);
-    return ALL_PHOTOS;
-  }, [selCity, selCountry]);
+    const base = selCity ? ALL_PHOTOS.filter(p => p.city === selCity)
+      : selCountry ? ALL_PHOTOS.filter(p => p.country === selCountry)
+      : ALL_PHOTOS;
+    if (!sortLatest) return base;
+    // Newest capture first. localeCompare on ISO 8601 strings sorts
+    // chronologically with no Date parsing at render time — the whole
+    // point of resolving takenAt once, at import/backfill time, instead of
+    // here. Array.prototype.sort is stable, so same-instant fallback dates
+    // (see NO_DATE / resolveTakenAt) keep their existing location-grouped
+    // relative order rather than shuffling.
+    return [...base].sort((a, b) => b.takenAt.localeCompare(a.takenAt));
+  }, [selCity, selCountry, sortLatest]);
 
   // Lightbox index lives in ?photo= for the same reason the filter does —
   // shareable, refresh-safe, and (the part that was still missing) a real
@@ -275,7 +328,7 @@ export default function GalleryPage() {
           unfiltered photos deep. */}
       <div className={`gallery-filter${filterStuck ? ' gallery-filter--stuck' : ''}`}>
 
-        {/* Row 1 — All + Countries */}
+        {/* Row 1 — All + Countries, sort at the far edge */}
         <div className="gallery-filter__row gallery-filter__row--main">
           <FilterPill
             label="All"
@@ -293,6 +346,34 @@ export default function GalleryPage() {
               levelId="country"
             />
           ))}
+
+          {/* Orthogonal to the pills above, not a third one — a filled
+              segmented toggle rather than another outline pill, so it
+              reads as a different kind of control (how the list is
+              ordered) rather than one more thing to pick from (what's in
+              it). margin-left:auto pushes it to the row's far edge while
+              this row still wraps normally on narrow screens; it never
+              gets caught in the pointer:coarse "hide while stuck" rule
+              below, which only targets the city sub-row — this is a
+              persistent control, not a drill-down level. */}
+          <div className="gallery-sort" role="group" aria-label="Sort photos by">
+            <button
+              type="button"
+              className={`gallery-sort__option${!sortLatest ? ' gallery-sort__option--active' : ''}`}
+              aria-current={!sortLatest ? 'true' : undefined}
+              onClick={() => selectSort(false)}
+            >
+              Location
+            </button>
+            <button
+              type="button"
+              className={`gallery-sort__option${sortLatest ? ' gallery-sort__option--active' : ''}`}
+              aria-current={sortLatest ? 'true' : undefined}
+              onClick={() => selectSort(true)}
+            >
+              Latest
+            </button>
+          </div>
         </div>
 
         {/* Row 2 — Cities (shown when a country is selected) */}
@@ -340,7 +421,13 @@ export default function GalleryPage() {
               // since the active filter pill already says where you are.
               // Country tier only fires in the true "All" view — it's the
               // only context that ever spans more than one country.
-              const isNewCity    = !selCity && (i === 0 || photo.city !== prev.city);
+              // Location-sort only: these are place boundaries in a
+              // place-grouped list. Sorted by Latest, adjacent photos are
+              // adjacent because of when they were taken, not where —
+              // grouping them under a city heading they may not share with
+              // their actual neighbor would misdescribe the order they're
+              // actually in.
+              const isNewCity    = !sortLatest && !selCity && (i === 0 || photo.city !== prev.city);
               const isNewCountry = isNewCity && !selCountry && (i === 0 || photo.country !== prev.country);
               if (isNewCity) {
                 // Heading level follows what's actually above it in the
