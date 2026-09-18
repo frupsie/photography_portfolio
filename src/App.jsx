@@ -24,7 +24,7 @@ const NotFound    = lazy(() => import('./components/pages/NotFound'));
 
 const INTRO_KEY = 'jayden_intro_seen';
 const SITE_NAME = 'Jayden Ng';
-const HOME_TITLE = 'Jayden Ng: Travel & Street Photography Across Asia';
+const HOME_TITLE = 'Jayden Ng — Photography';
 
 // One central place derives the title for every route (including Gallery's
 // own filter state, carried in the URL's search params — no need for
