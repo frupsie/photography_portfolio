@@ -129,7 +129,7 @@ export default function ContactPage() {
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
           access_key: WEB3FORMS_KEY,
-          subject: `Portfolio enquiry from ${form.name}`,
+          subject: `Enquiry from ${form.name}`,
           from_name: 'Jayden Ng Photography',
           name: form.name,
           email: form.email,
