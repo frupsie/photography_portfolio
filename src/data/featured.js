@@ -22,7 +22,7 @@ export const featured = [
   { photo: '/photos-web/kyoto/IMG_0486.JPG',       city: 'Kyoto',     country: 'Japan',       year: '2025' },
   { photo: '/photos-web/macau/DSCF6879.JPG',       city: 'Macau',     country: 'China',       year: '2025' },
   { photo: '/photos-web/nikko/IMG_1474.JPG',       city: 'Nikko',     country: 'Japan',       year: '2025' },
-  { photo: '/photos-web/hakone/IMG_1173.JPG',      city: 'Hakone',    country: 'Japan',       year: '2025' },
+  { photo: '/photos-web/hangzhou/_MG_8708.JPG',    city: 'Hangzhou',  country: 'China',       year: '2026' },
   { photo: '/photos-web/shenzhen/DSCF6768.jpg',    city: 'Shenzhen',  country: 'China',       year: '2025' },
   { photo: '/photos-web/guangzhou/IMG_5735.JPG',   city: 'Guangzhou', country: 'China',       year: '2025' },
 ];

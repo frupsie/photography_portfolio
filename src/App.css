@@ -359,7 +359,16 @@
   .intro__level {
     transform: translate(-50%, 22px);
   }
-  
+
+  /* The focus box scales with viewport (min(140px, 29%)), but "SEARCHING…"
+     at the desktop's 0.22em tracking doesn't — it measures ~101px
+     regardless of screen width, wider than the box itself (93-109px) on
+     any phone under ~480px. Confirmed live: the label spilled past its own
+     frame border. Desktop keeps the full tracking, where the box is
+     comfortably wider than the label already. */
+  .intro__af-status {
+    letter-spacing: 0.08em;
+  }
 }
 
 .intro__loading-track {
