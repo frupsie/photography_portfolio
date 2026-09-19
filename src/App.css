@@ -1458,8 +1458,11 @@
   .ap-stat__num { font-size: 2.1rem; }
   .ap-about { grid-template-columns: 1fr; gap: 32px; padding: 40px 24px; }
   /* Stacked single-column: without a cap, the portrait would run edge to
-     edge and its 3:4 crop would come out taller than the viewport. */
-  .ap-about__photo { max-width: 320px; }
+     edge and its 3:4 crop would come out taller than the viewport. The cap
+     alone left it pinned to the left edge (7px off-centre at 375px, far more
+     on a wide phone or small tablet), so it's centred in the column too.
+     width:100% is explicit because auto margins stop a grid item stretching. */
+  .ap-about__photo { width: 100%; max-width: 320px; margin-inline: auto; }
   .ap-divider { padding: 40px 24px 0; }
   .ap-gear { padding: 28px 24px 0; }
   .ap-gear__row { grid-template-columns: 100px 1fr; gap: 16px; }
