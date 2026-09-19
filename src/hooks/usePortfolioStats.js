@@ -3,7 +3,7 @@
  *
  * Sources:
  *   cities.js    → city count, country count, published photo count
- *   photo-meta.js → most-used focal length, favourite aperture, camera body count
+ *   photo-meta.js → most-used focal length, favourite aperture
  *
  * Everything is computed once at module load (no async / no fetching).
  * Real EXIF wins where present; photo-meta fills the rest.
@@ -41,11 +41,9 @@ export function usePortfolioStats() {
   const metaValues  = Object.values(photoMeta);
   const focals      = metaValues.map((m) => m.focal).filter(Boolean);
   const apertures   = metaValues.map((m) => m.aperture).filter(Boolean);
-  const cameraNames = metaValues.map((m) => m.camera).filter(Boolean);
 
   const favFocal    = mostCommon(focals);
   const favAperture = mostCommon(apertures);
-  const cameraCount = new Set(cameraNames).size;
 
   _cache = {
     cities:       cityCount,
@@ -53,7 +51,6 @@ export function usePortfolioStats() {
     photos:       photoCount,
     favFocal,
     favAperture,
-    cameras:      cameraCount,
   };
 
   return _cache;

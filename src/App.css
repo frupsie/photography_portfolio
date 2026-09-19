@@ -1084,7 +1084,10 @@
   margin: 0 0 20px;
   text-align: justify;
   text-justify: inter-word;
-  hyphens: auto;
+  /* Never split a word across lines with a dash. hyphens:auto was here to
+     tighten justified gaps on a narrow column, but on a phone it chopped
+     ordinary words ("photog-raphers") mid-word. Whole words only. */
+  hyphens: none;
 }
 
 .ap-bio strong { color: var(--text); font-weight: 500; }
@@ -1147,21 +1150,6 @@
   font-size: 0.7rem;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-/* One line clarifying that "Camera Bodies" counts the full archive
-   (including two bodies each represented by a single photo), not just the
-   active kit listed below — without this the two numbers read as a
-   self-contradiction on the one page built to prove range and consistency.
-   font-size and color were wrong on the first pass: 0.72rem is fine for a
-   short UI label but this is a 75-character sentence, and tiny-text's own
-   floor for body-length copy is 12px, not 11px. The opacity on top of
-   text-muted also dropped contrast to 3.38:1 — text-muted alone is already
-   5.12:1, plenty; the opacity was pure loss. */
-.ap-stats-exif__note {
-  margin-top: 8px;
-  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
@@ -1316,10 +1304,10 @@
 
 .ap-gear__row:first-of-type { border-top: 1px solid var(--glass-border); }
 
-/* Same treatment as .ap-stats-exif__note above — text-muted alone already
-   clears contrast, no opacity needed on top. More top margin than that one
-   (16px vs 8px): this follows a multi-row bordered grid, not a single
-   inline stat, and reads as a stray fragment without the extra separation. */
+/* text-muted alone already clears contrast (5.12:1), no opacity needed on
+   top. 16px top margin: this follows a multi-row bordered grid and reads as
+   a stray fragment without the extra separation. 0.8rem, not the 0.72rem of
+   short UI labels — this is a full sentence, where the floor is 12px. */
 .ap-gear__note {
   margin-top: 16px;
   font-size: 0.8rem;

@@ -67,6 +67,14 @@ const gear = [
   },
 ];
 
+// Counted from the Body list above rather than from photo-meta.js's distinct
+// camera strings. Those include two one-off bodies (an iPhone 12, a Canon
+// EOS R8) that show up on a single archived frame each and aren't Jayden's
+// kit, so they pushed this stat to 5 next to a 3-item gear list. The EXIF on
+// those individual photos stays untouched — this only decides what the
+// About page claims he shoots with.
+const BODY_COUNT = gear.find((g) => g.category === 'Body').items.length;
+
 const workflow = [
   { num: '01', label: 'Shoot RAW' },
   { num: '02', label: 'Cull' },
@@ -212,19 +220,10 @@ export default function AboutPage() {
             </div>
             <span className="ap-stats-exif__sep" aria-hidden>·</span>
             <div className="ap-stats-exif__item">
-              <span className="ap-stats-exif__val">{stats.cameras}</span>
+              <span className="ap-stats-exif__val">{BODY_COUNT}</span>
               <span className="ap-stats-exif__label">Camera Bodies</span>
             </div>
           </div>
-          {/* usePortfolioStats derives "Camera Bodies" from every distinct
-              camera string in photo-meta.js — including two bodies (an
-              iPhone 12, a Canon EOS R8) that appear on exactly one archived
-              photo each and aren't part of the active kit below. Without
-              this line the two numbers read as a contradiction on the one
-              page built to prove range and consistency. */}
-          <p className="ap-stats-exif__note">
-            Reflects every camera across the full archive, including retired bodies.
-          </p>
 
           {/* Contact is the primary action; Instagram is a lower-commitment
               second path for a visitor who wants more, less-curated work
